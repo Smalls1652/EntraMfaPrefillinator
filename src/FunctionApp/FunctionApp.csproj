@@ -22,6 +22,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>Never</CopyToPublishDirectory>
     </None>
+    <None Remove="local.settings.sample.json" />
   </ItemGroup>
 
   <ItemGroup>
