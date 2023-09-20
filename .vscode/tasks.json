@@ -18,6 +18,22 @@
 			"problemMatcher": "$msCompile"
 		},
 		{
+			"label": "Publish project",
+			"detail": "Publish a project.",
+			"type": "process",
+			"command": "dotnet",
+			"args": [
+				"publish",
+				"${workspaceFolder}/${input:projectItem}",
+				"--configuration",
+				"${input:dotnetConfiguration}"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"problemMatcher": "$msCompile"
+		},
+		{
 			"label": "Clean project",
 			"detail": "Clean a project.",
 			"type": "process",
@@ -112,7 +128,7 @@
                 "showReuseMessage": true,
                 "clear": true
             }
-        },
+        }
 	],
 	"inputs": [
 		{
@@ -135,7 +151,7 @@
 			"id": "projectItem",
 			"description": "Select a project.",
 			"type": "pickString",
-			"default": "src/PublicSite/Server",
+			"default": "src/FunctionApp",
 			"options": [
 				{
 					"label": "Entire solution",
@@ -144,6 +160,10 @@
 				{
 					"label": "Lib",
 					"value": "src/Lib"
+				},
+				{
+					"label": "FunctionApp",
+					"value": "src/FunctionApp"
 				}
 			]
 		},
