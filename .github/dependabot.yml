@@ -1,0 +1,19 @@
+version: 2
+updates:
+  # NuGet config for 'EntraMfaPrefillinator.Lib'
+  - package-ecosystem: "nuget"
+    directory: "/src/Lib"
+    target-branch: "main"
+    schedule:
+      interval: "daily"
+    assignees:
+      - "Smalls1652"
+  
+  # NuGet config for 'EntraMfaPrefillinator.FunctionApp'
+  - package-ecosystem: "nuget"
+    directory: "/src/FunctionApp"
+    target-branch: "main"
+    schedule:
+      interval: "daily"
+    assignees:
+      - "Smalls1652"
