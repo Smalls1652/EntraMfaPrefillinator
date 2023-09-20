@@ -1,0 +1,161 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Build project",
+			"detail": "Build a project.",
+			"type": "process",
+			"command": "dotnet",
+			"args": [
+				"build",
+				"${workspaceFolder}/${input:projectItem}",
+				"--configuration",
+				"${input:dotnetConfiguration}"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"problemMatcher": "$msCompile"
+		},
+		{
+			"label": "Clean project",
+			"detail": "Clean a project.",
+			"type": "process",
+			"command": "dotnet",
+			"args": [
+				"clean",
+				"${workspaceFolder}/${input:projectItem}",
+				"--configuration",
+				"${input:dotnetConfiguration}"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"problemMatcher": "$msCompile"
+		},
+		{
+			"label": "Restore project",
+			"detail": "Restore a project.",
+			"type": "process",
+			"command": "dotnet",
+			"args": [
+				"restore",
+				"${workspaceFolder}/${input:projectItem}"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"problemMatcher": "$msCompile"
+		},
+		{
+            "label": "Start FunctionApp",
+            "detail": "Start the Azure Function App locally.",
+            "icon": {
+                "id": "zap",
+                "color": "terminal.ansiYellow"
+            },
+            "type": "process",
+            "command": "func",
+            "args": [
+                "host",
+                "start",
+                "--language-worker",
+                "dotnet-isolated"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/src/FunctionApp/bin/Debug/net8.0"
+            },
+            "windows": {
+                "command": "func",
+                "args": [
+                    "host",
+                    "start",
+                    "--language-worker",
+                    "dotnet-isolated"
+                ],
+                "problemMatcher": "$func-dotnet-watch",
+                "options": {
+                    "shell": {
+                        "executable": "pwsh",
+                        "args": [
+                            "-Login",
+                            "-NoProfile",
+                            "-NoLogo"
+                        ]
+                    }
+                }
+            },
+            "isBackground": true,
+            "problemMatcher": "$func-dotnet-watch",
+            "dependsOn": [
+                "Build: FunctionApp"
+            ]
+        },
+        {
+            "label": "Build: FunctionApp",
+            "hide": true,
+            "type": "process",
+            "command": "dotnet",
+            "args": [
+                "build",
+                "${workspaceFolder}/src/FunctionApp/FunctionApp.csproj",
+                "--configuration",
+                "Debug",
+                "/property:GenerateFullPaths=true"
+            ],
+            "problemMatcher": "$msCompile",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": true
+            }
+        },
+	],
+	"inputs": [
+		{
+			"id": "dotnetConfiguration",
+			"description": "Select a configuration for compilation.",
+			"type": "pickString",
+			"default": "Debug",
+			"options": [
+				{
+					"label": "Debug",
+					"value": "Debug"
+				},
+				{
+					"label": "Release",
+					"value": "Release"
+				}
+			]
+		},
+		{
+			"id": "projectItem",
+			"description": "Select a project.",
+			"type": "pickString",
+			"default": "src/PublicSite/Server",
+			"options": [
+				{
+					"label": "Entire solution",
+					"value": "EntraMfaPrefillinator.sln"
+				},
+				{
+					"label": "Lib",
+					"value": "src/Lib"
+				}
+			]
+		},
+		{
+			"id": "containerPlatformArch",
+			"description": "Select a platform architecture for the container.",
+			"type": "pickString",
+			"default": "linux/arm64",
+			"options": [
+				"linux/amd64",
+				"linux/arm64"
+			]
+		}
+	]
+}
