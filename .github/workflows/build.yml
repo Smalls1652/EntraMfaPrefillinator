@@ -1,5 +1,5 @@
 # yaml-language-server: $schema=https://json.schemastore.org/github-workflow
-name: Build project
+name: Build
 on:
   push:
     paths-ignore: 
@@ -20,7 +20,7 @@ permissions:
 
 jobs:
   build:
-    name: Build
+    name: Build project
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
