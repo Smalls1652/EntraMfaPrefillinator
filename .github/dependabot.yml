@@ -17,3 +17,12 @@ updates:
       interval: "daily"
     assignees:
       - "Smalls1652"
+
+  # GitHub Actions config for the repo
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    target-branch: "main"
+    schedule:
+      interval: "daily"
+    assignees:
+      - "Smalls1652"
