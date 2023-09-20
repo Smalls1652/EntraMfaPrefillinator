@@ -1,9 +1,19 @@
 # yaml-language-server: $schema=https://json.schemastore.org/github-workflow
 name: Build project
 on:
-  - push
-  - pull_request
-  - workflow_dispatch
+  push:
+    paths-ignore: 
+        - "README.md"
+        - "LICENSE"
+        - ".vscode/**"
+        - ".github/dependabot.yml"
+  pull_request:
+    paths-ignore: 
+        - "README.md"
+        - "LICENSE"
+        - ".vscode/**"
+        - ".github/dependabot.yml"
+  workflow_dispatch:
 
 permissions:
   packages: read
