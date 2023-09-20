@@ -1,5 +1,7 @@
 # Microsoft Entra ID MFA/SSPR PreFillinator
 
+[![Build status on the "main" branch](https://github.com/Smalls1652/EntraMfaPrefillinator/actions/workflows/build.yml/badge.svg?branch=main&event=push)](https://github.com/Smalls1652/EntraMfaPrefillinator/actions/workflows/build.yml)
+
 > ⚠️ **Note:**
 >
 > This is a work-in-progress.
