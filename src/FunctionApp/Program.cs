@@ -37,10 +37,10 @@ hostBuilder
         );
 
         services.AddSingleton<IQueueClientService, QueueClientService>(
-                provider => new(
-                    connectionString: provider.GetRequiredService<IConfiguration>()["storageConnectionString"]
-                )
-            );
+            provider => new(
+                connectionString: provider.GetRequiredService<IConfiguration>()["storageConnectionString"]
+            )
+        );
     });
 
 var host = hostBuilder.Build();
