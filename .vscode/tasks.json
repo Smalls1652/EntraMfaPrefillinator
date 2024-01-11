@@ -230,6 +230,10 @@
 				{
 					"label": "FunctionApp",
 					"value": "src/FunctionApp"
+				},
+				{
+					"label": "Tools.CsvImporter",
+					"value": "src/Tools/CsvImporter"
 				}
 			]
 		},
