@@ -1,3 +1,5 @@
+local-files/
+
 __blobstorage__/
 __queuestorage__/
 __azurite_*.json
