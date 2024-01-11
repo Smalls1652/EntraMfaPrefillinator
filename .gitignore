@@ -11,6 +11,7 @@ local.settings.json
 
 # dotenv files
 .env
+.env.*
 
 # User-specific files
 *.rsuser
