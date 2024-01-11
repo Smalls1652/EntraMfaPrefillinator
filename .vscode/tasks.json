@@ -2,8 +2,56 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
+			"label": "Watch",
+			"detail": "Run the app for local debugging and watch for changes.",
+			"icon": {
+				"id": "eye-watch",
+				"color": "terminal.ansiCyan"
+			},
+			"type": "process",
+			"command": "dotnet",
+			"args": [
+				"watch",
+				"--",
+				"run",
+				"/consoleloggerparameters:NoSummary"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}/${input:watchProject}",
+				"env": {
+					"DOTNET_ENVIRONMENT": "Development"
+				}
+			},
+			"runOptions": {
+				"instanceLimit": 2,
+			},
+			"presentation": {
+				"echo": false,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": true
+			},
+			"isBackground": true,
+			"problemMatcher": [
+				{
+					"base": "$msCompile",
+					"background": {
+						"activeOnStart": true,
+						"beginsPattern": "^info: Microsoft.\\Hosting\\.Lifetime",
+						"endsPattern": "^\\s*Application started\\..+?$"
+					}
+				}
+			]
+		},
+		{
 			"label": "Build project",
 			"detail": "Build a project.",
+			"icon": {
+				"id": "tools",
+				"color": "terminal.ansiYellow"
+			},
 			"type": "process",
 			"command": "dotnet",
 			"args": [
@@ -18,24 +66,12 @@
 			"problemMatcher": "$msCompile"
 		},
 		{
-			"label": "Publish project",
-			"detail": "Publish a project.",
-			"type": "process",
-			"command": "dotnet",
-			"args": [
-				"publish",
-				"${workspaceFolder}/${input:projectItem}",
-				"--configuration",
-				"${input:dotnetConfiguration}"
-			],
-			"options": {
-				"cwd": "${workspaceFolder}"
-			},
-			"problemMatcher": "$msCompile"
-		},
-		{
 			"label": "Clean project",
 			"detail": "Clean a project.",
+			"icon": {
+				"id": "trashcan",
+				"color": "terminal.ansiBlack"
+			},
 			"type": "process",
 			"command": "dotnet",
 			"args": [
@@ -52,6 +88,10 @@
 		{
 			"label": "Restore project",
 			"detail": "Restore a project.",
+			"icon": {
+				"id": "sync",
+				"color": "terminal.ansiBlue"
+			},
 			"type": "process",
 			"command": "dotnet",
 			"args": [
@@ -64,71 +104,97 @@
 			"problemMatcher": "$msCompile"
 		},
 		{
-            "label": "Start FunctionApp",
-            "detail": "Start the Azure Function App locally.",
-            "icon": {
-                "id": "zap",
-                "color": "terminal.ansiYellow"
-            },
-            "type": "process",
-            "command": "func",
-            "args": [
-                "host",
-                "start",
-                "--language-worker",
-                "dotnet-isolated"
-            ],
-            "options": {
-                "cwd": "${workspaceFolder}/src/FunctionApp/bin/Debug/net8.0"
-            },
-            "windows": {
-                "command": "func",
-                "args": [
-                    "host",
-                    "start",
-                    "--language-worker",
-                    "dotnet-isolated"
-                ],
-                "problemMatcher": "$func-dotnet-watch",
-                "options": {
-                    "shell": {
-                        "executable": "pwsh",
-                        "args": [
-                            "-Login",
-                            "-NoProfile",
-                            "-NoLogo"
-                        ]
-                    }
-                }
-            },
-            "isBackground": true,
-            "problemMatcher": "$func-dotnet-watch",
-            "dependsOn": [
-                "Build: FunctionApp"
-            ]
-        },
-        {
-            "label": "Build: FunctionApp",
-            "hide": true,
-            "type": "process",
-            "command": "dotnet",
-            "args": [
-                "build",
-                "${workspaceFolder}/src/FunctionApp/FunctionApp.csproj",
-                "--configuration",
-                "Debug",
-                "/property:GenerateFullPaths=true"
-            ],
-            "problemMatcher": "$msCompile",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": true,
-                "panel": "shared",
-                "showReuseMessage": true,
-                "clear": true
-            }
-        }
+			"label": "Start FunctionApp",
+			"detail": "Start the Azure Function App locally.",
+			"icon": {
+				"id": "zap",
+				"color": "terminal.ansiYellow"
+			},
+			"type": "process",
+			"command": "func",
+			"args": [
+				"host",
+				"start",
+				"--language-worker",
+				"dotnet-isolated"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}/src/FunctionApp/bin/Debug/net8.0"
+			},
+			"windows": {
+				"command": "func",
+				"args": [
+					"host",
+					"start",
+					"--language-worker",
+					"dotnet-isolated"
+				],
+				"problemMatcher": "$func-dotnet-watch",
+				"options": {
+					"shell": {
+						"executable": "pwsh",
+						"args": [
+							"-Login",
+							"-NoProfile",
+							"-NoLogo"
+						]
+					}
+				}
+			},
+			"osx": {
+				"command": "func",
+				"args": [
+					"host",
+					"start",
+					"--language-worker",
+					"dotnet-isolated"
+				],
+				"problemMatcher": "$func-dotnet-watch",
+				"options": {
+					"shell": {
+						"executable": "pwsh",
+						"args": [
+							"-Login",
+							"-NoProfile",
+							"-NoLogo"
+						]
+					}
+				}
+			},
+			"isBackground": true,
+			"problemMatcher": "$func-dotnet-watch",
+			"dependsOn": [
+				"Build: EntraMfaPrefillinator.FunctionApp"
+			]
+		},
+		// Remaining tasks are only for the VSCode launch configs
+		// or are supporting tasks.
+		{
+			"label": "Build: EntraMfaPrefillinator.FunctionApp",
+			"detail": "Build the EntraMfaPrefillinator.FunctionApp project.",
+			"hide": true,
+			"type": "process",
+			"command": "dotnet",
+			"args": [
+				"build",
+				"${workspaceFolder}/src/FunctionApp",
+				"--configuration",
+				"Debug",
+				"/property:GenerateFullPaths=true"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"problemMatcher": "$msCompile",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": true
+			}
+		}
 	],
 	"inputs": [
 		{
