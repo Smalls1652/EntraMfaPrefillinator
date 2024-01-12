@@ -6,6 +6,11 @@ public partial class GraphClientService
 {
     public async Task<EmailAuthenticationMethod> AddEmailAuthenticationMethodAsync(string userId, string emailAddress)
     {
+        if (_disableUpdateMethods)
+        {
+            throw new GraphClientDryRunException("AddEmailAuthenticationMethodAsync() was called, but the service is currently configured to disable update methods.");
+        }
+
         string apiEndpoint = $"users/{userId}/authentication/emailMethods";
 
         EmailAuthenticationMethod newEmailAuthMethod = new()

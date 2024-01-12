@@ -32,17 +32,38 @@ public class ProcessUserAuthUpdateQueue
             jsonTypeInfo: QueueJsonContext.Default.UserAuthUpdateQueueItem
         )!;
 
-        logger.LogInformation("Received request for {UserPrincipalName}.", queueItem.UserPrincipalName);
+        string userName = queueItem.UserName ?? queueItem.UserPrincipalName ?? throw new Exception("'userName' or 'userPrincipalName' must be supplied in the request.");
+
+        logger.LogInformation("Received request for '{userName}'.", userName);
 
         User user;
-        try
+        if (queueItem.UserName is not null || queueItem.EmployeeId is not null)
         {
-            user = await _graphClientService.GetUserAsync(queueItem.UserPrincipalName);
+            try
+            {
+                user = await _graphClientService.GetUserByUserNameAndEmployeeNumberAsync(queueItem.UserName, queueItem.EmployeeId);
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, "Error getting user, '{userName}' [{employeeId}].", queueItem.UserName, queueItem.EmployeeId);
+                throw;
+            }
         }
-        catch (Exception e)
+        else if (queueItem.UserPrincipalName is not null)
         {
-            logger.LogError(e, "Error getting user, {UserPrincipalName}.", queueItem.UserPrincipalName);
-            throw;
+            try
+            {
+                user = await _graphClientService.GetUserAsync(queueItem.UserPrincipalName);
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, "Error getting user, '{userPrincipalName}'.", queueItem.UserPrincipalName);
+                throw;
+            }
+        }
+        else
+        {
+            throw new Exception("'userName' and 'employeeId' or 'userPrincipalName' must be supplied in the request.");
         }
 
         if (queueItem.EmailAddress is not null)
@@ -51,7 +72,7 @@ public class ProcessUserAuthUpdateQueue
 
             if (emailAuthMethods is not null && emailAuthMethods.Length != 0)
             {
-                logger.LogWarning("'{UserPrincipalName}' already has email auth methods configured. Skipping...", queueItem.UserPrincipalName);
+                logger.LogWarning("'{userPrincipalName}' already has email auth methods configured. Skipping...", user.UserPrincipalName);
             }
             else
             {
@@ -62,18 +83,22 @@ public class ProcessUserAuthUpdateQueue
                         emailAddress: queueItem.EmailAddress
                     );
 
-                    logger.LogInformation("Added email auth method for {UserPrincipalName}.", queueItem.UserPrincipalName);
+                    logger.LogInformation("Added email auth method for '{userPrincipalName}'.", user.UserPrincipalName);
+                }
+                catch (GraphClientDryRunException)
+                {
+                    logger.LogWarning("Dry run is enabled. Skipping adding email auth method for '{userPrincipalName}'.", user.UserPrincipalName);
                 }
                 catch (Exception e)
                 {
-                    logger.LogError(e, "Error adding email auth method for {UserPrincipalName}.", queueItem.UserPrincipalName);
+                    logger.LogError(e, "Error adding email auth method for '{userPrincipalName}'.", user.UserPrincipalName);
                     throw;
                 }
             }
         }
         else
         {
-            logger.LogWarning("'{UserPrincipalName}' did not have an email address supplied in the request. Skipping...", queueItem.UserPrincipalName);
+            logger.LogWarning("'{userPrincipalName}' did not have an email address supplied in the request. Skipping...", user.UserPrincipalName);
         }
 
         if (queueItem.PhoneNumber is not null)
@@ -82,7 +107,7 @@ public class ProcessUserAuthUpdateQueue
 
             if (phoneAuthMethods is not null && phoneAuthMethods.Length != 0)
             {
-                logger.LogWarning("'{UserPrincipalName}' already has phone auth methods configured. Skipping...", queueItem.UserPrincipalName);
+                logger.LogWarning("'{userPrincipalName}' already has phone auth methods configured. Skipping...", user.UserPrincipalName);
             }
             else
             {
@@ -93,21 +118,25 @@ public class ProcessUserAuthUpdateQueue
                         phoneNumber: queueItem.PhoneNumber
                     );
 
-                    logger.LogInformation("Added phone auth method for {UserPrincipalName}.", queueItem.UserPrincipalName);
+                    logger.LogInformation("Added phone auth method for '{userPrincipalName}'.", user.UserPrincipalName);
+                }
+                catch (GraphClientDryRunException)
+                {
+                    logger.LogWarning("Dry run is enabled. Skipping adding phone auth method for '{userPrincipalName}'.", user.UserPrincipalName);
                 }
                 catch (Exception e)
                 {
-                    logger.LogError(e, "Error adding phone auth method for {UserPrincipalName}.", queueItem.UserPrincipalName);
+                    logger.LogError(e, "Error adding phone auth method for '{userPrincipalName}'.", user.UserPrincipalName);
                     throw;
                 }
             }
         }
         else
         {
-            logger.LogWarning("'{UserPrincipalName}' did not have a phone number supplied in the request. Skipping...", queueItem.UserPrincipalName);
+            logger.LogWarning("'{userPrincipalName}' did not have a phone number supplied in the request. Skipping...", user.UserPrincipalName);
         }
 
         stopwatch.Stop();
-        logger.LogInformation("Processed request for {UserPrincipalName} in {ElapsedMilliseconds}ms.", queueItem.UserPrincipalName, stopwatch.ElapsedMilliseconds);
+        logger.LogInformation("Processed request for '{userPrincipalName}' in {ElapsedMilliseconds}ms.", user.UserPrincipalName, stopwatch.ElapsedMilliseconds);
     }
 }

@@ -1,0 +1,49 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow
+name: CsvImporter / Create artifacts
+on:
+    workflow_dispatch:
+
+permissions:
+    packages: read
+
+jobs:
+    create-artifacts:
+        name: Create artifacts
+        runs-on: [ ubuntu-latest, windows-latest ]
+        env:
+            DOTNET_NOLOGO: true
+        
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                fetch-depth: 0
+            
+            - name: Setup .NET SDK
+              uses: actions/setup-dotnet@v4
+              with:
+                global-json-file: global.json
+
+            - name: Install .NET tools
+              run: dotnet tool restore
+
+            - name: Update project files with GitVersion
+              run: dotnet tool run dotnet-gitversion /updateprojectfiles
+
+            - name: Compile project (Windows)
+              if: ${{ runner.os == 'Windows' }}
+              run: |
+                dotnet restore ./src/Tools/CsvImporter/
+                dotnet publish ./src/Tools/CsvImporter/ --configuration "Release" --runtime "win-x64" --output "../../../artifacts/CsvImporter"
+
+            - name: Compile project (Linux)
+              if: ${{ runner.os == 'Linux' }}
+              run: |
+                dotnet restore ./src/Tools/CsvImporter/
+                dotnet publish ./src/Tools/CsvImporter/ --configuration "Release" --runtime "linux-x64" --output "../../../artifacts/CsvImporter"
+
+            - name: Create artifact
+              uses: actions/upload-artifact@v4
+              with:
+                name: "CsvImporter_${{ runner.os }}_${{ github.sha }}"
+                path: artifacts/CsvImporter

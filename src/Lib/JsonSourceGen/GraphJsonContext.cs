@@ -10,6 +10,7 @@ namespace EntraMfaPrefillinator.Lib;
 )]
 [JsonSerializable(typeof(User))]
 [JsonSerializable(typeof(User[]))]
+[JsonSerializable(typeof(GraphCollection<User>))]
 [JsonSerializable(typeof(EmailAuthenticationMethod))]
 [JsonSerializable(typeof(EmailAuthenticationMethod[]))]
 [JsonSerializable(typeof(GraphCollection<EmailAuthenticationMethod>))]

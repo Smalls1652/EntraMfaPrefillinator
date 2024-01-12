@@ -32,7 +32,8 @@ hostBuilder
                     {
                         "https://graph.microsoft.com/.default"
                     }
-                }
+                },
+                disableUpdateMethods: bool.Parse(provider.GetRequiredService<IConfiguration>()["dryRun"])
             )
         );
 
