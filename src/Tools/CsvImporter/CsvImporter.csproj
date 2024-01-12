@@ -5,6 +5,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <PublishAot>true</PublishAot>
   </PropertyGroup>
 
@@ -12,5 +13,9 @@
     <RootNamespace>EntraMfaPrefillinator.Tools.CsvImporter</RootNamespace>
     <AssemblyName>entramfacsvimporter</AssemblyName>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Lib\Lib.csproj" />
+  </ItemGroup>
 
 </Project>
