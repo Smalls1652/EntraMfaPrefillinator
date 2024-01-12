@@ -10,4 +10,10 @@ public class User : IUser
 
     [JsonPropertyName("userPrincipalName")]
     public string UserPrincipalName { get; set; } = null!;
+
+    [JsonPropertyName("employeeId")]
+    public string? EmployeeId { get; set; }
+
+    [JsonPropertyName("onPremisesSamAccountName")]
+    public string OnPremisesSamAccountName { get; set; } = null!;
 }
