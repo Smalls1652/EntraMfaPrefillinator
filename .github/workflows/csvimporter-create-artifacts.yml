@@ -49,4 +49,4 @@ jobs:
               uses: actions/upload-artifact@v4
               with:
                 name: "CsvImporter_${{ runner.os }}_${{ github.sha }}"
-                path: artifacts/CsvImporter
+                path: artifacts/CsvImporter/
