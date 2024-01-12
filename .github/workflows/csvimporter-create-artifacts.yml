@@ -43,6 +43,11 @@ jobs:
               run: |
                 dotnet msbuild ./src/Tools/CsvImporter/ -target:"Restore" -target:"Build" -target:"Publish" -property:"Configuration=Release" -property:"RuntimeIdentifier=linux-x64" -property:"EnableBuildOutDir=true" -property:"EnableArtifactZip=false"
 
+            - name: List files
+              shell: pwsh
+              run: |
+                Get-ChildItem -Path "${{ github.workspace }}/build/"
+
             - name: Create artifact (Windows)
               uses: actions/upload-artifact@v4
               if: ${{ runner.os == 'Windows' }}
