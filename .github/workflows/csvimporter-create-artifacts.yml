@@ -48,11 +48,13 @@ jobs:
               if: ${{ runner.os == 'Windows' }}
               with:
                 name: "CsvImporter_win-x64_${{ github.sha }}"
-                path: build/CsvImporter/**/*
+                path: ./build/CsvImporter/**/*
+                if-no-files-found: error
 
             - name: Create artifact (Linux)
               uses: actions/upload-artifact@v4
               if: ${{ runner.os == 'Linux' }}
               with:
                 name: "CsvImporter_linux-x64_${{ github.sha }}"
-                path: build/CsvImporter/**/*
+                path: ./build/CsvImporter/**/*
+                if-no-files-found: error
