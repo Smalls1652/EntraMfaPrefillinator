@@ -27,7 +27,8 @@ jobs:
       matrix:
         projectPath: [
           "./src/FunctionApp/",
-          "./src/Lib/"
+          "./src/Lib/",
+          "./src/Tools/CsvImporter/"
         ]
     env:
       DOTNET_NOLOGO: true
