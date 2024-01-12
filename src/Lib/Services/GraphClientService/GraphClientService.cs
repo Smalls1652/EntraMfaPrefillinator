@@ -8,6 +8,7 @@ public partial class GraphClientService : IGraphClientService
 {
     private readonly HttpClient _graphClient;
     private readonly IEnumerable<string> _apiScopes;
+    private readonly bool _disableUpdateMethods;
     private readonly IConfidentialClientApplication _confidentialClientApplication;
 
     public GraphClientService(GraphClientConfig graphClientConfig)
@@ -26,6 +27,11 @@ public partial class GraphClientService : IGraphClientService
         };
         
         _graphClient.DefaultRequestHeaders.Add("ConsistencyLevel", "eventual");
+    }
+
+    public GraphClientService(GraphClientConfig graphClientConfig, bool disableUpdateMethods) : this(graphClientConfig)
+    {
+        _disableUpdateMethods = disableUpdateMethods;
     }
 
     public HttpClient GraphClient => _graphClient;

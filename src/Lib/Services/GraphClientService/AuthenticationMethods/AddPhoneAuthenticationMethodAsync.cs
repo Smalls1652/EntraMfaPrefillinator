@@ -6,6 +6,11 @@ public partial class GraphClientService
 {
     public async Task<PhoneAuthenticationMethod> AddPhoneAuthenticationMethodAsync(string userId, string phoneNumber)
     {
+        if (_disableUpdateMethods)
+        {
+            throw new GraphClientDryRunException("AddPhoneAuthenticationMethodAsync() was called, but the service is currently configured to disable update methods.");
+        }
+
         string apiEndpoint = $"users/{userId}/authentication/phoneMethods";
 
         PhoneAuthenticationMethod newPhoneAuthMethod = new()
