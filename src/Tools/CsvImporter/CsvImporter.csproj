@@ -34,6 +34,8 @@
       <BuildOutDirAbsolutePath>$([System.IO.Path]::GetFullPath('$(BuildOutDir)'))</BuildOutDirAbsolutePath>
     </PropertyGroup>
 
+    <MakeDir Directories="$(ZipArtifactsPathAbsolutePath)" />
+
     <Copy SourceFiles="@(PublishedFiles)" DestinationFolder="$(BuildOutDir)\%(RecursiveDir)" />
 
     <Message
