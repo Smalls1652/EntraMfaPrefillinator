@@ -10,13 +10,6 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <EnableArtifactZip>false</EnableArtifactZip>
-    <ZipArtifactsPath>..\..\..\artifacts</ZipArtifactsPath>
-    <EnableBuildOutDir>false</EnableBuildOutDir>
-    <BuildOutDir>..\..\..\build</BuildOutDir>
-  </PropertyGroup>
-
-  <PropertyGroup>
     <RootNamespace>EntraMfaPrefillinator.Tools.CsvImporter</RootNamespace>
     <AssemblyName>entramfacsvimporter</AssemblyName>
   </PropertyGroup>
@@ -24,38 +17,5 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Lib\Lib.csproj" />
   </ItemGroup>
-
-  <Target Name="CopyToBuildOutDir" AfterTargets="Publish" Condition="'$(EnableBuildOutDir)'=='true'">
-    <ItemGroup>
-      <PublishedFiles Include="$(OutputPath)\native\**\*.*" />
-    </ItemGroup>
-
-    <PropertyGroup>
-      <BuildOutDirAbsolutePath>$([System.IO.Path]::GetFullPath('$(BuildOutDir)'))</BuildOutDirAbsolutePath>
-    </PropertyGroup>
-
-    <MakeDir Directories="$(BuildOutDirAbsolutePath)" />
-    <MakeDir Directories="$(BuildOutDirAbsolutePath)\CsvImporter" />
-
-    <Copy SourceFiles="@(PublishedFiles)" DestinationFolder="$(BuildOutDir)\CsvImporter\%(RecursiveDir)" />
-
-    <Message
-      Importance="high"
-      Text="$(MSBuildProjectName) -> $(BuildOutDirAbsolutePath)" />
-  </Target>
-
-  <Target Name="CreateArtifactsZip" AfterTargets="Publish"
-    Condition="'$(EnableArtifactZip)'=='true'">
-    <PropertyGroup>
-      <ZipArtifactsPathAbsolutePath>$([System.IO.Path]::GetFullPath('$(ZipArtifactsPath)'))</ZipArtifactsPathAbsolutePath>
-    </PropertyGroup>
-
-    <MakeDir Directories="$(ZipArtifactsPathAbsolutePath)" />
-
-    <ZipDirectory
-      SourceDirectory="$(BuildOutDirAbsolutePath)\CsvImporter"
-      DestinationFile="$(ZipArtifactsPath)\CsvImporter_$(RuntimeIdentifier).zip"
-      Overwrite="true" />
-  </Target>
 
 </Project>
