@@ -46,7 +46,7 @@ jobs:
             - name: List files
               shell: pwsh
               run: |
-                Get-ChildItem -Path "${{ github.workspace }}/build/"
+                Get-ChildItem -Path "${{ github.workspace }}/build/" -Recurse | ForEach-Object { "$($PSItem.FullName)" }
 
             - name: Create artifact (Windows)
               uses: actions/upload-artifact@v4
