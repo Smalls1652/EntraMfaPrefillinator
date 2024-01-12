@@ -36,17 +36,23 @@ jobs:
             - name: Compile project (Windows)
               if: ${{ runner.os == 'Windows' }}
               run: |
-                dotnet restore ./src/Tools/CsvImporter/
-                dotnet publish ./src/Tools/CsvImporter/ --configuration "Release" --runtime "win-x64" --output "../../../artifacts/CsvImporter"
+                dotnet msbuild ./src/Tools/CsvImporter/ -target:"Restore" -target:"Build" -target:"Publish" -property:"Configuration=Release" -property:"RuntimeIdentifier=win-x64" -property:"EnableBuildOutDir=true" -property:"EnableArtifactZip=true"
 
             - name: Compile project (Linux)
               if: ${{ runner.os == 'Linux' }}
               run: |
-                dotnet restore ./src/Tools/CsvImporter/
-                dotnet publish ./src/Tools/CsvImporter/ --configuration "Release" --runtime "linux-x64" --output "../../../artifacts/CsvImporter"
+                dotnet msbuild ./src/Tools/CsvImporter/ -target:"Restore" -target:"Build" -target:"Publish" -property:"Configuration=Release" -property:"RuntimeIdentifier=linux-x64" -property:"EnableBuildOutDir=true" -property:"EnableArtifactZip=true"
 
-            - name: Create artifact
+            - name: Create artifact (Windows)
               uses: actions/upload-artifact@v4
+              if: ${{ runner.os == 'Windows' }}
               with:
                 name: "CsvImporter_${{ runner.os }}_${{ github.sha }}"
-                path: artifacts/CsvImporter/
+                path: artifacts/CsvImporter_win-x64.zip
+
+            - name: Create artifact (Linux)
+              uses: actions/upload-artifact@v4
+              if: ${{ runner.os == 'Linux' }}
+              with:
+                name: "CsvImporter_${{ runner.os }}_${{ github.sha }}"
+                path: artifacts/CsvImporter_linux-x64.zip
