@@ -1,5 +1,6 @@
 local-files/
 build/
+artifacts/
 
 __blobstorage__/
 __queuestorage__/
