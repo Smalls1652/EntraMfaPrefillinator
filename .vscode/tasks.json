@@ -23,7 +23,7 @@
 				}
 			},
 			"runOptions": {
-				"instanceLimit": 2,
+				"instanceLimit": 2
 			},
 			"presentation": {
 				"echo": false,
@@ -167,8 +167,6 @@
 				"Build: EntraMfaPrefillinator.FunctionApp"
 			]
 		},
-		// Remaining tasks are only for the VSCode launch configs
-		// or are supporting tasks.
 		{
 			"label": "Build: EntraMfaPrefillinator.FunctionApp",
 			"detail": "Build the EntraMfaPrefillinator.FunctionApp project.",
@@ -194,6 +192,89 @@
 				"showReuseMessage": true,
 				"clear": true
 			}
+		},
+		// Remaining tasks are only for the VSCode launch configs
+		// or are supporting tasks.
+		{
+			"label": "clean (functions)",
+			"hide": true,
+			"command": "dotnet",
+			"args": [
+				"clean",
+				"/property:GenerateFullPaths=true",
+				"/consoleloggerparameters:NoSummary"
+			],
+			"type": "process",
+			"problemMatcher": "$msCompile",
+			"options": {
+				"cwd": "${workspaceFolder}/src/FunctionApp"
+			}
+		},
+		{
+			"label": "build (functions)",
+			"hide": true,
+			"command": "dotnet",
+			"args": [
+				"build",
+				"/property:GenerateFullPaths=true",
+				"/consoleloggerparameters:NoSummary"
+			],
+			"type": "process",
+			"dependsOn": "clean (functions)",
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"problemMatcher": "$msCompile",
+			"options": {
+				"cwd": "${workspaceFolder}/src/FunctionApp"
+			}
+		},
+		{
+			"label": "clean release (functions)",
+			"hide": true,
+			"command": "dotnet",
+			"args": [
+				"clean",
+				"--configuration",
+				"Release",
+				"/property:GenerateFullPaths=true",
+				"/consoleloggerparameters:NoSummary"
+			],
+			"type": "process",
+			"problemMatcher": "$msCompile",
+			"options": {
+				"cwd": "${workspaceFolder}/src/FunctionApp"
+			}
+		},
+		{
+			"label": "publish (functions)",
+			"hide": true,
+			"command": "dotnet",
+			"args": [
+				"publish",
+				"--configuration",
+				"Release",
+				"/property:GenerateFullPaths=true",
+				"/consoleloggerparameters:NoSummary"
+			],
+			"type": "process",
+			"dependsOn": "clean release (functions)",
+			"problemMatcher": "$msCompile",
+			"options": {
+				"cwd": "${workspaceFolder}/src/FunctionApp"
+			}
+		},
+		{
+			"hide": true,
+			"type": "func",
+			"dependsOn": "build (functions)",
+			"options": {
+				"cwd": "${workspaceFolder}/src/FunctionApp/bin/Debug/net8.0"
+			},
+			"command": "host start",
+			"isBackground": true,
+			"problemMatcher": "$func-dotnet-watch"
 		}
 	],
 	"inputs": [
