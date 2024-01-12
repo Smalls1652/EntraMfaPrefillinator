@@ -36,12 +36,12 @@ jobs:
             - name: Compile project (Windows)
               if: ${{ runner.os == 'Windows' }}
               run: |
-                dotnet msbuild ./src/Tools/CsvImporter/ -target:"Restore" -target:"Build" -target:"Publish" -property:"Configuration=Release" -property:"RuntimeIdentifier=win-x64" -property:"EnableBuildOutDir=true" -property:"EnableArtifactZip=false"
+                dotnet publish ./src/Tools/CsvImporter/ --configuration "Release" --runtime "win-x64" --output "./build/CsvImporter/"
 
             - name: Compile project (Linux)
               if: ${{ runner.os == 'Linux' }}
               run: |
-                dotnet msbuild ./src/Tools/CsvImporter/ -target:"Restore" -target:"Build" -target:"Publish" -property:"Configuration=Release" -property:"RuntimeIdentifier=linux-x64" -property:"EnableBuildOutDir=true" -property:"EnableArtifactZip=false"
+                dotnet publish ./src/Tools/CsvImporter/ --configuration "Release" --runtime "linux-x64" --output "./build/CsvImporter/"
 
             - name: List files
               shell: pwsh
