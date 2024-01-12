@@ -203,15 +203,14 @@
 			"type": "process",
 			"command": "dotnet",
 			"args": [
-				"msbuild",
-				"${workspaceFolder}/src/Tools/CsvImporter/",
-				"-target:\"Restore\"",
-				"-target:\"Build\"",
-				"-target:\"Publish\"",
-				"-property:\"Configuration=Release\"",
-				"-property:\"RuntimeIdentifier=${input:runtimeIdentifier}\"",
-				"-property:\"EnableBuildOutDir=true\"",
-				"-property:\"EnableArtifactZip=true\""
+				"publish",
+				"${workspaceFolder}/src/Tools/CsvImporter",
+				"--configuration",
+				"Release",
+				"--runtime",
+				"${input:runtimeIdentifier}",
+				"--output",
+				"${workspaceFolder}/build/CsvImporter"
 			],
 			"options": {
 				"cwd": "${workspaceFolder}"
