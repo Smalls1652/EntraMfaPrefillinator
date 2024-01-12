@@ -21,6 +21,18 @@ updates:
     assignees:
       - "Smalls1652"
 
+  # NuGet config for 'EntraMfaPrefillinator.Tools.CsvImporter'
+  - package-ecosystem: "nuget"
+    directory: "/src/Tools/CsvImporter"
+    target-branch: "main"
+    ignore:
+      - dependency-name: "Azure.Storage.Queues"
+      - dependency-name: "Microsoft.Identity.Client"
+    schedule:
+      interval: "daily"
+    assignees:
+      - "Smalls1652"
+
   # GitHub Actions config for the repo
   - package-ecosystem: "github-actions"
     directory: "/"
