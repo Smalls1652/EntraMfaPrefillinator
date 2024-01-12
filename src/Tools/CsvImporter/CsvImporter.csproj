@@ -13,7 +13,7 @@
     <EnableArtifactZip>false</EnableArtifactZip>
     <ZipArtifactsPath>..\..\..\artifacts</ZipArtifactsPath>
     <EnableBuildOutDir>false</EnableBuildOutDir>
-    <BuildOutDir>..\..\..\build\CsvImporter</BuildOutDir>
+    <BuildOutDir>..\..\..\build</BuildOutDir>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -34,13 +34,14 @@
       <BuildOutDirAbsolutePath>$([System.IO.Path]::GetFullPath('$(BuildOutDir)'))</BuildOutDirAbsolutePath>
     </PropertyGroup>
 
-    <MakeDir Directories="$(ZipArtifactsPathAbsolutePath)" />
+    <MakeDir Directories="$(BuildOutDirAbsolutePath)" />
+    <MakeDir Directories="$(BuildOutDirAbsolutePath)\CsvImporter" />
 
-    <Copy SourceFiles="@(PublishedFiles)" DestinationFolder="$(BuildOutDir)\%(RecursiveDir)" />
+    <Copy SourceFiles="@(PublishedFiles)" DestinationFolder="$(BuildOutDir)\CsvImporter\%(RecursiveDir)" />
 
     <Message
       Importance="high"
-      Text="$(MSBuildProjectName)\native -> $(BuildOutDirAbsolutePath)" />
+      Text="$(MSBuildProjectName) -> $(BuildOutDirAbsolutePath)" />
   </Target>
 
   <Target Name="CreateArtifactsZip" AfterTargets="Publish"
@@ -52,7 +53,7 @@
     <MakeDir Directories="$(ZipArtifactsPathAbsolutePath)" />
 
     <ZipDirectory
-      SourceDirectory="$(BuildOutDirAbsolutePath)"
+      SourceDirectory="$(BuildOutDirAbsolutePath)\CsvImporter"
       DestinationFile="$(ZipArtifactsPath)\CsvImporter_$(RuntimeIdentifier).zip"
       Overwrite="true" />
   </Target>
