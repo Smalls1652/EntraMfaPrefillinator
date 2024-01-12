@@ -193,6 +193,39 @@
 				"clear": true
 			}
 		},
+		{
+			"label": "Publish: CsvImporter",
+			"detail": "Compile the CsvImporter CLI tool.",
+			"icon": {
+				"id": "package",
+				"color": "terminal.ansiRed"
+			},
+			"type": "process",
+			"command": "dotnet",
+			"args": [
+				"msbuild",
+				"${workspaceFolder}/src/Tools/CsvImporter/",
+				"-target:\"Restore\"",
+				"-target:\"Build\"",
+				"-target:\"Publish\"",
+				"-property:\"Configuration=Release\"",
+				"-property:\"RuntimeIdentifier=${input:runtimeIdentifier}\"",
+				"-property:\"EnableBuildOutDir=true\"",
+				"-property:\"EnableArtifactZip=true\""
+			],
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"problemMatcher": "$msCompile",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": true
+			}
+		},
 		// Remaining tasks are only for the VSCode launch configs
 		// or are supporting tasks.
 		{
@@ -326,6 +359,38 @@
 			"options": [
 				"linux/amd64",
 				"linux/arm64"
+			]
+		},
+		{
+			"id": "runtimeIdentifier",
+			"description": "Select a runtime identifier for the build.",
+			"type": "pickString",
+			"default": "osx-arm64",
+			"options": [
+				{
+					"label": "macOS (arm64)",
+					"value": "osx-arm64"
+				},
+				{
+					"label": "macOS (x64)",
+					"value": "osx-x64"
+				},
+				{
+					"label": "Linux (arm64)",
+					"value": "linux-arm64"
+				},
+				{
+					"label": "Linux (x64)",
+					"value": "linux-x64"
+				},
+				{
+					"label": "Windows (x64)",
+					"value": "win-x64"
+				},
+				{
+					"label": "Windows (x86)",
+					"value": "win-x86"
+				}
 			]
 		}
 	]
