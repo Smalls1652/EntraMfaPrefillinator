@@ -22,10 +22,10 @@ public static class AzureKeyVaultUtils
     /// <exception cref="Exception"></exception>
     public static async Task<string> GetSecretFromKeyVaultAsync(Uri vaultUri, string secretName)
     {
-        ManagedIdentityTokenCredential managedIdentityTokenCredential;
+        SystemManagedIdentityTokenCredential systemManagedIdentityTokenCredential;
         try
         {
-            managedIdentityTokenCredential = new("https://vault.azure.net");
+            systemManagedIdentityTokenCredential = new("https://vault.azure.net");
         }
         catch (Exception ex)
         {
@@ -34,7 +34,7 @@ public static class AzureKeyVaultUtils
 
         SecretClient secretClient = new(
             vaultUri: vaultUri,
-            credential: managedIdentityTokenCredential
+            credential: systemManagedIdentityTokenCredential
         );
 
         KeyVaultSecret secret = await secretClient.GetSecretAsync(secretName);

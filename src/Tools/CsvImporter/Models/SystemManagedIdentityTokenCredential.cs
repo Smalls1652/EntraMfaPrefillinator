@@ -7,12 +7,12 @@ namespace EntraMfaPrefillinator.Tools.CsvImporter.Models;
 /// <summary>
 /// An <see cref="TokenCredential"/> implementation that uses the system-assigned managed identity of the server.
 /// </summary>
-public class ManagedIdentityTokenCredential : TokenCredential
+public class SystemManagedIdentityTokenCredential : TokenCredential
 {
     private readonly string _resourceScope;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ManagedIdentityTokenCredential"/> class.
+    /// Initializes a new instance of the <see cref="SystemManagedIdentityTokenCredential"/> class.
     /// </summary>
     /// <param name="resourceScope">
     /// <para>
@@ -22,7 +22,7 @@ public class ManagedIdentityTokenCredential : TokenCredential
     /// For example, <c>https://management.azure.com</c> for Azure Resource Manager.
     /// </para>
     /// </param>
-    public ManagedIdentityTokenCredential(string resourceScope)
+    public SystemManagedIdentityTokenCredential(string resourceScope)
     {
         _resourceScope = resourceScope;
     }
