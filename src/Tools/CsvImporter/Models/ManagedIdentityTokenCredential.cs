@@ -39,7 +39,7 @@ public class ManagedIdentityTokenCredential : TokenCredential
 
         AuthenticationResult authResult = await managedIdentity
             .AcquireTokenForManagedIdentity(_resourceScope)
-            .ExecuteAsync()
+            .ExecuteAsync(cancellationToken)
             .ConfigureAwait(false);
 
         return new(
