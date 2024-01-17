@@ -27,7 +27,8 @@ catch (NullReferenceException)
     }
     catch (Exception ex)
     {
-        throw new Exception($"Error parsing Azure Key Vault URI: {ex.Message}", ex);
+        ConsoleUtils.WriteError($"Error parsing Azure Key Vault URI: {ex.Message}");
+        return 20;
     }
 
     try
@@ -39,7 +40,8 @@ catch (NullReferenceException)
     }
     catch (Exception ex)
     {
-        throw new Exception($"Error getting Azure Storage connection string from Azure Key Vault: {ex.Message}", ex);
+        ConsoleUtils.WriteError($"Error getting Azure Storage connection string from Azure Key Vault: {ex.Message}");
+        return 21;
     }
 }
 
@@ -118,9 +120,10 @@ try
         csvFilePath: csvFileInfo.FullName
     );
 }
-catch (Exception)
+catch (Exception ex)
 {
-    throw;
+    ConsoleUtils.WriteError($"Error reading CSV file: {ex.Message}");
+    return 30;
 }
 
 ConsoleUtils.WriteInfo($"Found {userDetailsList.Count} users in CSV file");
@@ -192,14 +195,14 @@ ConsoleUtils.WriteInfo($"Filtered to {filteredUserDetailsList.Count} users with 
 if (filteredUserDetailsList.Count == 0)
 {
     ConsoleUtils.WriteInfo($"No users to process, exiting");
-    return;
+    return 10;
 }
 
 // If this is a dry run, exit.
 if (csvImporterConfig.DryRunEnabled)
 {
     ConsoleUtils.WriteInfo($"Dry run, exiting");
-    return;
+    return 5;
 }
 
 // Configure Azure Storage Queue client service.
@@ -254,3 +257,5 @@ await ConfigFileUtils.SaveCsvImporterConfigAsync(csvImporterConfig);
 stopwatch.Stop();
 
 ConsoleUtils.WriteInfo($"Completed in {stopwatch.ElapsedMilliseconds}ms");
+
+return 0;
