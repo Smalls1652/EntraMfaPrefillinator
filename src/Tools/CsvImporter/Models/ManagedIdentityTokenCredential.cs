@@ -4,6 +4,9 @@ using Microsoft.Identity.Client.AppConfig;
 
 namespace EntraMfaPrefillinator.Tools.CsvImporter.Models;
 
+/// <summary>
+/// An <see cref="TokenCredential"/> implementation that uses the system-assigned managed identity of the server.
+/// </summary>
 public class ManagedIdentityTokenCredential : TokenCredential
 {
     public override AccessToken GetToken(TokenRequestContext requestContext, CancellationToken cancellationToken)
