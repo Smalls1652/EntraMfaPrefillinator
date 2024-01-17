@@ -1,3 +1,4 @@
+using Azure.Core;
 using Azure.Storage.Queues;
 
 namespace EntraMfaPrefillinator.Lib.Services;
@@ -11,6 +12,19 @@ public partial class QueueClientService : IQueueClientService
         _authUpdateQueueClient = new(
             connectionString: connectionString,
             queueName: "authupdate-queue",
+            options: new()
+            {
+                MessageEncoding = QueueMessageEncoding.Base64
+            }
+        );
+        _authUpdateQueueClient.CreateIfNotExists();
+    }
+
+    public QueueClientService(Uri queueUri, TokenCredential tokenCredential)
+    {
+        _authUpdateQueueClient = new(
+            queueUri: queueUri,
+            credential: tokenCredential,
             options: new()
             {
                 MessageEncoding = QueueMessageEncoding.Base64
