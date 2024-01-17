@@ -17,7 +17,7 @@ public class ManagedIdentityTokenCredential : TokenCredential
             .Build();
 
         AuthenticationResult authResult = await managedIdentity
-            .AcquireTokenForManagedIdentity("https://management.azure.com")
+            .AcquireTokenForManagedIdentity("https://vault.azure.net")
             .ExecuteAsync()
             .ConfigureAwait(false);
 
