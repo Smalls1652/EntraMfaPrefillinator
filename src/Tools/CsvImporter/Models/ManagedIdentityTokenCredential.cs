@@ -9,6 +9,24 @@ namespace EntraMfaPrefillinator.Tools.CsvImporter.Models;
 /// </summary>
 public class ManagedIdentityTokenCredential : TokenCredential
 {
+    private readonly string _resourceScope;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ManagedIdentityTokenCredential"/> class.
+    /// </summary>
+    /// <param name="resourceScope">
+    /// <para>
+    /// The resource scope to request an access token for.
+    /// </para>
+    /// <para>
+    /// For example, <c>https://management.azure.com</c> for Azure Resource Manager.
+    /// </para>
+    /// </param>
+    public ManagedIdentityTokenCredential(string resourceScope)
+    {
+        _resourceScope = resourceScope;
+    }
+
     public override AccessToken GetToken(TokenRequestContext requestContext, CancellationToken cancellationToken)
     {
         return GetTokenAsync(requestContext, cancellationToken).GetAwaiter().GetResult();
@@ -20,7 +38,7 @@ public class ManagedIdentityTokenCredential : TokenCredential
             .Build();
 
         AuthenticationResult authResult = await managedIdentity
-            .AcquireTokenForManagedIdentity("https://vault.azure.net")
+            .AcquireTokenForManagedIdentity(_resourceScope)
             .ExecuteAsync()
             .ConfigureAwait(false);
 

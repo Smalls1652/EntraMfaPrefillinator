@@ -25,7 +25,7 @@ public static class AzureKeyVaultUtils
         ManagedIdentityTokenCredential managedIdentityTokenCredential;
         try
         {
-            managedIdentityTokenCredential = new();
+            managedIdentityTokenCredential = new("https://vault.azure.net");
         }
         catch (Exception ex)
         {
