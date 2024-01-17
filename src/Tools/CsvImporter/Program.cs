@@ -7,7 +7,41 @@ using EntraMfaPrefillinator.Tools.CsvImporter.Utilities;
 Stopwatch stopwatch = Stopwatch.StartNew();
 
 // Set Azure Storage connection string and dry run flag from environment variables.
-string storageConnectionString = Environment.GetEnvironmentVariable("STORAGE_CONNECTION_STRING") ?? throw new Exception("STORAGE_CONNECTION_STRING environment variable not set");
+string storageConnectionString;
+
+try
+{
+    storageConnectionString = Environment.GetEnvironmentVariable("STORAGE_CONNECTION_STRING") ?? throw new NullReferenceException("STORAGE_CONNECTION_STRING environment variable not set");
+}
+catch (NullReferenceException)
+{
+    ConsoleUtils.WriteWarning("STORAGE_CONNECTION_STRING environment variable not set. Going to try to use managed identity for the server to get the connection string.");
+
+    string azureKeyVaultUriString = Environment.GetEnvironmentVariable("AZURE_KEY_VAULT_URI") ?? throw new NullReferenceException("AZURE_KEY_VAULT_URI environment variable not set");
+    string azureKeyVaultConnectionStringSecretName = Environment.GetEnvironmentVariable("AZURE_KEY_VAULT_CONNECTION_STRING_SECRET_NAME") ?? throw new NullReferenceException("AZURE_KEY_VAULT_CONNECTION_STRING_SECRET_NAME environment variable not set");
+
+    Uri azureKeyVaultUri;
+    try
+    {
+        azureKeyVaultUri = new(azureKeyVaultUriString);
+    }
+    catch (Exception ex)
+    {
+        throw new Exception($"Error parsing Azure Key Vault URI: {ex.Message}", ex);
+    }
+
+    try
+    {
+        storageConnectionString = await AzureKeyVaultUtils.GetSecretFromKeyVaultAsync(
+            vaultUri: azureKeyVaultUri,
+            secretName: azureKeyVaultConnectionStringSecretName
+        );
+    }
+    catch (Exception ex)
+    {
+        throw new Exception($"Error getting Azure Storage connection string from Azure Key Vault: {ex.Message}", ex);
+    }
+}
 
 // Set CSV file path and max tasks from command line arguments.
 string csvFilePathArg;
