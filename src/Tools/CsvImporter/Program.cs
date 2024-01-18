@@ -5,47 +5,10 @@ using EntraMfaPrefillinator.Lib.Models;
 using EntraMfaPrefillinator.Lib.Services;
 using EntraMfaPrefillinator.Tools.CsvImporter.Models;
 using EntraMfaPrefillinator.Tools.CsvImporter.Utilities;
-using Microsoft.Identity.Client;
 
 Stopwatch stopwatch = Stopwatch.StartNew();
 
 // Set Azure Storage connection string and dry run flag from environment variables.
-QueueClientService queueClientService;
-try
-{
-    string storageConnectionString = Environment.GetEnvironmentVariable("STORAGE_CONNECTION_STRING") ?? throw new NullReferenceException("STORAGE_CONNECTION_STRING environment variable not set");
-
-    queueClientService = new(
-        connectionString: storageConnectionString
-    );
-}
-catch (NullReferenceException)
-{
-    ConsoleUtils.WriteWarning("STORAGE_CONNECTION_STRING environment variable not set.");
-    ConsoleUtils.WriteInfo("Attempting to use an Azure token credential instead.");
-
-    string queueUriString = Environment.GetEnvironmentVariable("QUEUE_URI") ?? throw new NullReferenceException("QUEUE_URI environment variable not set");
-
-    TokenCredential tokenCredential;
-    try
-    {
-        tokenCredential = new ChainedTokenCredential(
-            new AzureCliCredential(),
-            new AzurePowerShellCredential(),
-            new ManagedIdentityCredential()
-        );
-
-        queueClientService = new(
-            queueUri: new(queueUriString),
-            tokenCredential: tokenCredential
-        );
-    }
-    catch (Exception ex)
-    {
-        ConsoleUtils.WriteError($"Error getting access token for Azure: {ex.Message}");
-        return 22;
-    }
-}
 
 // Set CSV file path and max tasks from command line arguments.
 string csvFilePathArg;
@@ -87,6 +50,43 @@ try
 catch (Exception ex)
 {
     throw new Exception($"Error reading config file: {ex.Message}");
+}
+
+QueueClientService queueClientService;
+try
+{
+    string storageConnectionString = Environment.GetEnvironmentVariable("STORAGE_CONNECTION_STRING") ?? throw new NullReferenceException("STORAGE_CONNECTION_STRING environment variable not set");
+
+    queueClientService = new(
+        connectionString: storageConnectionString
+    );
+}
+catch (NullReferenceException)
+{
+    ConsoleUtils.WriteWarning("STORAGE_CONNECTION_STRING environment variable not set.");
+    ConsoleUtils.WriteInfo("Attempting to use an Azure token credential instead.");
+
+    string queueUriString = csvImporterConfig.QueueUri ?? Environment.GetEnvironmentVariable("QUEUE_URI") ?? throw new NullReferenceException("QUEUE_URI environment variable not set or missing from config file.");
+
+    TokenCredential tokenCredential;
+    try
+    {
+        tokenCredential = new ChainedTokenCredential(
+            new AzureCliCredential(),
+            new AzurePowerShellCredential(),
+            new ManagedIdentityCredential()
+        );
+
+        queueClientService = new(
+            queueUri: new(queueUriString),
+            tokenCredential: tokenCredential
+        );
+    }
+    catch (Exception ex)
+    {
+        ConsoleUtils.WriteError($"Error getting access token for Azure: {ex.Message}");
+        return 22;
+    }
 }
 
 string runningDir = Environment.CurrentDirectory;
@@ -155,35 +155,23 @@ if (csvImporterConfig.LastCsvPath is not null)
 // get the delta between the last run CSV file and the current CSV file.
 if (lastRunUserDetailsList is not null && lastRunUserDetailsList.Count != 0)
 {
+    Stopwatch deltaStopwatch = Stopwatch.StartNew();
+
     ConsoleUtils.WriteInfo($"Found {lastRunUserDetailsList.Count} users in last run CSV file");
 
-    List<UserDetails> deltaList = [];
-
-    foreach (var userDetailsItem in userDetailsList)
-    {
-        UserDetails? lastRunUserDetailsItem = lastRunUserDetailsList.Find(item => item.UserName == userDetailsItem.UserName);
-
-        // If the user was not found in the last run CSV file,
-        // add the user to the delta list.
-        if (lastRunUserDetailsItem is null)
-        {
-            deltaList.Add(userDetailsItem);
-            continue;
-        }
-
-        // If the user was found in the last run CSV file and the email or phone number has changed,
-        // add the user to the delta list.
-        if (lastRunUserDetailsItem.PhoneNumber != userDetailsItem.PhoneNumber || lastRunUserDetailsItem.SecondaryEmail != userDetailsItem.SecondaryEmail)
-        {
-            deltaList.Add(userDetailsItem);
-            continue;
-        }
-    }
+    List<UserDetails> deltaList = await CsvFileReader.GetDeltaAsync(
+        currentList: userDetailsList,
+        lastRunList: lastRunUserDetailsList,
+        maxTasks: 10
+    );
 
     ConsoleUtils.WriteInfo($"Filtered down to {deltaList.Count} users not in last run CSV file");
 
     // Update the user details list to the delta list.
     userDetailsList = deltaList;
+
+    deltaStopwatch.Stop();
+    ConsoleUtils.WriteInfo($"Delta completed in {deltaStopwatch.ElapsedMilliseconds}ms");
 }
 
 // Filter out users without an email or phone number set.
@@ -193,66 +181,71 @@ List<UserDetails> filteredUserDetailsList = userDetailsList.FindAll(
 
 ConsoleUtils.WriteInfo($"Filtered to {filteredUserDetailsList.Count} users with email or phone number");
 
-// If there are no users to process, exit.
-if (filteredUserDetailsList.Count == 0)
+try
 {
-    ConsoleUtils.WriteInfo($"No users to process, exiting");
-    return 10;
-}
-
-// If this is a dry run, exit.
-if (csvImporterConfig.DryRunEnabled)
-{
-    ConsoleUtils.WriteInfo($"Dry run, exiting");
-    return 5;
-}
-
-// Set the initial semaphore count to half the max tasks.
-double initialTasksCount = Math.Round((double)(maxTasks / 2), 0);
-
-using SemaphoreSlim semaphoreSlim = new(
-    initialCount: (int)initialTasksCount,
-    maxCount: maxTasks
-);
-
-// Process each item and send to queue.
-List<Task> tasks = [];
-foreach (var userItem in filteredUserDetailsList)
-{
-    UserAuthUpdateQueueItem queueItem = new()
+    // If there are no users to process, exit.
+    if (filteredUserDetailsList.Count == 0)
     {
-        EmployeeId = userItem.EmployeeNumber,
-        UserName = userItem.UserName,
-        EmailAddress = userItem.SecondaryEmail,
-        PhoneNumber = userItem.PhoneNumber
-    };
+        ConsoleUtils.WriteInfo($"No users to process, exiting");
+        return 10;
+    }
 
-    var newQueueItemTask = QueueClientUtils.SendUserAuthUpdateQueueItemAsync(queueClientService, semaphoreSlim, queueItem);
+    // If this is a dry run, exit.
+    if (csvImporterConfig.DryRunEnabled)
+    {
+        ConsoleUtils.WriteInfo($"Dry run, exiting");
+        return 5;
+    }
 
-    tasks.Add(newQueueItemTask);
+    // Set the initial semaphore count to half the max tasks.
+    double initialTasksCount = Math.Round((double)(maxTasks / 2), 0);
+
+    using SemaphoreSlim semaphoreSlim = new(
+        initialCount: (int)initialTasksCount,
+        maxCount: maxTasks
+    );
+
+    // Process each item and send to queue.
+    List<Task> tasks = [];
+    foreach (var userItem in filteredUserDetailsList)
+    {
+        UserAuthUpdateQueueItem queueItem = new()
+        {
+            EmployeeId = userItem.EmployeeNumber,
+            UserName = userItem.UserName,
+            EmailAddress = userItem.SecondaryEmail,
+            PhoneNumber = userItem.PhoneNumber
+        };
+
+        var newQueueItemTask = QueueClientUtils.SendUserAuthUpdateQueueItemAsync(queueClientService, semaphoreSlim, queueItem);
+
+        tasks.Add(newQueueItemTask);
+    }
+
+    // Wait for all tasks to complete.
+    ConsoleUtils.WriteInfo($"Waiting for tasks to complete...");
+    await Task.WhenAll(tasks);
+
+    // Copy the CSV file used for this run to the config directory.
+    ConsoleUtils.WriteInfo($"Saving last run CSV file path to config file");
+    string copiedCsvFilePath = Path.Combine(ConfigFileUtils.GetConfigDirPath(), "lastRun.csv");
+    File.Copy(
+        sourceFileName: csvFileInfo.FullName,
+        destFileName: copiedCsvFilePath,
+        overwrite: true
+    );
+
+    // Update the config file.
+    csvImporterConfig.LastCsvPath = copiedCsvFilePath;
+    csvImporterConfig.LastRunDateTime = DateTimeOffset.UtcNow;
+
+    await ConfigFileUtils.SaveCsvImporterConfigAsync(csvImporterConfig);
+
+    return 0;
 }
+finally
+{
+    stopwatch.Stop();
 
-// Wait for all tasks to complete.
-ConsoleUtils.WriteInfo($"Waiting for tasks to complete...");
-await Task.WhenAll(tasks);
-
-// Copy the CSV file used for this run to the config directory.
-ConsoleUtils.WriteInfo($"Saving last run CSV file path to config file");
-string copiedCsvFilePath = Path.Combine(ConfigFileUtils.GetConfigDirPath(), "lastRun.csv");
-File.Copy(
-    sourceFileName: csvFileInfo.FullName,
-    destFileName: copiedCsvFilePath,
-    overwrite: true
-);
-
-// Update the config file.
-csvImporterConfig.LastCsvPath = copiedCsvFilePath;
-csvImporterConfig.LastRunDateTime = DateTimeOffset.UtcNow;
-
-await ConfigFileUtils.SaveCsvImporterConfigAsync(csvImporterConfig);
-
-stopwatch.Stop();
-
-ConsoleUtils.WriteInfo($"Completed in {stopwatch.ElapsedMilliseconds}ms");
-
-return 0;
+    ConsoleUtils.WriteSuccess($"Completed in {stopwatch.ElapsedMilliseconds}ms");
+}
