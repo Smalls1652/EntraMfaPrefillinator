@@ -1,13 +1,51 @@
 ﻿using System.Diagnostics;
+using Azure.Core;
+using Azure.Identity;
 using EntraMfaPrefillinator.Lib.Models;
 using EntraMfaPrefillinator.Lib.Services;
 using EntraMfaPrefillinator.Tools.CsvImporter.Models;
 using EntraMfaPrefillinator.Tools.CsvImporter.Utilities;
+using Microsoft.Identity.Client;
 
 Stopwatch stopwatch = Stopwatch.StartNew();
 
 // Set Azure Storage connection string and dry run flag from environment variables.
-string storageConnectionString = Environment.GetEnvironmentVariable("STORAGE_CONNECTION_STRING") ?? throw new Exception("STORAGE_CONNECTION_STRING environment variable not set");
+QueueClientService queueClientService;
+try
+{
+    string storageConnectionString = Environment.GetEnvironmentVariable("STORAGE_CONNECTION_STRING") ?? throw new NullReferenceException("STORAGE_CONNECTION_STRING environment variable not set");
+
+    queueClientService = new(
+        connectionString: storageConnectionString
+    );
+}
+catch (NullReferenceException)
+{
+    ConsoleUtils.WriteWarning("STORAGE_CONNECTION_STRING environment variable not set.");
+    ConsoleUtils.WriteInfo("Attempting to use an Azure token credential instead.");
+
+    string queueUriString = Environment.GetEnvironmentVariable("QUEUE_URI") ?? throw new NullReferenceException("QUEUE_URI environment variable not set");
+
+    TokenCredential tokenCredential;
+    try
+    {
+        tokenCredential = new ChainedTokenCredential(
+            new AzureCliCredential(),
+            new AzurePowerShellCredential(),
+            new ManagedIdentityCredential()
+        );
+
+        queueClientService = new(
+            queueUri: new(queueUriString),
+            tokenCredential: tokenCredential
+        );
+    }
+    catch (Exception ex)
+    {
+        ConsoleUtils.WriteError($"Error getting access token for Azure: {ex.Message}");
+        return 22;
+    }
+}
 
 // Set CSV file path and max tasks from command line arguments.
 string csvFilePathArg;
@@ -84,9 +122,10 @@ try
         csvFilePath: csvFileInfo.FullName
     );
 }
-catch (Exception)
+catch (Exception ex)
 {
-    throw;
+    ConsoleUtils.WriteError($"Error reading CSV file: {ex.Message}");
+    return 30;
 }
 
 ConsoleUtils.WriteInfo($"Found {userDetailsList.Count} users in CSV file");
@@ -158,20 +197,15 @@ ConsoleUtils.WriteInfo($"Filtered to {filteredUserDetailsList.Count} users with 
 if (filteredUserDetailsList.Count == 0)
 {
     ConsoleUtils.WriteInfo($"No users to process, exiting");
-    return;
+    return 10;
 }
 
 // If this is a dry run, exit.
 if (csvImporterConfig.DryRunEnabled)
 {
     ConsoleUtils.WriteInfo($"Dry run, exiting");
-    return;
+    return 5;
 }
-
-// Configure Azure Storage Queue client service.
-QueueClientService queueClientService = new(
-    connectionString: storageConnectionString
-);
 
 // Set the initial semaphore count to half the max tasks.
 double initialTasksCount = Math.Round((double)(maxTasks / 2), 0);
@@ -220,3 +254,5 @@ await ConfigFileUtils.SaveCsvImporterConfigAsync(csvImporterConfig);
 stopwatch.Stop();
 
 ConsoleUtils.WriteInfo($"Completed in {stopwatch.ElapsedMilliseconds}ms");
+
+return 0;
