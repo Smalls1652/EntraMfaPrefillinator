@@ -165,13 +165,6 @@ if (lastRunUserDetailsList is not null && lastRunUserDetailsList.Count != 0)
         maxTasks: 10
     );
 
-    /*
-    List<UserDetails> deltaList = CsvFileReader.GetDelta(
-        currentList: userDetailsList,
-        lastRunList: lastRunUserDetailsList
-    );
-    */
-
     ConsoleUtils.WriteInfo($"Filtered down to {deltaList.Count} users not in last run CSV file");
 
     // Update the user details list to the delta list.
