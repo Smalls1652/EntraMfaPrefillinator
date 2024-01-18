@@ -1,4 +1,3 @@
-using System.Text.RegularExpressions;
 using EntraMfaPrefillinator.Tools.CsvImporter.Models;
 
 namespace EntraMfaPrefillinator.Tools.CsvImporter.Utilities;
@@ -50,5 +49,97 @@ public static class CsvFileReader
         }
 
         return userDetailsList;
+    }
+
+    public static List<UserDetails> GetDelta(List<UserDetails> currentList, List<UserDetails> lastRunList)
+    {
+        List<UserDetails> deltaList = [];
+
+        foreach (var userDetailsItem in currentList)
+        {
+            UserDetails? lastRunUserDetailsItem = lastRunList.Find(item => item.UserName == userDetailsItem.UserName);
+
+            // If the user was not found in the last run CSV file,
+            // add the user to the delta list.
+            if (lastRunUserDetailsItem is null)
+            {
+                deltaList.Add(userDetailsItem);
+                continue;
+            }
+
+            // If the user was found in the last run CSV file and the email or phone number has changed,
+            // add the user to the delta list.
+            if (lastRunUserDetailsItem.PhoneNumber != userDetailsItem.PhoneNumber || lastRunUserDetailsItem.SecondaryEmail != userDetailsItem.SecondaryEmail)
+            {
+                deltaList.Add(userDetailsItem);
+                continue;
+            }
+        }
+
+        return deltaList;
+    }
+
+    public static async Task<List<UserDetails>> GetDeltaAsync(List<UserDetails> currentList, List<UserDetails> lastRunList, int maxTasks = 5)
+    {
+        double initialTasksCount = Math.Round((double)(maxTasks / 2), 0);
+
+        using SemaphoreSlim semaphoreSlim = new(
+            initialCount: (int)initialTasksCount,
+            maxCount: maxTasks
+        );
+
+        List<UserDetails> deltaList = [];
+        List<Task<UserDetails?>> deltaTasks = [];
+
+        foreach (var userDetailsItem in currentList)
+        {
+            var deltaTask = Task.Run(async () =>
+            {
+                await semaphoreSlim.WaitAsync();
+
+                try
+                {
+                    UserDetails? lastRunUserDetailsItem = lastRunList.Find(item => item.UserName == userDetailsItem.UserName);
+
+                    // If the user was not found in the last run CSV file,
+                    // add the user to the delta list.
+                    if (lastRunUserDetailsItem is null)
+                    {
+                        return userDetailsItem;
+                    }
+
+                    // If the user was found in the last run CSV file and the email or phone number has changed,
+                    // add the user to the delta list.
+                    if (lastRunUserDetailsItem.PhoneNumber != userDetailsItem.PhoneNumber || lastRunUserDetailsItem.SecondaryEmail != userDetailsItem.SecondaryEmail)
+                    {
+                        return userDetailsItem;
+                    }
+
+                    return null;
+                }
+                finally
+                {
+                    semaphoreSlim.Release();
+                }
+            });
+
+            deltaTasks.Add(deltaTask);
+        }
+
+        await Task.WhenAll(deltaTasks);
+
+        foreach (var deltaTask in deltaTasks)
+        {
+            UserDetails? deltaTaskResult = deltaTask.Result;
+
+            if (deltaTaskResult is not null)
+            {
+                deltaList.Add(deltaTaskResult);
+            }
+
+            deltaTask.Dispose();
+        }
+
+        return deltaList;
     }
 }
