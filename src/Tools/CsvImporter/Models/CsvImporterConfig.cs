@@ -24,4 +24,10 @@ public class CsvImporterConfig
     /// </summary>
     [JsonPropertyName("dryRunEnabled")]
     public bool DryRunEnabled { get; set; }
+
+    /// <summary>
+    /// The Azure Storage account queue URI.
+    /// </summary>
+    [JsonPropertyName("queueUri")]
+    public string? QueueUri { get; set; }
 }

@@ -9,42 +9,6 @@ using EntraMfaPrefillinator.Tools.CsvImporter.Utilities;
 Stopwatch stopwatch = Stopwatch.StartNew();
 
 // Set Azure Storage connection string and dry run flag from environment variables.
-QueueClientService queueClientService;
-try
-{
-    string storageConnectionString = Environment.GetEnvironmentVariable("STORAGE_CONNECTION_STRING") ?? throw new NullReferenceException("STORAGE_CONNECTION_STRING environment variable not set");
-
-    queueClientService = new(
-        connectionString: storageConnectionString
-    );
-}
-catch (NullReferenceException)
-{
-    ConsoleUtils.WriteWarning("STORAGE_CONNECTION_STRING environment variable not set.");
-    ConsoleUtils.WriteInfo("Attempting to use an Azure token credential instead.");
-
-    string queueUriString = Environment.GetEnvironmentVariable("QUEUE_URI") ?? throw new NullReferenceException("QUEUE_URI environment variable not set");
-
-    TokenCredential tokenCredential;
-    try
-    {
-        tokenCredential = new ChainedTokenCredential(
-            new AzureCliCredential(),
-            new AzurePowerShellCredential(),
-            new ManagedIdentityCredential()
-        );
-
-        queueClientService = new(
-            queueUri: new(queueUriString),
-            tokenCredential: tokenCredential
-        );
-    }
-    catch (Exception ex)
-    {
-        ConsoleUtils.WriteError($"Error getting access token for Azure: {ex.Message}");
-        return 22;
-    }
-}
 
 // Set CSV file path and max tasks from command line arguments.
 string csvFilePathArg;
@@ -86,6 +50,43 @@ try
 catch (Exception ex)
 {
     throw new Exception($"Error reading config file: {ex.Message}");
+}
+
+QueueClientService queueClientService;
+try
+{
+    string storageConnectionString = Environment.GetEnvironmentVariable("STORAGE_CONNECTION_STRING") ?? throw new NullReferenceException("STORAGE_CONNECTION_STRING environment variable not set");
+
+    queueClientService = new(
+        connectionString: storageConnectionString
+    );
+}
+catch (NullReferenceException)
+{
+    ConsoleUtils.WriteWarning("STORAGE_CONNECTION_STRING environment variable not set.");
+    ConsoleUtils.WriteInfo("Attempting to use an Azure token credential instead.");
+
+    string queueUriString = csvImporterConfig.QueueUri ?? Environment.GetEnvironmentVariable("QUEUE_URI") ?? throw new NullReferenceException("QUEUE_URI environment variable not set or missing from config file.");
+
+    TokenCredential tokenCredential;
+    try
+    {
+        tokenCredential = new ChainedTokenCredential(
+            new AzureCliCredential(),
+            new AzurePowerShellCredential(),
+            new ManagedIdentityCredential()
+        );
+
+        queueClientService = new(
+            queueUri: new(queueUriString),
+            tokenCredential: tokenCredential
+        );
+    }
+    catch (Exception ex)
+    {
+        ConsoleUtils.WriteError($"Error getting access token for Azure: {ex.Message}");
+        return 22;
+    }
 }
 
 string runningDir = Environment.CurrentDirectory;
