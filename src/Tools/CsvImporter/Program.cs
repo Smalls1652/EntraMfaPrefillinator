@@ -1,47 +1,49 @@
 ﻿using System.Diagnostics;
+using Azure.Core;
+using Azure.Identity;
 using EntraMfaPrefillinator.Lib.Models;
 using EntraMfaPrefillinator.Lib.Services;
 using EntraMfaPrefillinator.Tools.CsvImporter.Models;
 using EntraMfaPrefillinator.Tools.CsvImporter.Utilities;
+using Microsoft.Identity.Client;
 
 Stopwatch stopwatch = Stopwatch.StartNew();
 
 // Set Azure Storage connection string and dry run flag from environment variables.
-string storageConnectionString;
-
+QueueClientService queueClientService;
 try
 {
-    storageConnectionString = Environment.GetEnvironmentVariable("STORAGE_CONNECTION_STRING") ?? throw new NullReferenceException("STORAGE_CONNECTION_STRING environment variable not set");
+    string storageConnectionString = Environment.GetEnvironmentVariable("STORAGE_CONNECTION_STRING") ?? throw new NullReferenceException("STORAGE_CONNECTION_STRING environment variable not set");
+
+    queueClientService = new(
+        connectionString: storageConnectionString
+    );
 }
 catch (NullReferenceException)
 {
-    ConsoleUtils.WriteWarning("STORAGE_CONNECTION_STRING environment variable not set. Going to try to use managed identity for the server to get the connection string.");
+    ConsoleUtils.WriteWarning("STORAGE_CONNECTION_STRING environment variable not set.");
+    ConsoleUtils.WriteInfo("Attempting to use an Azure token credential instead.");
 
-    string azureKeyVaultUriString = Environment.GetEnvironmentVariable("AZURE_KEY_VAULT_URI") ?? throw new NullReferenceException("AZURE_KEY_VAULT_URI environment variable not set");
-    string azureKeyVaultConnectionStringSecretName = Environment.GetEnvironmentVariable("AZURE_KEY_VAULT_CONNECTION_STRING_SECRET_NAME") ?? throw new NullReferenceException("AZURE_KEY_VAULT_CONNECTION_STRING_SECRET_NAME environment variable not set");
+    string queueUriString = Environment.GetEnvironmentVariable("QUEUE_URI") ?? throw new NullReferenceException("QUEUE_URI environment variable not set");
 
-    Uri azureKeyVaultUri;
+    TokenCredential tokenCredential;
     try
     {
-        azureKeyVaultUri = new(azureKeyVaultUriString);
-    }
-    catch (Exception ex)
-    {
-        ConsoleUtils.WriteError($"Error parsing Azure Key Vault URI: {ex.Message}");
-        return 20;
-    }
+        tokenCredential = new ChainedTokenCredential(
+            new AzureCliCredential(),
+            new AzurePowerShellCredential(),
+            new ManagedIdentityCredential()
+        );
 
-    try
-    {
-        storageConnectionString = await AzureKeyVaultUtils.GetSecretFromKeyVaultAsync(
-            vaultUri: azureKeyVaultUri,
-            secretName: azureKeyVaultConnectionStringSecretName
+        queueClientService = new(
+            queueUri: new(queueUriString),
+            tokenCredential: tokenCredential
         );
     }
     catch (Exception ex)
     {
-        ConsoleUtils.WriteError($"Error getting Azure Storage connection string from Azure Key Vault: {ex.Message}");
-        return 21;
+        ConsoleUtils.WriteError($"Error getting access token for Azure: {ex.Message}");
+        return 22;
     }
 }
 
@@ -204,11 +206,6 @@ if (csvImporterConfig.DryRunEnabled)
     ConsoleUtils.WriteInfo($"Dry run, exiting");
     return 5;
 }
-
-// Configure Azure Storage Queue client service.
-QueueClientService queueClientService = new(
-    connectionString: storageConnectionString
-);
 
 // Set the initial semaphore count to half the max tasks.
 double initialTasksCount = Math.Round((double)(maxTasks / 2), 0);
