@@ -26,17 +26,6 @@ public class MainService : IMainService, IHostedService
         _queueClientService = queueClientService;
     }
 
-    public async Task RunTestAsync()
-    {
-        _logger.LogInformation("Starting test run...");
-
-        await Task.Delay(5000);
-
-        _logger.LogInformation("Test run complete.");
-
-        Environment.Exit(0);
-    }
-
     public async Task RunAsync()
     {
         Stopwatch stopwatch = Stopwatch.StartNew();
