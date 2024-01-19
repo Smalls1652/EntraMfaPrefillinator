@@ -103,6 +103,7 @@ public class MainService : IMainService, IHostedService
             try
             {
                 userDetailsList = await CsvFileReader.ReadCsvFileAsync(
+                    logger: _logger,
                     csvFilePath: csvFileInfo.FullName
                 );
             }
@@ -132,6 +133,7 @@ public class MainService : IMainService, IHostedService
                 {
                     _logger.LogInformation("Reading last run CSV file: {LastCsvFilePath}", lastCsvFileInfo.FullName);
                     lastRunUserDetailsList = await CsvFileReader.ReadCsvFileAsync(
+                        logger: _logger,
                         csvFilePath: lastCsvFileInfo.FullName
                     );
                 }
@@ -170,7 +172,6 @@ public class MainService : IMainService, IHostedService
             // If there are no users to process, exit.
             if (filteredUserDetailsList.Count == 0)
             {
-                ConsoleUtils.WriteInfo($"No users to process, exiting");
                 _logger.LogWarning("No users to process, exiting");
                 exitCode = 10;
 
