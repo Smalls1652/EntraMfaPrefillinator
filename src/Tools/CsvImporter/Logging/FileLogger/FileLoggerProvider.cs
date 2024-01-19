@@ -5,6 +5,9 @@ using Microsoft.Extensions.Options;
 
 namespace EntraMfaPrefillinator.Tools.CsvImporter.Logging;
 
+/// <summary>
+/// Custom <see cref="ILoggerProvider"/> implementation for <see cref="FileLogger"/>.
+/// </summary>
 [UnsupportedOSPlatform("browser")]
 [ProviderAlias("File")]
 public class FileLoggerProvider : ILoggerProvider
@@ -19,10 +22,12 @@ public class FileLoggerProvider : ILoggerProvider
         _onChangeToken = config.OnChange(updatedConfig => _currentConfig = updatedConfig);
     }
 
+    /// <inheritdoc />
     public ILogger CreateLogger(string categoryName) => _loggers.GetOrAdd(categoryName, name => new(name, GetConfiguration));
 
     private FileLoggerConfiguration GetConfiguration() => _currentConfig;
 
+    /// <inheritdoc />
     public void Dispose()
     {
         _loggers.Clear();

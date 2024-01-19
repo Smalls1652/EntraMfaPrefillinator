@@ -3,6 +3,9 @@ using Microsoft.Extensions.Logging;
 
 namespace EntraMfaPrefillinator.Tools.CsvImporter.Logging;
 
+/// <summary>
+/// Custom <see cref="ILogger"/> implementation that writes to a file.
+/// </summary>
 public class FileLogger : ILogger
 {
     private readonly string _categoryName;
@@ -14,10 +17,13 @@ public class FileLogger : ILogger
         _config = config;
     }
 
+    /// <inheritdoc />
     public IDisposable? BeginScope<TState>(TState state) where TState : notnull => default!;
 
+    /// <inheritdoc />
     public bool IsEnabled(LogLevel logLevel) => _config().FilePath is not null;
 
+    /// <inheritdoc />
     public void Log<TState>(
         LogLevel logLevel,
         EventId eventId,
