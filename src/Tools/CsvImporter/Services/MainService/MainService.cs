@@ -272,6 +272,7 @@ public class MainService : IMainService, IHostedService
                 await _queueClientService.AuthUpdateQueueClient.SendMessageAsync(
                     messageText: userItemJson
                 );
+                _logger.LogInformation("Sent message to queue for '{userAuthUpdate.UserName}'.", userAuthUpdate.UserName);
             }
             catch (Exception ex)
             {
