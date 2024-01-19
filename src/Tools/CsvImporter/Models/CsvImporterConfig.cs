@@ -8,6 +8,12 @@ namespace EntraMfaPrefillinator.Tools.CsvImporter.Models;
 public class CsvImporterConfig
 {
     /// <summary>
+    /// The path to the CSV file to import.
+    /// </summary>
+    [JsonPropertyName("csvFilePath")]
+    public string CsvFilePath { get; set; } = string.Empty;
+
+    /// <summary>
     /// The path to the last CSV file that was imported.
     /// </summary>
     [JsonPropertyName("lastCsvPath")]
