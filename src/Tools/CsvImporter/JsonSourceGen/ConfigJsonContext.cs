@@ -1,5 +1,4 @@
 using System.Text.Json.Serialization;
-using EntraMfaPrefillinator.Lib.Models;
 using EntraMfaPrefillinator.Tools.CsvImporter.Models;
 
 namespace EntraMfaPrefillinator.Tools.CsvImporter;
@@ -14,6 +13,7 @@ namespace EntraMfaPrefillinator.Tools.CsvImporter;
     GenerationMode = JsonSourceGenerationMode.Default
 )]
 [JsonSerializable(typeof(CsvImporterConfig))]
+[JsonSerializable(typeof(CsvImporterConfigFile))]
 internal partial class ConfigJsonContext : JsonSerializerContext
 {
 }

@@ -23,7 +23,7 @@ public class CsvImporterConfig
     /// The last date and time the tool was run.
     /// </summary>
     [JsonPropertyName("lastRunDateTime")]
-    public DateTimeOffset? LastRunDateTime { get; set; }
+    public DateTimeOffset? LastRunDateTime { get; set; } = DateTimeOffset.MinValue.UtcDateTime;
 
     /// <summary>
     /// Whether the tool should run in dry run mode.
