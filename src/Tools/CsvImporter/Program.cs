@@ -72,23 +72,13 @@ if (preLaunchConfig is not null)
     {
         builder.Services
             .AddCsvImporterQueueClientService(
-                connectionString: AuthUtils.GetStorageConnectionString()
+                queueUri: Environment.GetEnvironmentVariable("QUEUE_URI") ?? preLaunchConfig.QueueUri ?? throw new NullReferenceException("QUEUE_URI environment variable not set or missing from config file."),
+                tokenCredential: AuthUtils.CreateTokenCredential(Environment.GetEnvironmentVariable("QUEUE_URI") ?? preLaunchConfig.QueueUri)
             );
     }
     catch (Exception)
     {
-        try
-        {
-            builder.Services
-                .AddCsvImporterQueueClientService(
-                    queueUri: Environment.GetEnvironmentVariable("QUEUE_URI") ?? preLaunchConfig.QueueUri ?? throw new NullReferenceException("QUEUE_URI environment variable not set or missing from config file."),
-                    tokenCredential: AuthUtils.CreateTokenCredential(Environment.GetEnvironmentVariable("QUEUE_URI") ?? preLaunchConfig.QueueUri)
-                );
-        }
-        catch (Exception)
-        {
-            throw;
-        }
+        throw;
     }
 }
 
