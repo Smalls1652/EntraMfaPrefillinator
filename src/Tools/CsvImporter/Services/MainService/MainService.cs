@@ -1,7 +1,5 @@
 using System.Diagnostics;
 using System.Text.Json;
-using Azure.Core;
-using Azure.Identity;
 using EntraMfaPrefillinator.Lib.Models;
 using EntraMfaPrefillinator.Lib.Services;
 using EntraMfaPrefillinator.Tools.CsvImporter.Models;
@@ -10,20 +8,23 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 
 namespace EntraMfaPrefillinator.Tools.CsvImporter.Services;
 
 public class MainService : IMainService, IHostedService
 {
     private readonly ILogger<MainService> _logger;
-    private readonly IConfigService _configService;
+    private readonly IConfiguration _configuration;
     private readonly IQueueClientService _queueClientService;
+    private readonly MainServiceOptions _options;
 
-    public MainService(ILogger<MainService> logger, IConfigService configService, IQueueClientService queueClientService)
+    public MainService(ILogger<MainService> logger, IConfiguration configuration, IQueueClientService queueClientService, IOptions<MainServiceOptions> options)
     {
         _logger = logger is not null ? logger : NullLogger<MainService>.Instance;
-        _configService = configService;
+        _configuration = configuration;
         _queueClientService = queueClientService;
+        _options = options.Value;
     }
 
     public async Task RunAsync()
@@ -33,38 +34,19 @@ public class MainService : IMainService, IHostedService
 
         try
         {
-            await _configService.LoadConfigAsync();
 
-            if (_configService.Config is null)
-            {
-                Exception configNotLoadedException = new("Config not loaded.");
-                _logger.LogError(configNotLoadedException, "Error loading config");
-                exitCode = 20;
-
-                throw configNotLoadedException;
-            }
-
-            if (_configService.Config.CsvFilePath is null || string.IsNullOrEmpty(_configService.Config.CsvFilePath))
-            {
-                ArgumentException csvPathNotSetException = new("CSV file path not set.");
-                _logger.LogError(csvPathNotSetException, "Error reading CSV file");
-                exitCode = 40;
-
-                throw csvPathNotSetException;
-            }
+            CsvImporterConfigFile configFile = _configuration.Get<CsvImporterConfigFile>()!;
 
             int maxTasks = 256;
 
             string runningDir = Environment.CurrentDirectory;
 
             // Resolve CSV file path.
-            _logger.LogInformation("Reading CSV file from {CsvFilePath}", _configService.Config.CsvFilePath);
+            _logger.LogInformation("Reading CSV file from {CsvFilePath}", configFile.Config.CsvFilePath);
             string relativePathToCsv = Path.GetRelativePath(
                 relativeTo: runningDir,
-                path: _configService.Config.CsvFilePath
+                path: configFile.Config.CsvFilePath
             );
-
-            _logger.LogInformation("Relative path to CSV file: {CsvFilePath}", relativePathToCsv);
             FileInfo csvFileInfo = new(relativePathToCsv);
 
             if (!csvFileInfo.Exists)
@@ -109,14 +91,14 @@ public class MainService : IMainService, IHostedService
             // If last run CSV file path exists, 
             // read the last run CSV file.
             List<UserDetails>? lastRunUserDetailsList = null;
-            if (_configService.Config.LastCsvPath is not null)
+            if (configFile.Config.LastCsvPath is not null)
             {
                 Path.GetRelativePath(
                     relativeTo: runningDir,
-                    path: _configService.Config.LastCsvPath
+                    path: configFile.Config.LastCsvPath
                 );
 
-                FileInfo lastCsvFileInfo = new(_configService.Config.LastCsvPath);
+                FileInfo lastCsvFileInfo = new(configFile.Config.LastCsvPath);
 
                 if (lastCsvFileInfo.Exists)
                 {
@@ -168,7 +150,7 @@ public class MainService : IMainService, IHostedService
             }
 
             // If this is a dry run, exit.
-            if (_configService.Config.DryRunEnabled)
+            if (configFile.Config.DryRunEnabled)
             {
                 _logger.LogWarning("Dry run, exiting");
                 exitCode = 5;
@@ -207,7 +189,7 @@ public class MainService : IMainService, IHostedService
 
             // Copy the CSV file used for this run to the config directory.
             _logger.LogInformation("Saving last run CSV file path to config file.");
-            string copiedCsvFilePath = Path.Combine(_configService.GetConfigDirPath(), "lastRun.csv");
+            string copiedCsvFilePath = Path.Combine(_options.ConfigDirPath, "lastRun.csv");
             File.Copy(
                 sourceFileName: csvFileInfo.FullName,
                 destFileName: copiedCsvFilePath,
@@ -215,9 +197,9 @@ public class MainService : IMainService, IHostedService
             );
 
             // Update the config file.
-            _configService.Config.LastCsvPath = copiedCsvFilePath;
-            _configService.Config.LastRunDateTime = DateTimeOffset.UtcNow;
-            await _configService.SaveConfigAsync();
+            configFile.Config.LastCsvPath = copiedCsvFilePath;
+            configFile.Config.LastRunDateTime = DateTimeOffset.UtcNow;
+            await ConfigFileUtils.SaveConfigAsync(configFile, _options.ConfigFilePath);
 
             exitCode = 0;
             return;
