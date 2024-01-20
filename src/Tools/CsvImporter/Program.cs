@@ -1,16 +1,26 @@
-﻿using System.Text.Json;
+﻿using System.Text;
+using System.Text.Json;
 using EntraMfaPrefillinator.Tools.CsvImporter;
-using EntraMfaPrefillinator.Tools.CsvImporter.Extensions;
 using EntraMfaPrefillinator.Tools.CsvImporter.Extensions.QueueClient;
+using EntraMfaPrefillinator.Tools.CsvImporter.Extensions.ServiceSetup;
 using EntraMfaPrefillinator.Tools.CsvImporter.Logging;
 using EntraMfaPrefillinator.Tools.CsvImporter.Models;
-using EntraMfaPrefillinator.Tools.CsvImporter.Services;
+using EntraMfaPrefillinator.Tools.CsvImporter.Models.Exceptions;
 using EntraMfaPrefillinator.Tools.CsvImporter.Utilities;
-using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+
+ILoggerFactory preLaunchLoggerFactory = LoggerFactory.Create(configure =>
+{
+    configure.AddSimpleConsole(options =>
+    {
+        options.SingleLine = false;
+        options.UseUtcTimestamp = true;
+    });
+});
+
+ILogger preLaunchLogger = preLaunchLoggerFactory.CreateLogger("EntraMfaPrefillinator.Tools.CsvImporter.PreLaunch");
 
 string configDirPath = Path.Combine(
     path1: Environment.IsPrivilegedProcess
@@ -27,11 +37,13 @@ string logsDirPath = Path.Combine(
 
 if (!Directory.Exists(configDirPath))
 {
+    preLaunchLogger.LogInformation("Config directory does not exist. Creating...");
     Directory.CreateDirectory(configDirPath);
 }
 
 if (!Directory.Exists(logsDirPath))
 {
+    preLaunchLogger.LogInformation("Logs directory does not exist. Creating...");
     Directory.CreateDirectory(logsDirPath);
 }
 
@@ -40,19 +52,64 @@ string logFilePath = Path.Combine(logsDirPath, $"CsvImporter_{DateTime.UtcNow:yy
 
 bool configFileExists = File.Exists(configFilePath);
 
-CsvImporterConfig? preLaunchConfig = null;
-if (configFileExists)
+if (!configFileExists)
 {
-    preLaunchConfig = JsonSerializer.Deserialize(
-        json: File.ReadAllText(configFilePath),
-        jsonTypeInfo: CoreJsonContext.Default.CsvImporterConfig
+    preLaunchLogger.LogWarning("Config file does not exist. Creating...");
+    CsvImporterConfigFile configFile = new();
+    await File.WriteAllTextAsync(
+        path: configFilePath,
+        contents: JsonSerializer.Serialize(
+            value: configFile,
+            jsonTypeInfo: ConfigJsonContext.Default.CsvImporterConfigFile
+        )
     );
+
+    StringBuilder configFileNewlyCreatedMessage = new();
+    configFileNewlyCreatedMessage.AppendLine("Config file created. Please edit the config file and re-run the tool.");
+    configFileNewlyCreatedMessage.AppendLine($"Config file path: {configFilePath}");
+    configFileNewlyCreatedMessage.AppendLine();
+    configFileNewlyCreatedMessage.AppendLine("Please ensure the following options are set:");
+    configFileNewlyCreatedMessage.AppendLine("- csvFilePath");
+    configFileNewlyCreatedMessage.AppendLine("- queueUri");
+
+    preLaunchLogger.LogError("{ConfigFileNewlyCreatedMessage}", configFileNewlyCreatedMessage.ToString());
+    preLaunchLoggerFactory.Dispose();
+    return;
 }
 
 var builder = Host.CreateApplicationBuilder(args);
 
 builder.Configuration
-    .AddEnvironmentVariables();
+    .AddEnvironmentVariables()
+    .AddJsonFile(
+        path: configFilePath,
+        optional: false,
+        reloadOnChange: true
+    );
+
+CsvImporterConfig csvImporterConfig;
+try
+{
+    csvImporterConfig = builder.Configuration.GetSection("config").Get<CsvImporterConfig>() ?? throw new NullReferenceException("Config is empty.");
+}
+catch (NullReferenceException ex)
+{
+    preLaunchLogger.LogError(ex, "The 'config' section of the config file is empty.");
+    preLaunchLoggerFactory.Dispose();
+    return;
+}
+
+try
+{
+    preLaunchLogger.LogInformation("Validating config...");
+    ConfigFileUtils.EnsureRequiredOptionsAreSet(csvImporterConfig);
+}
+catch (ConfigPropertyException ex)
+{
+    preLaunchLogger.LogError(ex, "Required option '{OptionName}' is not set.", ex.PropertyName);
+    preLaunchLoggerFactory.Dispose();
+    return;
+}
 
 builder.Logging
     .ClearProviders()
@@ -66,41 +123,31 @@ builder.Logging
         options.FilePath = logFilePath;
     });
 
-if (preLaunchConfig is not null)
+try
 {
-    try
-    {
-        builder.Services
-            .AddCsvImporterQueueClientService(
-                queueUri: Environment.GetEnvironmentVariable("QUEUE_URI") ?? preLaunchConfig.QueueUri ?? throw new NullReferenceException("QUEUE_URI environment variable not set or missing from config file."),
-                tokenCredential: AuthUtils.CreateTokenCredential(Environment.GetEnvironmentVariable("QUEUE_URI") ?? preLaunchConfig.QueueUri)
-            );
-    }
-    catch (Exception)
-    {
-        throw;
-    }
+    preLaunchLogger.LogInformation("Configuring queue client service...");
+    builder.Services
+        .AddCsvImporterQueueClientService(
+            queueUri: csvImporterConfig.QueueUri!,
+            tokenCredential: AuthUtils.CreateTokenCredential(csvImporterConfig.QueueUri!)
+        );
+}
+catch (Exception ex)
+{
+    preLaunchLogger.LogError(ex, "Failed to configure queue client service.");
+    preLaunchLoggerFactory.Dispose();
+    throw;
 }
 
 builder.Services
-    .AddConfigService(options =>
+    .AddMainService(options =>
     {
+        options.ConfigFilePath = configFilePath;
         options.ConfigDirPath = configDirPath;
     });
 
-if (configFileExists)
-{
-    builder.Services
-        .AddHostedService<MainService>();
-}
+preLaunchLoggerFactory.Dispose();
 
 using var host = builder.Build();
-
-if (!configFileExists)
-{
-    var configService = host.Services.GetRequiredService<IConfigService>();
-
-    await configService.LoadConfigAsync();
-}
 
 await host.RunAsync();
