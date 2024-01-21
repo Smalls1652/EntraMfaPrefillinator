@@ -11,6 +11,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
+// Create a logger factory for pre-launch logging.
 ILoggerFactory preLaunchLoggerFactory = LoggerFactory.Create(configure =>
 {
     configure.AddSimpleConsole(options =>
@@ -22,6 +23,7 @@ ILoggerFactory preLaunchLoggerFactory = LoggerFactory.Create(configure =>
 
 ILogger preLaunchLogger = preLaunchLoggerFactory.CreateLogger("EntraMfaPrefillinator.Tools.CsvImporter.PreLaunch");
 
+// Get the path to the config directory and create it if it doesn't exist.
 string configDirPath = Path.Combine(
     path1: Environment.IsPrivilegedProcess
         ? Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData)
@@ -30,16 +32,17 @@ string configDirPath = Path.Combine(
     path3: "CsvImporter"
 );
 
-string logsDirPath = Path.Combine(
-    path1: configDirPath,
-    path2: "Logs"
-);
-
 if (!Directory.Exists(configDirPath))
 {
     preLaunchLogger.LogInformation("Config directory does not exist. Creating...");
     Directory.CreateDirectory(configDirPath);
 }
+
+// Get the path to the logs directory and create it if it doesn't exist.
+string logsDirPath = Path.Combine(
+    path1: configDirPath,
+    path2: "Logs"
+);
 
 if (!Directory.Exists(logsDirPath))
 {
@@ -47,11 +50,11 @@ if (!Directory.Exists(logsDirPath))
     Directory.CreateDirectory(logsDirPath);
 }
 
+// Get the path to the config file.
+// If the config file doesn't exist, create it and exit.
 string configFilePath = Path.Combine(configDirPath, "config.json");
-string logFilePath = Path.Combine(logsDirPath, $"CsvImporter_{DateTime.UtcNow:yyyy-MM-dd_HH-mm-ss}.log");
 
 bool configFileExists = File.Exists(configFilePath);
-
 if (!configFileExists)
 {
     preLaunchLogger.LogWarning("Config file does not exist. Creating...");
@@ -77,8 +80,13 @@ if (!configFileExists)
     return;
 }
 
+// Get the path to the log file for this run.
+string logFilePath = Path.Combine(logsDirPath, $"CsvImporter_{DateTime.UtcNow:yyyy-MM-dd_HH-mm-ss}.log");
+
+// Start building the host.
 var builder = Host.CreateApplicationBuilder(args);
 
+// Add the configuration for the host.
 builder.Configuration
     .AddEnvironmentVariables()
     .AddJsonFile(
@@ -87,6 +95,7 @@ builder.Configuration
         reloadOnChange: true
     );
 
+// Get the values from the config file.
 CsvImporterConfig csvImporterConfig;
 try
 {
@@ -99,6 +108,7 @@ catch (NullReferenceException ex)
     return;
 }
 
+// Validate the config to ensure required options are set.
 try
 {
     preLaunchLogger.LogInformation("Validating config...");
@@ -111,6 +121,7 @@ catch (ConfigPropertyException ex)
     return;
 }
 
+// Configure logging for the host.
 builder.Logging
     .ClearProviders()
     .AddSimpleConsole(options =>
@@ -123,6 +134,7 @@ builder.Logging
         options.FilePath = logFilePath;
     });
 
+// Add the QueueClientService to the host.
 try
 {
     preLaunchLogger.LogInformation("Configuring queue client service...");
@@ -139,6 +151,8 @@ catch (Exception ex)
     throw;
 }
 
+// Add the MainService to the host.
+// This service will be automatically run when the host is started.
 builder.Services
     .AddMainService(options =>
     {
@@ -146,8 +160,11 @@ builder.Services
         options.ConfigDirPath = configDirPath;
     });
 
+// Dispose the pre-launch logger factory.
 preLaunchLoggerFactory.Dispose();
 
+// Build the host.
 using var host = builder.Build();
 
+// Run the host.
 await host.RunAsync();
