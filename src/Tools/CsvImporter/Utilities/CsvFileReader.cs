@@ -59,7 +59,7 @@ public static class CsvFileReader
     /// <param name="lastRunList">The last run list.</param>
     /// <param name="maxTasks">The maximum number of tasks to run at once.</param>
     /// <returns>A <see cref="List{T}"/> of <see cref="UserDetails"/> objects that represent the delta.</returns>
-    public static async Task<List<UserDetails>> GetDeltaAsync(List<UserDetails> currentList, List<UserDetails> lastRunList, int maxTasks = 5)
+    public static async Task<List<UserDetails>> GetDeltaAsync(List<UserDetails> currentList, List<UserDetails> lastRunList, int maxTasks = 5, CancellationToken cancellationToken = default)
     {
         double initialTasksCount = Math.Round((double)(maxTasks / 2), 0);
 
@@ -75,7 +75,7 @@ public static class CsvFileReader
         {
             var deltaTask = Task.Run(async () =>
             {
-                await semaphoreSlim.WaitAsync();
+                await semaphoreSlim.WaitAsync(cancellationToken);
 
                 try
                 {
@@ -101,12 +101,19 @@ public static class CsvFileReader
                 {
                     semaphoreSlim.Release();
                 }
-            });
+            }, cancellationToken);
 
             deltaTasks.Add(deltaTask);
         }
 
-        await Task.WhenAll(deltaTasks);
+        try
+        {
+            await Task.WhenAll(deltaTasks);
+        }
+        catch (OperationCanceledException ex)
+        {
+            throw new OperationCanceledException("The operation was canceled.", ex);
+        }
 
         foreach (var deltaTask in deltaTasks)
         {

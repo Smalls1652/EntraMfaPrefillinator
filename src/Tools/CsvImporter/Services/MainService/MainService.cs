@@ -14,20 +14,22 @@ namespace EntraMfaPrefillinator.Tools.CsvImporter.Services;
 
 public class MainService : IMainService, IHostedService
 {
+    private readonly IHostApplicationLifetime _appLifetime;
     private readonly ILogger<MainService> _logger;
     private readonly IConfiguration _configuration;
     private readonly IQueueClientService _queueClientService;
     private readonly MainServiceOptions _options;
 
-    public MainService(ILogger<MainService> logger, IConfiguration configuration, IQueueClientService queueClientService, IOptions<MainServiceOptions> options)
+    public MainService(IHostApplicationLifetime appLifetime, ILogger<MainService> logger, IConfiguration configuration, IQueueClientService queueClientService, IOptions<MainServiceOptions> options)
     {
+        _appLifetime = appLifetime;
         _logger = logger is not null ? logger : NullLogger<MainService>.Instance;
         _configuration = configuration;
         _queueClientService = queueClientService;
         _options = options.Value;
     }
 
-    public async Task RunAsync()
+    public async Task RunAsync(CancellationToken cancellationToken = default)
     {
         Stopwatch stopwatch = Stopwatch.StartNew();
         int exitCode = 0;
@@ -118,11 +120,30 @@ public class MainService : IMainService, IHostedService
 
                 _logger.LogInformation("Found {LastRunUserDetailsCount} users in last run CSV file", lastRunUserDetailsList.Count);
 
-                List<UserDetails> deltaList = await CsvFileReader.GetDeltaAsync(
-                    currentList: userDetailsList,
-                    lastRunList: lastRunUserDetailsList,
-                    maxTasks: 10
-                );
+                List<UserDetails> deltaList = [];
+                try
+                {
+                    deltaList = await CsvFileReader.GetDeltaAsync(
+                        currentList: userDetailsList,
+                        lastRunList: lastRunUserDetailsList,
+                        maxTasks: 10,
+                        cancellationToken: cancellationToken
+                    );
+                }
+                catch (OperationCanceledException)
+                {
+                    _logger.LogError("Delta operation was cancelled during execution.");
+                    exitCode = 40;
+
+                    Environment.Exit(exitCode);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error getting delta between current CSV file and last run CSV file.");
+                    exitCode = 41;
+
+                    Environment.Exit(exitCode);
+                }
 
                 _logger.LogInformation("Filtered down to {DeltaListCount} users not in last run CSV file", deltaList.Count);
 
@@ -210,19 +231,22 @@ public class MainService : IMainService, IHostedService
 
             _logger.LogInformation("Completed in {ElapsedMilliseconds}ms", stopwatch.ElapsedMilliseconds);
 
-            Environment.Exit(exitCode);
+            _appLifetime.StopApplication();
         }
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        await RunAsync();
+        await RunAsync(cancellationToken);
+
+        await Task.CompletedTask;
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)
     {
         _logger.LogInformation("Stopping MainService...");
-        await Task.Delay(0, cancellationToken);
+        
+        await Task.CompletedTask;
     }
 
     private async Task SendUserAuthUpdateQueueItemAsync(SemaphoreSlim semaphoreSlim, UserAuthUpdateQueueItem userAuthUpdate)
