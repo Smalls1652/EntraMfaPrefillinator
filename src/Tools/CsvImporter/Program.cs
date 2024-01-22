@@ -7,6 +7,7 @@ using EntraMfaPrefillinator.Tools.CsvImporter.Hosting;
 using EntraMfaPrefillinator.Tools.CsvImporter.Logging;
 using EntraMfaPrefillinator.Tools.CsvImporter.Models;
 using EntraMfaPrefillinator.Tools.CsvImporter.Models.Exceptions;
+using EntraMfaPrefillinator.Tools.CsvImporter.Services;
 using EntraMfaPrefillinator.Tools.CsvImporter.Utilities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -45,6 +46,11 @@ if (!Directory.Exists(configDirPath))
 string logsDirPath = Path.Combine(
     path1: configDirPath,
     path2: "Logs"
+);
+
+string dbPath = Path.Combine(
+    path1: configDirPath,
+    path2: "CsvImporter.db"
 );
 
 if (!Directory.Exists(logsDirPath))
@@ -165,11 +171,22 @@ catch (Exception ex)
     throw;
 }
 
+builder.Services
+    .AddCsvImporterSqliteService(options =>
+    {
+        options.DbPath = dbPath;
+    })
+    .AddCsvFileReaderService();
+
 // Dispose the pre-launch logger factory.
 preLaunchLoggerFactory.Dispose();
 
 // Build the host.
 using var host = builder.Build();
+
+var dbService = host.Services.GetRequiredService<ICsvImporterSqliteService>();
+
+await dbService.InitializeDatabaseAsync();
 
 // Run the host.
 await host.RunAsync();
