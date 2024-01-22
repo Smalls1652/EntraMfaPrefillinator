@@ -4,6 +4,7 @@ using EntraMfaPrefillinator.Lib.Models;
 using EntraMfaPrefillinator.Lib.Services;
 using EntraMfaPrefillinator.Tools.CsvImporter.Models;
 using EntraMfaPrefillinator.Tools.CsvImporter.Utilities;
+using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -18,15 +19,19 @@ public sealed class MainService : IMainService, IHostedService, IDisposable
     private readonly ILogger _logger;
     private readonly IConfiguration _configuration;
     private readonly IQueueClientService _queueClientService;
+    private readonly ICsvImporterSqliteService _dbService;
+    private readonly ICsvFileReaderService _csvFileReader;
     private readonly MainServiceOptions _options;
     private readonly CancellationTokenSource _cancellationTokenSource = new();
 
-    public MainService(IHostApplicationLifetime appLifetime, ILoggerFactory loggerFactory, IConfiguration configuration, IQueueClientService queueClientService, IOptions<MainServiceOptions> options)
+    public MainService(IHostApplicationLifetime appLifetime, ILoggerFactory loggerFactory, IConfiguration configuration, IQueueClientService queueClientService, ICsvImporterSqliteService dbService, ICsvFileReaderService csvFileReader, IOptions<MainServiceOptions> options)
     {
         _appLifetime = appLifetime;
         _logger = loggerFactory.CreateLogger("MainService");
         _configuration = configuration;
         _queueClientService = queueClientService;
+        _dbService = dbService;
+        _csvFileReader = csvFileReader;
         _options = options.Value;
     }
 
@@ -42,6 +47,8 @@ public sealed class MainService : IMainService, IHostedService, IDisposable
             int maxTasks = 256;
 
             string runningDir = Environment.CurrentDirectory;
+
+            await _dbService.OpenAsync();
 
             // Resolve CSV file path.
             _logger.LogInformation("Reading CSV file from {CsvFilePath}", configFile.Config.CsvFilePath);
@@ -73,8 +80,7 @@ public sealed class MainService : IMainService, IHostedService, IDisposable
             List<UserDetails> userDetailsList;
             try
             {
-                userDetailsList = await CsvFileReader.ReadCsvFileAsync(
-                    logger: _logger,
+                userDetailsList = await _csvFileReader.ReadCsvFileAsync(
                     csvFilePath: csvFileInfo.FullName
                 );
             }
@@ -86,45 +92,22 @@ public sealed class MainService : IMainService, IHostedService, IDisposable
             }
 
             _logger.LogInformation("Found {UserDetailsCount} users in CSV file", userDetailsList.Count);
+            
+            // Get the current count of users in the database.
+            int lastRunUserDetailsCount = await _dbService.GetUserDetailsCountAsync();
 
-            // If last run CSV file path exists, 
-            // read the last run CSV file.
-            List<UserDetails>? lastRunUserDetailsList = null;
-            if (configFile.Config.LastCsvPath is not null)
+            // If there are users in the database, run the delta against the current list.
+            
+            if (lastRunUserDetailsCount != 0)
             {
-                Path.GetRelativePath(
-                    relativeTo: runningDir,
-                    path: configFile.Config.LastCsvPath
-                );
-
-                FileInfo lastCsvFileInfo = new(configFile.Config.LastCsvPath);
-
-                if (lastCsvFileInfo.Exists)
-                {
-                    _logger.LogInformation("Reading last run CSV file: {LastCsvFilePath}", lastCsvFileInfo.FullName);
-                    lastRunUserDetailsList = await CsvFileReader.ReadCsvFileAsync(
-                        logger: _logger,
-                        csvFilePath: lastCsvFileInfo.FullName
-                    );
-
-                    _logger.LogInformation("Found {LastRunUserDetailsCount} users in last run CSV file", lastRunUserDetailsList.Count);
-                }
-            }
-
-            // If last run CSV file was read,
-            // get the delta between the last run CSV file and the current CSV file.
-            if (lastRunUserDetailsList is not null && lastRunUserDetailsList.Count != 0)
-            {
+                List<UserDetails> deltaList = [];
                 _logger.LogInformation("Getting delta between current CSV file and last run CSV file...");
                 Stopwatch deltaStopwatch = Stopwatch.StartNew();
 
-                List<UserDetails> deltaList = [];
                 try
                 {
-                    deltaList = await CsvFileReader.GetDeltaAsync(
+                    deltaList = await _csvFileReader.GetDeltaAsync(
                         currentList: userDetailsList,
-                        lastRunList: lastRunUserDetailsList,
-                        maxTasks: 10,
                         cancellationToken: _cancellationTokenSource.Token
                     );
                 }
@@ -142,18 +125,15 @@ public sealed class MainService : IMainService, IHostedService, IDisposable
                 }
 
                 _logger.LogInformation("Filtered down to {DeltaListCount} users not in last run CSV file", deltaList.Count);
-
-                // Update the user details list to the delta list.
                 userDetailsList = deltaList;
 
                 deltaStopwatch.Stop();
                 _logger.LogInformation("Delta completed in {DeltaElapsedMilliseconds}ms", deltaStopwatch.ElapsedMilliseconds);
             }
 
+
             // Filter out users without an email or phone number set.
-            List<UserDetails> filteredUserDetailsList = userDetailsList.FindAll(
-                match: userDetails => userDetails.SecondaryEmail is not null || userDetails.PhoneNumber is not null
-            );
+            List<UserDetails> filteredUserDetailsList = userDetailsList.FindAll(userDetails => userDetails.SecondaryEmail is not null || userDetails.PhoneNumber is not null);
 
             _logger.LogInformation("Filtered to {FilteredUserDetailsCount} users with email or phone number", filteredUserDetailsList.Count);
 
@@ -161,14 +141,6 @@ public sealed class MainService : IMainService, IHostedService, IDisposable
             if (filteredUserDetailsList.Count == 0)
             {
                 _logger.LogWarning("No users to process, exiting");
-
-                return;
-            }
-
-            // If this is a dry run, exit.
-            if (configFile.Config.DryRunEnabled)
-            {
-                _logger.LogWarning("Dry run, exiting");
 
                 return;
             }
@@ -185,44 +157,75 @@ public sealed class MainService : IMainService, IHostedService, IDisposable
             List<Task> tasks = [];
             foreach (var userItem in filteredUserDetailsList)
             {
-                UserAuthUpdateQueueItem queueItem = new()
+                if (configFile.Config.DryRunEnabled)
                 {
-                    EmployeeId = userItem.EmployeeNumber,
-                    UserName = userItem.UserName,
-                    EmailAddress = userItem.SecondaryEmail,
-                    PhoneNumber = userItem.PhoneNumber
-                };
-
+                    continue;
+                }
                 Task newQueueItemTask;
                 try
                 {
-                    newQueueItemTask = SendUserAuthUpdateQueueItemAsync(semaphoreSlim, queueItem);
-                    _logger.LogInformation("Sent message to queue for '{UserName}'.", queueItem.UserName);
+                    newQueueItemTask = SendUserAuthUpdateQueueItemAsync(semaphoreSlim, userItem, configFile);
+                    tasks.Add(newQueueItemTask);
+                    _logger.LogInformation("Sent message to queue for '{UserName}'.", userItem.UserName);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error sending message to queue for '{UserName}'.", queueItem.UserName);
+                    _logger.LogError(ex, "Error sending message to queue for '{UserName}'.", userItem.UserName);
                     throw;
                 }
-
-                tasks.Add(newQueueItemTask);
             }
 
             // Wait for all tasks to complete.
             _logger.LogInformation("Waiting for tasks to complete...");
             await Task.WhenAll(tasks);
 
-            // Copy the CSV file used for this run to the config directory.
-            _logger.LogInformation("Saving last run CSV file path to config file.");
-            string copiedCsvFilePath = Path.Combine(_options.ConfigDirPath, "lastRun.csv");
-            File.Copy(
-                sourceFileName: csvFileInfo.FullName,
-                destFileName: copiedCsvFilePath,
-                overwrite: true
-            );
+            _logger.LogInformation("Updating database...");
+            List<SqliteCommand> commands = [];
+            if (lastRunUserDetailsCount == 0)
+            {
+                for (int i = 0; i < userDetailsList.Count; i++)
+                {
+                    UserDetails userItem = userDetailsList[i];
+                    commands.Add(_dbService.CreateInsertUserDetailsCommand(userItem));
+
+                    if (i % 100 == 0 || i == userDetailsList.Count - 1)
+                    {
+                        await _dbService.RunDbUpdatesAsync(commands);
+                        commands.Clear();
+                    }
+                }
+            }
+            else
+            {
+                for (int i = 0; i < filteredUserDetailsList.Count; i++)
+                {
+                    UserDetails userItem = filteredUserDetailsList[i];
+
+                    if (userItem.IsInLastRun)
+                    {
+                        commands.Add(_dbService.CreateUpdateUserDetailsCommand(userItem));
+                    }
+                    else
+                    {
+                        commands.Add(_dbService.CreateInsertUserDetailsCommand(userItem));
+                    }
+
+                    if (i % 100 == 0 || i == filteredUserDetailsList.Count - 1)
+                    {
+                        await _dbService.RunDbUpdatesAsync(commands);
+                        commands.Clear();
+                    }
+                }
+            }
+
+            if (configFile.Config.DryRunEnabled)
+            {
+                _logger.LogWarning("Dry run, exiting");
+
+                return;
+            }
 
             // Update the config file.
-            configFile.Config.LastCsvPath = copiedCsvFilePath;
             configFile.Config.LastRunDateTime = DateTimeOffset.UtcNow;
             await ConfigFileUtils.SaveConfigAsync(configFile, _options.ConfigFilePath);
 
@@ -233,6 +236,8 @@ public sealed class MainService : IMainService, IHostedService, IDisposable
             stopwatch.Stop();
 
             _logger.LogInformation("Completed in {ElapsedMilliseconds}ms", stopwatch.ElapsedMilliseconds);
+
+            await _dbService.CloseAsync();
 
             _appLifetime.StopApplication();
         }
@@ -262,13 +267,21 @@ public sealed class MainService : IMainService, IHostedService, IDisposable
         GC.SuppressFinalize(this);
     }
 
-    private async Task SendUserAuthUpdateQueueItemAsync(SemaphoreSlim semaphoreSlim, UserAuthUpdateQueueItem userAuthUpdate)
+    private async Task SendUserAuthUpdateQueueItemAsync(SemaphoreSlim semaphoreSlim, UserDetails userDetails, CsvImporterConfigFile configFile)
     {
         // Wait for the semaphore to be available before sending the message.
         await semaphoreSlim.WaitAsync();
 
         try
         {
+            UserAuthUpdateQueueItem userAuthUpdate = new()
+            {
+                EmployeeId = userDetails.EmployeeNumber,
+                UserName = userDetails.UserName,
+                EmailAddress = userDetails.SecondaryEmail,
+                PhoneNumber = userDetails.PhoneNumber
+            };
+
             // Serialize the user auth update to JSON and send it to the queue.
             string userItemJson = JsonSerializer.Serialize(
                 value: userAuthUpdate,
