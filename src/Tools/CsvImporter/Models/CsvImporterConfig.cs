@@ -14,12 +14,6 @@ public sealed class CsvImporterConfig
     public string CsvFilePath { get; set; } = string.Empty;
 
     /// <summary>
-    /// The path to the last CSV file that was imported.
-    /// </summary>
-    [JsonPropertyName("lastCsvPath")]
-    public string? LastCsvPath { get; set; }
-
-    /// <summary>
     /// The last date and time the tool was run.
     /// </summary>
     [JsonPropertyName("lastRunDateTime")]
