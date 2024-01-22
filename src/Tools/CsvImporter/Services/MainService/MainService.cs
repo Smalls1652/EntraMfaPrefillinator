@@ -12,18 +12,19 @@ using Microsoft.Extensions.Options;
 
 namespace EntraMfaPrefillinator.Tools.CsvImporter.Services;
 
-public class MainService : IMainService, IHostedService
+public sealed class MainService : IMainService, IHostedService, IDisposable
 {
     private readonly IHostApplicationLifetime _appLifetime;
-    private readonly ILogger<MainService> _logger;
+    private readonly ILogger _logger;
     private readonly IConfiguration _configuration;
     private readonly IQueueClientService _queueClientService;
     private readonly MainServiceOptions _options;
+    private readonly CancellationTokenSource _cancellationTokenSource = new();
 
-    public MainService(IHostApplicationLifetime appLifetime, ILogger<MainService> logger, IConfiguration configuration, IQueueClientService queueClientService, IOptions<MainServiceOptions> options)
+    public MainService(IHostApplicationLifetime appLifetime, ILoggerFactory loggerFactory, IConfiguration configuration, IQueueClientService queueClientService, IOptions<MainServiceOptions> options)
     {
         _appLifetime = appLifetime;
-        _logger = logger is not null ? logger : NullLogger<MainService>.Instance;
+        _logger = loggerFactory.CreateLogger("MainService");
         _configuration = configuration;
         _queueClientService = queueClientService;
         _options = options.Value;
@@ -32,7 +33,6 @@ public class MainService : IMainService, IHostedService
     public async Task RunAsync(CancellationToken cancellationToken = default)
     {
         Stopwatch stopwatch = Stopwatch.StartNew();
-        int exitCode = 0;
 
         try
         {
@@ -55,7 +55,6 @@ public class MainService : IMainService, IHostedService
             {
                 FileNotFoundException csvNotFoundException = new("File not found", csvFileInfo.FullName);
                 _logger.LogError(csvNotFoundException, "Error reading CSV file");
-                exitCode = 50;
 
                 throw csvNotFoundException;
             }
@@ -64,7 +63,6 @@ public class MainService : IMainService, IHostedService
             {
                 ArgumentException csvFileExtensionException = new("File must be a CSV file", csvFileInfo.FullName);
                 _logger.LogError(csvFileExtensionException, "Error reading CSV file");
-                exitCode = 51;
 
                 throw csvFileExtensionException;
             }
@@ -83,7 +81,6 @@ public class MainService : IMainService, IHostedService
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error reading CSV file");
-                exitCode = 30;
 
                 return;
             }
@@ -109,6 +106,8 @@ public class MainService : IMainService, IHostedService
                         logger: _logger,
                         csvFilePath: lastCsvFileInfo.FullName
                     );
+
+                    _logger.LogInformation("Found {LastRunUserDetailsCount} users in last run CSV file", lastRunUserDetailsList.Count);
                 }
             }
 
@@ -116,9 +115,8 @@ public class MainService : IMainService, IHostedService
             // get the delta between the last run CSV file and the current CSV file.
             if (lastRunUserDetailsList is not null && lastRunUserDetailsList.Count != 0)
             {
+                _logger.LogInformation("Getting delta between current CSV file and last run CSV file...");
                 Stopwatch deltaStopwatch = Stopwatch.StartNew();
-
-                _logger.LogInformation("Found {LastRunUserDetailsCount} users in last run CSV file", lastRunUserDetailsList.Count);
 
                 List<UserDetails> deltaList = [];
                 try
@@ -127,22 +125,20 @@ public class MainService : IMainService, IHostedService
                         currentList: userDetailsList,
                         lastRunList: lastRunUserDetailsList,
                         maxTasks: 10,
-                        cancellationToken: cancellationToken
+                        cancellationToken: _cancellationTokenSource.Token
                     );
                 }
                 catch (OperationCanceledException)
                 {
                     _logger.LogError("Delta operation was cancelled during execution.");
-                    exitCode = 40;
 
-                    Environment.Exit(exitCode);
+                    return;
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Error getting delta between current CSV file and last run CSV file.");
-                    exitCode = 41;
 
-                    Environment.Exit(exitCode);
+                    return;
                 }
 
                 _logger.LogInformation("Filtered down to {DeltaListCount} users not in last run CSV file", deltaList.Count);
@@ -165,7 +161,6 @@ public class MainService : IMainService, IHostedService
             if (filteredUserDetailsList.Count == 0)
             {
                 _logger.LogWarning("No users to process, exiting");
-                exitCode = 10;
 
                 return;
             }
@@ -174,7 +169,6 @@ public class MainService : IMainService, IHostedService
             if (configFile.Config.DryRunEnabled)
             {
                 _logger.LogWarning("Dry run, exiting");
-                exitCode = 5;
 
                 return;
             }
@@ -222,7 +216,6 @@ public class MainService : IMainService, IHostedService
             configFile.Config.LastRunDateTime = DateTimeOffset.UtcNow;
             await ConfigFileUtils.SaveConfigAsync(configFile, _options.ConfigFilePath);
 
-            exitCode = 0;
             return;
         }
         finally
@@ -235,18 +228,28 @@ public class MainService : IMainService, IHostedService
         }
     }
 
-    public async Task StartAsync(CancellationToken cancellationToken)
+    public Task StartAsync(CancellationToken cancellationToken)
     {
-        await RunAsync(cancellationToken);
+        _appLifetime.ApplicationStarted.Register(() => Task.Run(async () => await RunAsync(cancellationToken)));
 
-        await Task.CompletedTask;
+        _appLifetime.ApplicationStopping.Register(() => _cancellationTokenSource.Cancel());
+
+        _logger.LogInformation("MainService started.");
+
+        return Task.CompletedTask;
     }
 
-    public async Task StopAsync(CancellationToken cancellationToken)
+    public Task StopAsync(CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Stopping MainService...");
-        
-        await Task.CompletedTask;
+        _logger.LogInformation("MainService stopped.");
+
+        return Task.CompletedTask;
+    }
+
+    public void Dispose()
+    {
+        _cancellationTokenSource.Cancel();
+        GC.SuppressFinalize(this);
     }
 
     private async Task SendUserAuthUpdateQueueItemAsync(SemaphoreSlim semaphoreSlim, UserAuthUpdateQueueItem userAuthUpdate)
