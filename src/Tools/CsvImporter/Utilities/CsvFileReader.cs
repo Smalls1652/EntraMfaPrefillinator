@@ -6,7 +6,7 @@ namespace EntraMfaPrefillinator.Tools.CsvImporter.Utilities;
 /// <summary>
 /// Houses methods for reading CSV files.
 /// </summary>
-public static class CsvFileReader
+internal static class CsvFileReader
 {
     /// <summary>
     /// Reads a CSV file and parses the data.
@@ -16,7 +16,7 @@ public static class CsvFileReader
     /// <exception cref="Exception">Thrown when there is an error reading the CSV file.</exception>
     public static async Task<List<UserDetails>> ReadCsvFileAsync(ILogger logger, string csvFilePath)
     {
-        using StringReader csvFileReader = new(await File.ReadAllTextAsync(csvFilePath));
+        using StreamReader csvFileReader = new(File.OpenRead(csvFilePath));
 
         List<UserDetails> userDetailsList = [];
 
@@ -73,6 +73,11 @@ public static class CsvFileReader
 
         foreach (var userDetailsItem in currentList)
         {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+            }
+
             var deltaTask = Task.Run(async () =>
             {
                 await semaphoreSlim.WaitAsync(cancellationToken);
@@ -110,9 +115,9 @@ public static class CsvFileReader
         {
             await Task.WhenAll(deltaTasks);
         }
-        catch (OperationCanceledException ex)
+        catch (OperationCanceledException)
         {
-            throw new OperationCanceledException("The operation was canceled.", ex);
+            throw;
         }
 
         foreach (var deltaTask in deltaTasks)
