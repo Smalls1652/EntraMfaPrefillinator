@@ -3,11 +3,14 @@ using System.Text.Json;
 using EntraMfaPrefillinator.Tools.CsvImporter;
 using EntraMfaPrefillinator.Tools.CsvImporter.Extensions.QueueClient;
 using EntraMfaPrefillinator.Tools.CsvImporter.Extensions.ServiceSetup;
+using EntraMfaPrefillinator.Tools.CsvImporter.Hosting;
 using EntraMfaPrefillinator.Tools.CsvImporter.Logging;
 using EntraMfaPrefillinator.Tools.CsvImporter.Models;
 using EntraMfaPrefillinator.Tools.CsvImporter.Models.Exceptions;
 using EntraMfaPrefillinator.Tools.CsvImporter.Utilities;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
@@ -21,7 +24,7 @@ ILoggerFactory preLaunchLoggerFactory = LoggerFactory.Create(configure =>
     });
 });
 
-ILogger preLaunchLogger = preLaunchLoggerFactory.CreateLogger("EntraMfaPrefillinator.Tools.CsvImporter.PreLaunch");
+ILogger preLaunchLogger = preLaunchLoggerFactory.CreateLogger("PreLaunch");
 
 // Get the path to the config directory and create it if it doesn't exist.
 string configDirPath = Path.Combine(
@@ -83,8 +86,13 @@ if (!configFileExists)
 // Get the path to the log file for this run.
 string logFilePath = Path.Combine(logsDirPath, $"CsvImporter_{DateTime.UtcNow:yyyy-MM-dd_HH-mm-ss}.log");
 
+preLaunchLogger.LogInformation("Creating host...");
+
 // Start building the host.
 var builder = Host.CreateApplicationBuilder(args);
+
+builder.Services.RemoveAll<IHostLifetime>();
+builder.Services.AddSingleton<IHostLifetime, CsvImporterHostLifetime>();
 
 // Add the configuration for the host.
 builder.Configuration
@@ -111,7 +119,6 @@ catch (NullReferenceException ex)
 // Validate the config to ensure required options are set.
 try
 {
-    preLaunchLogger.LogInformation("Validating config...");
     ConfigFileUtils.EnsureRequiredOptionsAreSet(csvImporterConfig);
 }
 catch (ConfigPropertyException ex)
@@ -123,7 +130,6 @@ catch (ConfigPropertyException ex)
 
 // Configure logging for the host.
 builder.Logging
-    .ClearProviders()
     .AddSimpleConsole(options =>
     {
         options.SingleLine = false;
@@ -134,10 +140,18 @@ builder.Logging
         options.FilePath = logFilePath;
     });
 
+// Add the MainService to the host.
+// This service will be automatically run when the host is started.
+builder.Services
+    .AddMainService(options =>
+    {
+        options.ConfigFilePath = configFilePath;
+        options.ConfigDirPath = configDirPath;
+    });
+
 // Add the QueueClientService to the host.
 try
 {
-    preLaunchLogger.LogInformation("Configuring queue client service...");
     builder.Services
         .AddCsvImporterQueueClientService(
             queueUri: csvImporterConfig.QueueUri!,
@@ -150,15 +164,6 @@ catch (Exception ex)
     preLaunchLoggerFactory.Dispose();
     throw;
 }
-
-// Add the MainService to the host.
-// This service will be automatically run when the host is started.
-builder.Services
-    .AddMainService(options =>
-    {
-        options.ConfigFilePath = configFilePath;
-        options.ConfigDirPath = configDirPath;
-    });
 
 // Dispose the pre-launch logger factory.
 preLaunchLoggerFactory.Dispose();
