@@ -7,7 +7,7 @@ namespace EntraMfaPrefillinator.Tools.CsvImporter.Utilities;
 /// <summary>
 /// Houses methods for reading and writing the config file for the CsvImporter tool.
 /// </summary>
-public static class ConfigFileUtils
+internal static class ConfigFileUtils
 {
     public static void EnsureRequiredOptionsAreSet(CsvImporterConfig config)
     {

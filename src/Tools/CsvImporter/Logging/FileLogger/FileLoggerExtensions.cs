@@ -11,7 +11,7 @@ namespace EntraMfaPrefillinator.Tools.CsvImporter.Logging;
 /// Extension methods to configure the <see cref="FileLogger"/> to an <see cref="ILoggingBuilder"/>.
 /// </summary>
 [UnsupportedOSPlatform("browser")]
-public static class FileLoggerExtensions
+internal static class FileLoggerExtensions
 {
     /// <summary>
     /// Adds a <see cref="FileLogger"/> to the <see cref="ILoggingBuilder"/>.

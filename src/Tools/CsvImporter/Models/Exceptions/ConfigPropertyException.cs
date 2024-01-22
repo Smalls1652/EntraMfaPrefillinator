@@ -1,6 +1,6 @@
 namespace EntraMfaPrefillinator.Tools.CsvImporter.Models.Exceptions;
 
-public class ConfigPropertyException : Exception
+internal sealed class ConfigPropertyException : Exception
 {
     public ConfigPropertyException(string message, string propertyName) : base(message)
     {

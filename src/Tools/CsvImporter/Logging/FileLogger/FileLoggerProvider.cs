@@ -10,7 +10,7 @@ namespace EntraMfaPrefillinator.Tools.CsvImporter.Logging;
 /// </summary>
 [UnsupportedOSPlatform("browser")]
 [ProviderAlias("File")]
-public class FileLoggerProvider : ILoggerProvider
+public sealed class FileLoggerProvider : ILoggerProvider
 {
     private readonly IDisposable? _onChangeToken;
     private FileLoggerConfiguration _currentConfig;

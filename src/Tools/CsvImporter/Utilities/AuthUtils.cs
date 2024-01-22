@@ -3,7 +3,7 @@ using Azure.Identity;
 
 namespace EntraMfaPrefillinator.Tools.CsvImporter.Utilities;
 
-public static class AuthUtils
+internal static class AuthUtils
 {
     public static string GetStorageConnectionString()
     {

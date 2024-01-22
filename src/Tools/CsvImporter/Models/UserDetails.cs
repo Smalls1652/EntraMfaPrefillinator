@@ -6,7 +6,7 @@ namespace EntraMfaPrefillinator.Tools.CsvImporter.Models;
 /// <summary>
 /// Holds data imported, from a CSV file, for a user's details.
 /// </summary>
-public class UserDetails
+public sealed class UserDetails
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="UserDetails"/> class.

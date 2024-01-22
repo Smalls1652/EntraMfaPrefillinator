@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace EntraMfaPrefillinator.Tools.CsvImporter.Extensions.ServiceSetup;
 
-public static class MainServiceStartupExtensions
+internal static class MainServiceStartupExtensions
 {
     public static IServiceCollection AddMainService(this IServiceCollection services, Action<MainServiceOptions> options)
     {

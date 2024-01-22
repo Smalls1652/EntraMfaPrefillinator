@@ -5,7 +5,7 @@ namespace EntraMfaPrefillinator.Tools.CsvImporter.Models;
 /// <summary>
 /// Holds the configuration for the CsvImporter tool.
 /// </summary>
-public class CsvImporterConfig
+public sealed class CsvImporterConfig
 {
     /// <summary>
     /// The path to the CSV file to import.

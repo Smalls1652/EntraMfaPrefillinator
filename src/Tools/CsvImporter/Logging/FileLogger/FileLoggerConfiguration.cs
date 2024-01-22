@@ -3,7 +3,7 @@ namespace EntraMfaPrefillinator.Tools.CsvImporter.Logging;
 /// <summary>
 /// Configuration for the <see cref="FileLogger"/>.
 /// </summary>
-public class FileLoggerConfiguration
+public sealed class FileLoggerConfiguration
 {
     /// <summary>
     /// The event ID to use for the log.

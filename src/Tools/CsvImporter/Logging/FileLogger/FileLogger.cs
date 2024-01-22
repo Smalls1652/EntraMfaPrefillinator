@@ -6,7 +6,7 @@ namespace EntraMfaPrefillinator.Tools.CsvImporter.Logging;
 /// <summary>
 /// Custom <see cref="ILogger"/> implementation that writes to a file.
 /// </summary>
-public class FileLogger : ILogger
+public sealed class FileLogger : ILogger
 {
     private readonly string _categoryName;
     private readonly Func<FileLoggerConfiguration> _config;
