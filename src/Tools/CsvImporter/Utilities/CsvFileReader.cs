@@ -1,11 +1,12 @@
 using EntraMfaPrefillinator.Tools.CsvImporter.Models;
+using Microsoft.Extensions.Logging;
 
 namespace EntraMfaPrefillinator.Tools.CsvImporter.Utilities;
 
 /// <summary>
 /// Houses methods for reading CSV files.
 /// </summary>
-public static class CsvFileReader
+internal static class CsvFileReader
 {
     /// <summary>
     /// Reads a CSV file and parses the data.
@@ -13,9 +14,9 @@ public static class CsvFileReader
     /// <param name="csvFilePath">The path to the CSV file.</param>
     /// <returns>A <see cref="List{T}"/> of <see cref="UserDetails"/> objects.</returns>
     /// <exception cref="Exception">Thrown when there is an error reading the CSV file.</exception>
-    public static async Task<List<UserDetails>> ReadCsvFileAsync(string csvFilePath)
+    public static async Task<List<UserDetails>> ReadCsvFileAsync(ILogger logger, string csvFilePath)
     {
-        using StringReader csvFileReader = new(await File.ReadAllTextAsync(csvFilePath));
+        using StreamReader csvFileReader = new(File.OpenRead(csvFilePath));
 
         List<UserDetails> userDetailsList = [];
 
@@ -44,7 +45,7 @@ public static class CsvFileReader
             }
             else
             {
-                ConsoleUtils.WriteError($"{csvLine} [Invalid]");
+                logger.LogWarning("Invalid CSV line: {csvLine}", csvLine);
             }
         }
 
@@ -58,7 +59,7 @@ public static class CsvFileReader
     /// <param name="lastRunList">The last run list.</param>
     /// <param name="maxTasks">The maximum number of tasks to run at once.</param>
     /// <returns>A <see cref="List{T}"/> of <see cref="UserDetails"/> objects that represent the delta.</returns>
-    public static async Task<List<UserDetails>> GetDeltaAsync(List<UserDetails> currentList, List<UserDetails> lastRunList, int maxTasks = 5)
+    public static async Task<List<UserDetails>> GetDeltaAsync(List<UserDetails> currentList, List<UserDetails> lastRunList, int maxTasks = 5, CancellationToken cancellationToken = default)
     {
         double initialTasksCount = Math.Round((double)(maxTasks / 2), 0);
 
@@ -72,9 +73,14 @@ public static class CsvFileReader
 
         foreach (var userDetailsItem in currentList)
         {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+            }
+
             var deltaTask = Task.Run(async () =>
             {
-                await semaphoreSlim.WaitAsync();
+                await semaphoreSlim.WaitAsync(cancellationToken);
 
                 try
                 {
@@ -100,12 +106,19 @@ public static class CsvFileReader
                 {
                     semaphoreSlim.Release();
                 }
-            });
+            }, cancellationToken);
 
             deltaTasks.Add(deltaTask);
         }
 
-        await Task.WhenAll(deltaTasks);
+        try
+        {
+            await Task.WhenAll(deltaTasks);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
 
         foreach (var deltaTask in deltaTasks)
         {

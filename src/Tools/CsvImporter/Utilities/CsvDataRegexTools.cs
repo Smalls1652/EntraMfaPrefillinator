@@ -5,7 +5,7 @@ namespace EntraMfaPrefillinator.Tools.CsvImporter.Utilities;
 /// <summary>
 /// Houses <see cref="Regex"/> methods for parsing CSV data.
 /// </summary>
-public static partial class CsvDataRegexTools
+internal static partial class CsvDataRegexTools
 {
     /// <summary>
     /// Determines if a line from a CSV file is valid.

@@ -1,251 +1,175 @@
-﻿using System.Diagnostics;
-using Azure.Core;
-using Azure.Identity;
-using EntraMfaPrefillinator.Lib.Models;
-using EntraMfaPrefillinator.Lib.Services;
+﻿using System.Text;
+using System.Text.Json;
+using EntraMfaPrefillinator.Tools.CsvImporter;
+using EntraMfaPrefillinator.Tools.CsvImporter.Extensions.QueueClient;
+using EntraMfaPrefillinator.Tools.CsvImporter.Extensions.ServiceSetup;
+using EntraMfaPrefillinator.Tools.CsvImporter.Hosting;
+using EntraMfaPrefillinator.Tools.CsvImporter.Logging;
 using EntraMfaPrefillinator.Tools.CsvImporter.Models;
+using EntraMfaPrefillinator.Tools.CsvImporter.Models.Exceptions;
 using EntraMfaPrefillinator.Tools.CsvImporter.Utilities;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
-Stopwatch stopwatch = Stopwatch.StartNew();
+// Create a logger factory for pre-launch logging.
+ILoggerFactory preLaunchLoggerFactory = LoggerFactory.Create(configure =>
+{
+    configure.AddSimpleConsole(options =>
+    {
+        options.SingleLine = false;
+        options.UseUtcTimestamp = true;
+    });
+});
 
-// Set Azure Storage connection string and dry run flag from environment variables.
+ILogger preLaunchLogger = preLaunchLoggerFactory.CreateLogger("PreLaunch");
 
-// Set CSV file path and max tasks from command line arguments.
-string csvFilePathArg;
-try
-{
-    csvFilePathArg = args[0];
-}
-catch (Exception)
-{
-    throw new ArgumentException("Missing CSV file path argument");
-}
+// Get the path to the config directory and create it if it doesn't exist.
+string configDirPath = Path.Combine(
+    path1: Environment.IsPrivilegedProcess
+        ? Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData)
+        : Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+    path2: "EntraMfaPrefillinator",
+    path3: "CsvImporter"
+);
 
-string maxTasksArg;
-try
+if (!Directory.Exists(configDirPath))
 {
-    maxTasksArg = args[1];
-}
-catch (Exception)
-{
-    maxTasksArg = "256";
-}
-
-int maxTasks;
-try
-{
-    maxTasks = int.Parse(maxTasksArg);
-}
-catch (Exception ex)
-{
-    throw new ArgumentException($"Invalid max tasks argument: {maxTasksArg}", ex);
+    preLaunchLogger.LogInformation("Config directory does not exist. Creating...");
+    Directory.CreateDirectory(configDirPath);
 }
 
-// Read config file.
+// Get the path to the logs directory and create it if it doesn't exist.
+string logsDirPath = Path.Combine(
+    path1: configDirPath,
+    path2: "Logs"
+);
+
+if (!Directory.Exists(logsDirPath))
+{
+    preLaunchLogger.LogInformation("Logs directory does not exist. Creating...");
+    Directory.CreateDirectory(logsDirPath);
+}
+
+// Get the path to the config file.
+// If the config file doesn't exist, create it and exit.
+string configFilePath = Path.Combine(configDirPath, "config.json");
+
+bool configFileExists = File.Exists(configFilePath);
+if (!configFileExists)
+{
+    preLaunchLogger.LogWarning("Config file does not exist. Creating...");
+    CsvImporterConfigFile configFile = new();
+    await File.WriteAllTextAsync(
+        path: configFilePath,
+        contents: JsonSerializer.Serialize(
+            value: configFile,
+            jsonTypeInfo: ConfigJsonContext.Default.CsvImporterConfigFile
+        )
+    );
+
+    StringBuilder configFileNewlyCreatedMessage = new();
+    configFileNewlyCreatedMessage.AppendLine("Config file created. Please edit the config file and re-run the tool.");
+    configFileNewlyCreatedMessage.AppendLine($"Config file path: {configFilePath}");
+    configFileNewlyCreatedMessage.AppendLine();
+    configFileNewlyCreatedMessage.AppendLine("Please ensure the following options are set:");
+    configFileNewlyCreatedMessage.AppendLine("- csvFilePath");
+    configFileNewlyCreatedMessage.AppendLine("- queueUri");
+
+    preLaunchLogger.LogError("{ConfigFileNewlyCreatedMessage}", configFileNewlyCreatedMessage.ToString());
+    preLaunchLoggerFactory.Dispose();
+    return;
+}
+
+// Get the path to the log file for this run.
+string logFilePath = Path.Combine(logsDirPath, $"CsvImporter_{DateTime.UtcNow:yyyy-MM-dd_HH-mm-ss}.log");
+
+preLaunchLogger.LogInformation("Creating host...");
+
+// Start building the host.
+var builder = Host.CreateApplicationBuilder(args);
+
+builder.Services.RemoveAll<IHostLifetime>();
+builder.Services.AddSingleton<IHostLifetime, CsvImporterHostLifetime>();
+
+// Add the configuration for the host.
+builder.Configuration
+    .AddEnvironmentVariables()
+    .AddJsonFile(
+        path: configFilePath,
+        optional: false,
+        reloadOnChange: true
+    );
+
+// Get the values from the config file.
 CsvImporterConfig csvImporterConfig;
 try
 {
-    csvImporterConfig = await ConfigFileUtils.GetCsvImporterConfigAsync();
+    csvImporterConfig = builder.Configuration.GetSection("config").Get<CsvImporterConfig>() ?? throw new NullReferenceException("Config is empty.");
+}
+catch (NullReferenceException ex)
+{
+    preLaunchLogger.LogError(ex, "The 'config' section of the config file is empty.");
+    preLaunchLoggerFactory.Dispose();
+    return;
+}
+
+// Validate the config to ensure required options are set.
+try
+{
+    ConfigFileUtils.EnsureRequiredOptionsAreSet(csvImporterConfig);
+}
+catch (ConfigPropertyException ex)
+{
+    preLaunchLogger.LogError(ex, "Required option '{OptionName}' is not set.", ex.PropertyName);
+    preLaunchLoggerFactory.Dispose();
+    return;
+}
+
+// Configure logging for the host.
+builder.Logging
+    .AddSimpleConsole(options =>
+    {
+        options.SingleLine = false;
+        options.UseUtcTimestamp = true;
+    })
+    .AddFileLogger(options =>
+    {
+        options.FilePath = logFilePath;
+    });
+
+// Add the MainService to the host.
+// This service will be automatically run when the host is started.
+builder.Services
+    .AddMainService(options =>
+    {
+        options.ConfigFilePath = configFilePath;
+        options.ConfigDirPath = configDirPath;
+    });
+
+// Add the QueueClientService to the host.
+try
+{
+    builder.Services
+        .AddCsvImporterQueueClientService(
+            queueUri: csvImporterConfig.QueueUri!,
+            tokenCredential: AuthUtils.CreateTokenCredential(csvImporterConfig.QueueUri!)
+        );
 }
 catch (Exception ex)
 {
-    throw new Exception($"Error reading config file: {ex.Message}");
+    preLaunchLogger.LogError(ex, "Failed to configure queue client service.");
+    preLaunchLoggerFactory.Dispose();
+    throw;
 }
 
-QueueClientService queueClientService;
-try
-{
-    string storageConnectionString = Environment.GetEnvironmentVariable("STORAGE_CONNECTION_STRING") ?? throw new NullReferenceException("STORAGE_CONNECTION_STRING environment variable not set");
+// Dispose the pre-launch logger factory.
+preLaunchLoggerFactory.Dispose();
 
-    queueClientService = new(
-        connectionString: storageConnectionString
-    );
-}
-catch (NullReferenceException)
-{
-    ConsoleUtils.WriteWarning("STORAGE_CONNECTION_STRING environment variable not set.");
-    ConsoleUtils.WriteInfo("Attempting to use an Azure token credential instead.");
+// Build the host.
+using var host = builder.Build();
 
-    string queueUriString = csvImporterConfig.QueueUri ?? Environment.GetEnvironmentVariable("QUEUE_URI") ?? throw new NullReferenceException("QUEUE_URI environment variable not set or missing from config file.");
-
-    TokenCredential tokenCredential;
-    try
-    {
-        tokenCredential = new ChainedTokenCredential(
-            new AzureCliCredential(),
-            new AzurePowerShellCredential(),
-            new ManagedIdentityCredential()
-        );
-
-        queueClientService = new(
-            queueUri: new(queueUriString),
-            tokenCredential: tokenCredential
-        );
-    }
-    catch (Exception ex)
-    {
-        ConsoleUtils.WriteError($"Error getting access token for Azure: {ex.Message}");
-        return 22;
-    }
-}
-
-string runningDir = Environment.CurrentDirectory;
-ConsoleUtils.WriteInfo($"Running from {runningDir}");
-
-// Resolve CSV file path.
-ConsoleUtils.WriteInfo($"Reading CSV file from {csvFilePathArg}");
-string relativePathToCsv = Path.GetRelativePath(
-    relativeTo: runningDir,
-    path: csvFilePathArg
-);
-
-ConsoleUtils.WriteInfo($"Relative path to CSV file: {relativePathToCsv}");
-FileInfo csvFileInfo = new(relativePathToCsv);
-
-if (!csvFileInfo.Exists)
-{
-    throw new FileNotFoundException("File not found", csvFileInfo.FullName);
-}
-
-if (csvFileInfo.Extension != ".csv")
-{
-    throw new ArgumentException("File must be a CSV file", csvFileInfo.FullName);
-}
-
-ConsoleUtils.WriteInfo($"Reading CSV file: {csvFileInfo.FullName}");
-
-// Read CSV file.
-List<UserDetails> userDetailsList;
-try
-{
-    userDetailsList = await CsvFileReader.ReadCsvFileAsync(
-        csvFilePath: csvFileInfo.FullName
-    );
-}
-catch (Exception ex)
-{
-    ConsoleUtils.WriteError($"Error reading CSV file: {ex.Message}");
-    return 30;
-}
-
-ConsoleUtils.WriteInfo($"Found {userDetailsList.Count} users in CSV file");
-
-// If last run CSV file path exists, 
-// read the last run CSV file.
-List<UserDetails>? lastRunUserDetailsList = null;
-if (csvImporterConfig.LastCsvPath is not null)
-{
-    Path.GetRelativePath(
-        relativeTo: runningDir,
-        path: csvImporterConfig.LastCsvPath
-    );
-
-    FileInfo lastCsvFileInfo = new(csvImporterConfig.LastCsvPath);
-
-    if (lastCsvFileInfo.Exists)
-    {
-        ConsoleUtils.WriteInfo($"Reading last run CSV file: {lastCsvFileInfo.FullName}");
-        lastRunUserDetailsList = await CsvFileReader.ReadCsvFileAsync(
-            csvFilePath: lastCsvFileInfo.FullName
-        );
-    }
-}
-
-// If last run CSV file was read,
-// get the delta between the last run CSV file and the current CSV file.
-if (lastRunUserDetailsList is not null && lastRunUserDetailsList.Count != 0)
-{
-    Stopwatch deltaStopwatch = Stopwatch.StartNew();
-
-    ConsoleUtils.WriteInfo($"Found {lastRunUserDetailsList.Count} users in last run CSV file");
-
-    List<UserDetails> deltaList = await CsvFileReader.GetDeltaAsync(
-        currentList: userDetailsList,
-        lastRunList: lastRunUserDetailsList,
-        maxTasks: 10
-    );
-
-    ConsoleUtils.WriteInfo($"Filtered down to {deltaList.Count} users not in last run CSV file");
-
-    // Update the user details list to the delta list.
-    userDetailsList = deltaList;
-
-    deltaStopwatch.Stop();
-    ConsoleUtils.WriteInfo($"Delta completed in {deltaStopwatch.ElapsedMilliseconds}ms");
-}
-
-// Filter out users without an email or phone number set.
-List<UserDetails> filteredUserDetailsList = userDetailsList.FindAll(
-    match: userDetails => userDetails.SecondaryEmail is not null || userDetails.PhoneNumber is not null
-);
-
-ConsoleUtils.WriteInfo($"Filtered to {filteredUserDetailsList.Count} users with email or phone number");
-
-try
-{
-    // If there are no users to process, exit.
-    if (filteredUserDetailsList.Count == 0)
-    {
-        ConsoleUtils.WriteInfo($"No users to process, exiting");
-        return 10;
-    }
-
-    // If this is a dry run, exit.
-    if (csvImporterConfig.DryRunEnabled)
-    {
-        ConsoleUtils.WriteInfo($"Dry run, exiting");
-        return 5;
-    }
-
-    // Set the initial semaphore count to half the max tasks.
-    double initialTasksCount = Math.Round((double)(maxTasks / 2), 0);
-
-    using SemaphoreSlim semaphoreSlim = new(
-        initialCount: (int)initialTasksCount,
-        maxCount: maxTasks
-    );
-
-    // Process each item and send to queue.
-    List<Task> tasks = [];
-    foreach (var userItem in filteredUserDetailsList)
-    {
-        UserAuthUpdateQueueItem queueItem = new()
-        {
-            EmployeeId = userItem.EmployeeNumber,
-            UserName = userItem.UserName,
-            EmailAddress = userItem.SecondaryEmail,
-            PhoneNumber = userItem.PhoneNumber
-        };
-
-        var newQueueItemTask = QueueClientUtils.SendUserAuthUpdateQueueItemAsync(queueClientService, semaphoreSlim, queueItem);
-
-        tasks.Add(newQueueItemTask);
-    }
-
-    // Wait for all tasks to complete.
-    ConsoleUtils.WriteInfo($"Waiting for tasks to complete...");
-    await Task.WhenAll(tasks);
-
-    // Copy the CSV file used for this run to the config directory.
-    ConsoleUtils.WriteInfo($"Saving last run CSV file path to config file");
-    string copiedCsvFilePath = Path.Combine(ConfigFileUtils.GetConfigDirPath(), "lastRun.csv");
-    File.Copy(
-        sourceFileName: csvFileInfo.FullName,
-        destFileName: copiedCsvFilePath,
-        overwrite: true
-    );
-
-    // Update the config file.
-    csvImporterConfig.LastCsvPath = copiedCsvFilePath;
-    csvImporterConfig.LastRunDateTime = DateTimeOffset.UtcNow;
-
-    await ConfigFileUtils.SaveCsvImporterConfigAsync(csvImporterConfig);
-
-    return 0;
-}
-finally
-{
-    stopwatch.Stop();
-
-    ConsoleUtils.WriteSuccess($"Completed in {stopwatch.ElapsedMilliseconds}ms");
-}
+// Run the host.
+await host.RunAsync();

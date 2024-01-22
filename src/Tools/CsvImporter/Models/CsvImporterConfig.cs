@@ -5,8 +5,14 @@ namespace EntraMfaPrefillinator.Tools.CsvImporter.Models;
 /// <summary>
 /// Holds the configuration for the CsvImporter tool.
 /// </summary>
-public class CsvImporterConfig
+public sealed class CsvImporterConfig
 {
+    /// <summary>
+    /// The path to the CSV file to import.
+    /// </summary>
+    [JsonPropertyName("csvFilePath")]
+    public string CsvFilePath { get; set; } = string.Empty;
+
     /// <summary>
     /// The path to the last CSV file that was imported.
     /// </summary>
@@ -17,7 +23,7 @@ public class CsvImporterConfig
     /// The last date and time the tool was run.
     /// </summary>
     [JsonPropertyName("lastRunDateTime")]
-    public DateTimeOffset? LastRunDateTime { get; set; }
+    public DateTimeOffset? LastRunDateTime { get; set; } = DateTimeOffset.MinValue.UtcDateTime;
 
     /// <summary>
     /// Whether the tool should run in dry run mode.
