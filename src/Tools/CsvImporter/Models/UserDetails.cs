@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
 using EntraMfaPrefillinator.Tools.CsvImporter.Utilities;
 
@@ -49,6 +50,7 @@ public sealed class UserDetails
     /// <summary>
     /// The user's employee number.
     /// </summary>
+    [Key]
     public string? EmployeeNumber { get; set; }
 
     /// <summary>
@@ -65,6 +67,11 @@ public sealed class UserDetails
     /// The user's phone number.
     /// </summary>
     public string? PhoneNumber { get; set; }
+
+    /// <summary>
+    /// Whether or not was in a previous run.
+    /// </summary>
+    public bool IsInLastRun { get; set; } = false;
 
     /// <summary>
     /// Parse the employee number provided.
