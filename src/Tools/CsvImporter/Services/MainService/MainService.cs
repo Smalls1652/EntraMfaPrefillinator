@@ -193,7 +193,17 @@ public sealed class MainService : IMainService, IHostedService, IDisposable
                     PhoneNumber = userItem.PhoneNumber
                 };
 
-                var newQueueItemTask = SendUserAuthUpdateQueueItemAsync(semaphoreSlim, queueItem);
+                Task newQueueItemTask;
+                try
+                {
+                    newQueueItemTask = SendUserAuthUpdateQueueItemAsync(semaphoreSlim, queueItem);
+                    _logger.LogInformation("Sent message to queue for '{UserName}'.", queueItem.UserName);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error sending message to queue for '{UserName}'.", queueItem.UserName);
+                    throw;
+                }
 
                 tasks.Add(newQueueItemTask);
             }
@@ -270,13 +280,10 @@ public sealed class MainService : IMainService, IHostedService, IDisposable
                 await _queueClientService.AuthUpdateQueueClient.SendMessageAsync(
                     messageText: userItemJson
                 );
-                _logger.LogInformation("Sent message to queue for '{userAuthUpdate.UserName}'.", userAuthUpdate.UserName);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                _logger.LogError(ex, "Error sending message to queue for '{userAuthUpdate.UserName}'.", userAuthUpdate.UserName);
                 throw;
-
             }
         }
         finally
