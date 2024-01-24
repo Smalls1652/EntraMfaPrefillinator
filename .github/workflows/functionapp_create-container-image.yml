@@ -35,7 +35,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.actor }}/EntraMfaPrefillinator
+          images: ghcr.io/${{ github.actor }}/entramfaprefillinator-funcapp
           tags: |
             type=ref,event=tag
             type=ref,event=branch
