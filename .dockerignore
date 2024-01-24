@@ -1,0 +1,4 @@
+src/**/bin
+src/**/obj
+src/**/local.settings.json
+src/**/local.settings.sample.json
