@@ -9,13 +9,28 @@
     <OptimizationPreference>Speed</OptimizationPreference>
     <EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
   </PropertyGroup>
+
   <PropertyGroup>
     <RootNamespace>EntraMfaPrefillinator.Tools.CsvImporter</RootNamespace>
     <AssemblyName>entramfacsvimporter</AssemblyName>
+    <PackageId>EntraMfaPrefillinator.Tools.CsvImporter</PackageId>
+
+    <Description>
+      CLI tool for importing CSV files into the EntraMfaPrefillinator message queue.
+    </Description>
+
+    <Authors>Timothy Small</Authors>
+    <Company>Smalls.Online</Company>
+    <Copyright>© Smalls.Online</Copyright>
+
+    <RepositoryUrl>https://github.com/Smalls1652/EntraMfaPrefillinator</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\..\Lib\Lib.csproj" />
   </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Azure.Identity" Version="1.10.4" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.1" />

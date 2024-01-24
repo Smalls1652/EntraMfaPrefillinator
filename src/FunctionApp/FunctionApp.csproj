@@ -12,6 +12,18 @@
   <PropertyGroup>
     <RootNamespace>EntraMfaPrefillinator.FunctionApp</RootNamespace>
     <AssemblyName>EntraMfaPrefillinator.FunctionApp</AssemblyName>
+    <PackageId>EntraMfaPrefillinator.FunctionApp</PackageId>
+
+    <Description>
+      Azure Functions App for prefilling MFA details for Microsoft Entra ID.
+    </Description>
+
+    <Authors>Timothy Small</Authors>
+    <Company>Smalls.Online</Company>
+    <Copyright>© Smalls.Online</Copyright>
+
+    <RepositoryUrl>https://github.com/Smalls1652/EntraMfaPrefillinator</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
@@ -32,7 +44,8 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="1.20.1" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http" Version="3.1.0" />
-    <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues" Version="5.2.0" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues"
+      Version="5.2.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="1.16.4" />
   </ItemGroup>
 

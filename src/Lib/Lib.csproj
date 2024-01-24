@@ -10,6 +10,18 @@
   <PropertyGroup>
     <RootNamespace>EntraMfaPrefillinator.Lib</RootNamespace>
     <AssemblyName>EntraMfaPrefillinator.Lib</AssemblyName>
+    <PackageId>EntraMfaPrefillinator.Lib</PackageId>
+
+    <Description>
+      Class library for EntraMfaPrefillinator.
+    </Description>
+
+    <Authors>Timothy Small</Authors>
+    <Company>Smalls.Online</Company>
+    <Copyright>© Smalls.Online</Copyright>
+
+    <RepositoryUrl>https://github.com/Smalls1652/EntraMfaPrefillinator</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
