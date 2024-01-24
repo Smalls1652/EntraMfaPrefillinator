@@ -1,6 +1,7 @@
 local-files/
 build/
 artifacts/
+appsettings.*.json
 
 __blobstorage__/
 __queuestorage__/
