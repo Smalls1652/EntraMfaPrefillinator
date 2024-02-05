@@ -1,4 +1,8 @@
 src/**/bin
 src/**/obj
+src/*/*/bin
+src/*/*/obj
 src/**/local.settings.json
 src/**/local.settings.sample.json
+src/**/appsettings.Development.json
+src/*/*/appsettings.Development.json

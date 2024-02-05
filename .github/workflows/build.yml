@@ -27,6 +27,7 @@ jobs:
       matrix:
         projectPath: [
           "./src/FunctionApp/",
+          "./src/AuthUpdateApp/",
           "./src/Lib/",
           "./src/Tools/CsvImporter/"
         ]
