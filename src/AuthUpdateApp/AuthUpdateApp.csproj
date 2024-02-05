@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <PublishAot>true</PublishAot>
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    <OptimizationPreference>Speed</OptimizationPreference>
+    <EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <RootNamespace>EntraMfaPrefillinator.AuthUpdateApp</RootNamespace>
+    <AssemblyName>EntraMfaPrefillinator.AuthUpdateApp</AssemblyName>
+    <PackageId>EntraMfaPrefillinator.AuthUpdateApp</PackageId>
+
+    <Description>
+      Web API for prefilling MFA details for Microsoft Entra ID.
+    </Description>
+
+    <Authors>Timothy Small</Authors>
+    <Company>Smalls.Online</Company>
+    <Copyright>© Smalls.Online</Copyright>
+
+    <RepositoryUrl>https://github.com/Smalls1652/EntraMfaPrefillinator</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Update="appsettings.Development.json" CopyToOutputDirectory="Never" CopyToPublishDirectory="Never" Condition="'$(Configuration)'=='Release'" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Lib\Lib.csproj" />
+  </ItemGroup>
+
+</Project>
