@@ -19,7 +19,7 @@
 			"options": {
 				"cwd": "${workspaceFolder}/${input:watchProject}",
 				"env": {
-					"DOTNET_ENVIRONMENT": "Development"
+					"ASPNETCORE_ENVIRONMENT": "Development"
 				}
 			},
 			"runOptions": {
@@ -345,6 +345,10 @@
 					"value": "src/FunctionApp"
 				},
 				{
+					"label": "AuthUpdateApp",
+					"value": "src/AuthUpdateApp"
+				},
+				{
 					"label": "Tools.CsvImporter",
 					"value": "src/Tools/CsvImporter"
 				}
@@ -389,6 +393,18 @@
 				{
 					"label": "Windows (x86)",
 					"value": "win-x86"
+				}
+			]
+		},
+		{
+			"id": "watchProject",
+			"description": "Select a project to watch for changes.",
+			"type": "pickString",
+			"default": "src/AuthUpdateApp",
+			"options": [
+				{
+					"label": "AuthUpdateApp",
+					"value": "src/AuthUpdateApp"
 				}
 			]
 		}
