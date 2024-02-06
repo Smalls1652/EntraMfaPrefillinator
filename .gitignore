@@ -2,6 +2,7 @@ local-files/
 build/
 artifacts/
 appsettings.*.json
+dapr-components/
 
 __blobstorage__/
 __queuestorage__/
