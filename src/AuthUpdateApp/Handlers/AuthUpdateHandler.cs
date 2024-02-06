@@ -2,12 +2,16 @@ using System.Diagnostics;
 using EntraMfaPrefillinator.Lib.Models;
 using EntraMfaPrefillinator.Lib.Models.Graph;
 using EntraMfaPrefillinator.Lib.Services;
+using Microsoft.AspNetCore.Mvc;
 
 namespace EntraMfaPrefillinator.AuthUpdateApp.Handlers;
 
 public static class AuthUpdateHandler
 {
-    public static async Task HandleProcessUserAuthUpdate(UserAuthUpdateQueueItem queueItem, IGraphClientService graphClientService, ILoggerFactory loggerFactory)
+    public static async Task HandleProcessUserAuthUpdate(
+        UserAuthUpdateQueueItem queueItem,
+        [FromServices] IGraphClientService graphClientService,
+        [FromServices] ILoggerFactory loggerFactory)
     {
         var logger = loggerFactory.CreateLogger("AuthUpdateHandler");
         
