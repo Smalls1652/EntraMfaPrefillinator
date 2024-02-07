@@ -158,11 +158,19 @@ builder.Services
 // Add the QueueClientService to the host.
 try
 {
-    builder.Services
-        .AddCsvImporterQueueClientService(
-            queueUri: csvImporterConfig.QueueUri!,
-            tokenCredential: AuthUtils.CreateTokenCredential(csvImporterConfig.QueueUri!)
+    if (builder.Configuration.GetValue<bool>("USE_LOCAL_QUEUE"))
+    {
+        builder.Services
+            .AddCsvImporterQueueClientService();
+    }
+    else
+    {
+        builder.Services
+            .AddCsvImporterQueueClientService(
+                queueUri: csvImporterConfig.QueueUri!,
+                tokenCredential: AuthUtils.CreateTokenCredential(csvImporterConfig.QueueUri!)
         );
+    }
 }
 catch (Exception ex)
 {
