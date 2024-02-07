@@ -10,11 +10,12 @@ public static class AuthUpdateHandler
 {
     public static async Task HandleProcessUserAuthUpdate(
         UserAuthUpdateQueueItem queueItem,
-        [FromServices] IGraphClientService graphClientService,
-        [FromServices] ILoggerFactory loggerFactory)
+        IGraphClientService graphClientService,
+        ILoggerFactory loggerFactory
+    )
     {
         var logger = loggerFactory.CreateLogger("AuthUpdateHandler");
-        
+
         Stopwatch stopwatch = Stopwatch.StartNew();
 
         string userName = queueItem.UserName ?? queueItem.UserPrincipalName ?? throw new Exception("'userName' or 'userPrincipalName' must be supplied in the request.");
