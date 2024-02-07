@@ -17,6 +17,16 @@ builder.Logging
     .AddConsole();
 
 builder.Services
+    .AddDaprClient(options =>
+    {
+        JsonSerializerOptions jsonSerializerOptions = new();
+        jsonSerializerOptions.TypeInfoResolverChain.Insert(0, CoreJsonContext.Default);
+        jsonSerializerOptions.TypeInfoResolverChain.Insert(0, QueueJsonContext.Default);
+
+        options.UseJsonSerializationOptions(jsonSerializerOptions);
+    });
+
+builder.Services
     .AddGraphClientService(
         graphClientConfig: new()
         {
@@ -48,6 +58,9 @@ if (app.Environment.IsDevelopment())
     app.UseDeveloperExceptionPage();
 }
 
+app.UseCloudEvents();
+
+app.MapSubscribeHandler();
 AuthUpdateEndpoints.Map(app);
 
 await app.RunAsync();
