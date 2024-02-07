@@ -2,15 +2,20 @@ using System.Diagnostics;
 using EntraMfaPrefillinator.Lib.Models;
 using EntraMfaPrefillinator.Lib.Models.Graph;
 using EntraMfaPrefillinator.Lib.Services;
+using Microsoft.AspNetCore.Mvc;
 
 namespace EntraMfaPrefillinator.AuthUpdateApp.Handlers;
 
 public static class AuthUpdateHandler
 {
-    public static async Task HandleProcessUserAuthUpdate(UserAuthUpdateQueueItem queueItem, IGraphClientService graphClientService, ILoggerFactory loggerFactory)
+    public static async Task HandleProcessUserAuthUpdate(
+        UserAuthUpdateQueueItem queueItem,
+        IGraphClientService graphClientService,
+        ILoggerFactory loggerFactory
+    )
     {
         var logger = loggerFactory.CreateLogger("AuthUpdateHandler");
-        
+
         Stopwatch stopwatch = Stopwatch.StartNew();
 
         string userName = queueItem.UserName ?? queueItem.UserPrincipalName ?? throw new Exception("'userName' or 'userPrincipalName' must be supplied in the request.");

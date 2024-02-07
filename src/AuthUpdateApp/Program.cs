@@ -1,7 +1,5 @@
-using System.Text.Json.Serialization;
 using EntraMfaPrefillinator.AuthUpdateApp;
 using EntraMfaPrefillinator.AuthUpdateApp.Endpoints;
-using EntraMfaPrefillinator.AuthUpdateApp.Models;
 using EntraMfaPrefillinator.Lib.Models.Graph;
 using EntraMfaPrefillinator.Lib.Services;
 
@@ -17,6 +15,16 @@ builder.Configuration
 
 builder.Logging
     .AddConsole();
+
+builder.Services
+    .AddDaprClient(options =>
+    {
+        JsonSerializerOptions jsonSerializerOptions = new();
+        jsonSerializerOptions.TypeInfoResolverChain.Insert(0, CoreJsonContext.Default);
+        jsonSerializerOptions.TypeInfoResolverChain.Insert(0, QueueJsonContext.Default);
+
+        options.UseJsonSerializationOptions(jsonSerializerOptions);
+    });
 
 builder.Services
     .AddGraphClientService(
@@ -45,6 +53,14 @@ builder.WebHost.UseKestrelHttpsConfiguration();
 
 var app = builder.Build();
 
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
+
+app.UseCloudEvents();
+
+app.MapSubscribeHandler();
 AuthUpdateEndpoints.Map(app);
 
-app.Run();
+await app.RunAsync();
