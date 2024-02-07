@@ -1,7 +1,5 @@
-using System.Text.Json.Serialization;
 using EntraMfaPrefillinator.AuthUpdateApp;
 using EntraMfaPrefillinator.AuthUpdateApp.Endpoints;
-using EntraMfaPrefillinator.AuthUpdateApp.Models;
 using EntraMfaPrefillinator.Lib.Models.Graph;
 using EntraMfaPrefillinator.Lib.Services;
 
@@ -45,6 +43,11 @@ builder.WebHost.UseKestrelHttpsConfiguration();
 
 var app = builder.Build();
 
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
+
 AuthUpdateEndpoints.Map(app);
 
-app.Run();
+await app.RunAsync();
