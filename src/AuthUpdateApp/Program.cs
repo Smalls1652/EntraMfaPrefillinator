@@ -1,5 +1,6 @@
 using EntraMfaPrefillinator.AuthUpdateApp;
 using EntraMfaPrefillinator.AuthUpdateApp.Endpoints;
+using EntraMfaPrefillinator.AuthUpdateApp.Extensions.Telemetry;
 using EntraMfaPrefillinator.Lib.Models.Graph;
 using EntraMfaPrefillinator.Lib.Services;
 
@@ -14,7 +15,15 @@ builder.Configuration
     );
 
 builder.Logging
-    .AddConsole();
+    .AddConsole()
+    .AddOpenTelemetryLogging(
+        azureAppInsightsConnectionString: builder.Configuration.GetValue<string>("APPINSIGHTS_CONNECTIONSTRING")
+    );
+
+builder.Services
+    .AddOpenTelemetryMetricsAndTracing(
+        azureAppInsightsConnectionString: builder.Configuration.GetValue<string>("APPINSIGHTS_CONNECTIONSTRING")
+    );
 
 builder.Services
     .AddDaprClient(options =>
@@ -61,6 +70,7 @@ if (app.Environment.IsDevelopment())
 app.UseCloudEvents();
 
 app.MapSubscribeHandler();
+
 AuthUpdateEndpoints.Map(app);
 
 await app.RunAsync();
