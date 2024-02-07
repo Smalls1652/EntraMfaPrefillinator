@@ -48,6 +48,8 @@ public sealed class MainService : IMainService, IHostedService, IDisposable
 
             string runningDir = Environment.CurrentDirectory;
 
+            bool isDeltaRun = false;
+
             await _dbService.OpenAsync();
 
             // Resolve CSV file path.
@@ -100,6 +102,7 @@ public sealed class MainService : IMainService, IHostedService, IDisposable
             
             if (lastRunUserDetailsCount != 0)
             {
+                isDeltaRun = true;
                 List<UserDetails> deltaList = [];
                 _logger.LogInformation("Getting delta between current CSV file and last run CSV file...");
                 Stopwatch deltaStopwatch = Stopwatch.StartNew();
@@ -164,7 +167,7 @@ public sealed class MainService : IMainService, IHostedService, IDisposable
                 Task newQueueItemTask;
                 try
                 {
-                    newQueueItemTask = SendUserAuthUpdateQueueItemAsync(semaphoreSlim, userItem, configFile);
+                    newQueueItemTask = SendUserAuthUpdateQueueItemAsync(semaphoreSlim, userItem, isDeltaRun, configFile);
                     tasks.Add(newQueueItemTask);
                     _logger.LogInformation("Sent message to queue for '{UserName}'.", userItem.UserName);
                 }
@@ -267,7 +270,7 @@ public sealed class MainService : IMainService, IHostedService, IDisposable
         GC.SuppressFinalize(this);
     }
 
-    private async Task SendUserAuthUpdateQueueItemAsync(SemaphoreSlim semaphoreSlim, UserDetails userDetails, CsvImporterConfigFile configFile)
+    private async Task SendUserAuthUpdateQueueItemAsync(SemaphoreSlim semaphoreSlim, UserDetails userDetails, bool isDeltaRun, CsvImporterConfigFile configFile)
     {
         // Wait for the semaphore to be available before sending the message.
         await semaphoreSlim.WaitAsync();
@@ -292,7 +295,7 @@ public sealed class MainService : IMainService, IHostedService, IDisposable
             {
                 await _queueClientService.AuthUpdateQueueClient.SendMessageAsync(
                     messageText: userItemJson,
-                    timeToLive: TimeSpan.FromMinutes(30)
+                    timeToLive: isDeltaRun ? configFile.Config.QueueMessageTTL.DeltaRuns : configFile.Config.QueueMessageTTL.FirstRun
                 );
             }
             catch (Exception)

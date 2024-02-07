@@ -14,6 +14,7 @@ namespace EntraMfaPrefillinator.Tools.CsvImporter;
 )]
 [JsonSerializable(typeof(CsvImporterConfig))]
 [JsonSerializable(typeof(CsvImporterConfigFile))]
+[JsonSerializable(typeof(QueueMessageTimeToLiveConfig))]
 internal partial class ConfigJsonContext : JsonSerializerContext
 {
 }

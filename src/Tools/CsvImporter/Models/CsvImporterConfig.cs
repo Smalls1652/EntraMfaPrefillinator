@@ -30,4 +30,7 @@ public sealed class CsvImporterConfig
     /// </summary>
     [JsonPropertyName("queueUri")]
     public string? QueueUri { get; set; }
+
+    [JsonPropertyName("queueMessageTTL")]
+    public QueueMessageTimeToLiveConfig QueueMessageTTL { get; set; } = new();
 }
