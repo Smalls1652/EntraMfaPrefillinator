@@ -291,7 +291,8 @@ public sealed class MainService : IMainService, IHostedService, IDisposable
             try
             {
                 await _queueClientService.AuthUpdateQueueClient.SendMessageAsync(
-                    messageText: userItemJson
+                    messageText: userItemJson,
+                    timeToLive: TimeSpan.FromMinutes(30)
                 );
             }
             catch (Exception)
