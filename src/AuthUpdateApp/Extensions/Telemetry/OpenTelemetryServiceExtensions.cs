@@ -1,4 +1,5 @@
 using Azure.Monitor.OpenTelemetry.Exporter;
+using Microsoft.Extensions.Logging;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
@@ -51,7 +52,6 @@ public static class OpenTelemetryServiceExtensions
                     .AddService("EntraMfaPrefillinator.AuthUpdateApp");
 
                 metrics.SetResourceBuilder(resourceBuilder)
-                    .AddAspNetCoreInstrumentation()
                     .AddHttpClientInstrumentation();
 
                 metrics.AddOtlpExporter();
@@ -73,7 +73,6 @@ public static class OpenTelemetryServiceExtensions
                 tracing
                     .AddSource("EntraMfaPrefillinator.AuthUpdateApp.Endpoints")
                     .SetResourceBuilder(resourceBuilder)
-                    .AddAspNetCoreInstrumentation()
                     .AddHttpClientInstrumentation();
 
                 tracing.AddOtlpExporter();
