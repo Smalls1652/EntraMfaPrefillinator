@@ -17,7 +17,7 @@ public class MainService : IHostedService, IDisposable
     private readonly ILogger _logger;
     private readonly IGraphClientService _graphClientService;
     private readonly IQueueClientService _queueClientService;
-    private readonly ActivitySource _activitySource = new("EntraMfaPrefillinator.AuthUpdateApp.MainService");
+    private readonly ActivitySource _activitySource = new("EntraMfaPrefillinator.AuthUpdateApp.Services.MainService");
     private readonly CancellationTokenSource _cancellationTokenSource = new();
 
     public MainService(IHostApplicationLifetime appLifetime, ILogger<MainService> logger, IGraphClientService graphClientService, IQueueClientService queueClientService)

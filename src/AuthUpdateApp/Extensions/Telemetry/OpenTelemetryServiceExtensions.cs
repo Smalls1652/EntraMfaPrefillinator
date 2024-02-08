@@ -71,7 +71,7 @@ public static class OpenTelemetryServiceExtensions
                     .AddService("EntraMfaPrefillinator.AuthUpdateApp");
 
                 tracing
-                    .AddSource("EntraMfaPrefillinator.AuthUpdateApp.Endpoints")
+                    .AddSource("EntraMfaPrefillinator.AuthUpdateApp.Services.MainService")
                     .SetResourceBuilder(resourceBuilder)
                     .AddHttpClientInstrumentation();
 
