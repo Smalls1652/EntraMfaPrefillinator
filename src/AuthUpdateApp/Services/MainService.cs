@@ -19,16 +19,58 @@ public class MainService : IHostedService, IDisposable
     private readonly IQueueClientService _queueClientService;
     private readonly ActivitySource _activitySource = new("EntraMfaPrefillinator.AuthUpdateApp.Services.MainService");
     private readonly CancellationTokenSource _cancellationTokenSource = new();
+    private readonly MainServiceOptions _options;
 
-    public MainService(IHostApplicationLifetime appLifetime, ILogger<MainService> logger, IGraphClientService graphClientService, IQueueClientService queueClientService)
+    public MainService(IHostApplicationLifetime appLifetime, ILogger<MainService> logger, IGraphClientService graphClientService, IQueueClientService queueClientService) : this(appLifetime, logger, graphClientService, queueClientService, new()) { }
+
+    public MainService(IHostApplicationLifetime appLifetime, ILogger<MainService> logger, IGraphClientService graphClientService, IQueueClientService queueClientService, MainServiceOptions options)
     {
         _appLifetime = appLifetime;
         _logger = logger;
         _graphClientService = graphClientService;
         _queueClientService = queueClientService;
+        _options = options;
     }
 
     public async Task RunAsync(CancellationToken cancellationToken = default)
+    {
+        using Activity? activity = _activitySource
+            .StartActivity(
+                name: "GetAndProcessQueueMessages",
+                kind: ActivityKind.Internal
+            );
+
+        NullableResponse<QueueMessage[]> queueMessages = await _queueClientService.AuthUpdateQueueClient.ReceiveMessagesAsync(
+            maxMessages: _options.MaxMessages,
+            cancellationToken: cancellationToken
+        );
+
+        if (queueMessages.Value is null || queueMessages.Value.Length == 0)
+        {
+            _logger.LogWarning("No messages found in queue.");
+            _appLifetime.StopApplication();
+            return;
+        }
+
+        _logger.LogInformation("Processing {MessageCount} messages from queue.", queueMessages.Value.Length);
+
+        Task[] tasks = new Task[queueMessages.Value.Length];
+
+        for (int i = 0; i < queueMessages.Value.Length; i++)
+        {
+            tasks[i] = ProcessQueueMessageAsync(queueMessages.Value[i], activity?.Id!, cancellationToken);
+        }
+
+        await Task.WhenAll(tasks);
+
+        activity?.SetStatus(ActivityStatusCode.Ok);
+
+        _appLifetime.StopApplication();
+
+        return;
+    }
+
+    public async Task ProcessQueueMessageAsync(QueueMessage queueMessage, string parentActivityId, CancellationToken cancellationToken = default)
     {
         using var activity = _activitySource.StartEndpointCallActivity(
             activityName: "ProcessUserAuthUpdate",
@@ -39,22 +81,9 @@ public class MainService : IHostedService, IDisposable
 
         bool errorOccurred = false;
 
-        _logger.LogInformation("Checking for messages in queue...");
-        NullableResponse<QueueMessage> queueMessage = await _queueClientService.AuthUpdateQueueClient.ReceiveMessageAsync(
-            cancellationToken: cancellationToken
-        );
-
-        if (queueMessage.Value is null)
-        {
-            _logger.LogWarning("No messages found in queue.");
-            stopwatch.Stop();
-            _appLifetime.StopApplication();
-            return;
-        }
-
         try
         {
-            Stream stream = queueMessage.Value.Body.ToStream();
+            Stream stream = queueMessage.Body.ToStream();
 
             UserAuthUpdateQueueItem queueItem;
             try
@@ -221,26 +250,24 @@ public class MainService : IHostedService, IDisposable
         {
             if (!errorOccurred)
             {
-                _logger.LogInformation("Deleting message '{messageId}' from queue.", queueMessage.Value.MessageId);
-                await _queueClientService.AuthUpdateQueueClient.DeleteMessageAsync(queueMessage.Value.MessageId, queueMessage.Value.PopReceipt, cancellationToken);
+                _logger.LogInformation("Deleting message '{messageId}' from queue.", queueMessage.MessageId);
+                await _queueClientService.AuthUpdateQueueClient.DeleteMessageAsync(queueMessage.MessageId, queueMessage.PopReceipt, cancellationToken);
             }
             else
             {
-                if (queueMessage.Value.DequeueCount >= 5)
+                if (queueMessage.DequeueCount >= 5)
                 {
-                    _logger.LogWarning("Message '{messageId}' has been dequeued 5 times. Deleting message from queue.", queueMessage.Value.MessageId);
-                    await _queueClientService.AuthUpdateQueueClient.DeleteMessageAsync(queueMessage.Value.MessageId, queueMessage.Value.PopReceipt, cancellationToken);
+                    _logger.LogWarning("Message '{messageId}' has been dequeued 5 times. Deleting message from queue.", queueMessage.MessageId);
+                    await _queueClientService.AuthUpdateQueueClient.DeleteMessageAsync(queueMessage.MessageId, queueMessage.PopReceipt, cancellationToken);
                 }
                 else
                 {
-                    _logger.LogWarning("Error occurred processing message '{messageId}'. Message will be left in queue.", queueMessage.Value.MessageId);
+                    _logger.LogWarning("Error occurred processing message '{messageId}'. Message will be left in queue.", queueMessage.MessageId);
                 }
             }
 
             stopwatch.Stop();
             _logger.LogInformation("Processed request in {ElapsedMilliseconds}ms.", stopwatch.ElapsedMilliseconds);
-
-            _appLifetime.StopApplication();
         }
     }
 

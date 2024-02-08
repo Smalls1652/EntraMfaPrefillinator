@@ -1,3 +1,4 @@
+using EntraMfaPrefillinator.AuthUpdateApp.Extensions;
 using EntraMfaPrefillinator.AuthUpdateApp.Extensions.Telemetry;
 using EntraMfaPrefillinator.AuthUpdateApp.Hosting;
 using EntraMfaPrefillinator.AuthUpdateApp.Services;
@@ -60,7 +61,10 @@ builder.Services
     );
 
 builder.Services
-    .AddHostedService<MainService>();
+    .AddMainService(options =>
+    {
+        options.MaxMessages = builder.Configuration.GetValue("MAX_MESSAGES", 25);
+    });
 
 using var app = builder.Build();
 
