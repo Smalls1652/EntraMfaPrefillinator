@@ -1,10 +1,23 @@
-using EntraMfaPrefillinator.AuthUpdateApp;
-using EntraMfaPrefillinator.AuthUpdateApp.Endpoints;
+using EntraMfaPrefillinator.AuthUpdateApp.Extensions;
 using EntraMfaPrefillinator.AuthUpdateApp.Extensions.Telemetry;
+using EntraMfaPrefillinator.AuthUpdateApp.Hosting;
+using EntraMfaPrefillinator.AuthUpdateApp.Services;
 using EntraMfaPrefillinator.Lib.Models.Graph;
 using EntraMfaPrefillinator.Lib.Services;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
-var builder = WebApplication.CreateSlimBuilder(args);
+using CancellationTokenSource cts = new();
+
+HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
+
+builder.Services
+    .RemoveAll<IHostLifetime>();
+
+builder.Services
+    .AddSingleton<IHostLifetime, AuthUpdateAppHostLifetime>();
 
 builder.Configuration
     .AddEnvironmentVariables()
@@ -26,14 +39,11 @@ builder.Services
     );
 
 builder.Services
-    .AddDaprClient(options =>
-    {
-        JsonSerializerOptions jsonSerializerOptions = new();
-        jsonSerializerOptions.TypeInfoResolverChain.Insert(0, CoreJsonContext.Default);
-        jsonSerializerOptions.TypeInfoResolverChain.Insert(0, QueueJsonContext.Default);
-
-        options.UseJsonSerializationOptions(jsonSerializerOptions);
-    });
+    .AddSingleton<IQueueClientService, QueueClientService>(
+        service => new(
+            connectionString: builder.Configuration.GetValue<string>("AZURE_STORAGE_CONNECTIONSTRING") ?? throw new NullReferenceException("AZURE_STORAGE_CONNECTIONSTRING is not set")
+        )
+    );
 
 builder.Services
     .AddGraphClientService(
@@ -45,32 +55,17 @@ builder.Services
                 credentialType: GraphClientCredentialType.ClientSecret,
                 clientSecret: builder.Configuration.GetValue<string>("CLIENT_SECRET") ?? throw new NullReferenceException("CLIENT_SECRET is not set")
             ),
-            ApiScopes = [ "https://graph.microsoft.com/.default" ]
+            ApiScopes = ["https://graph.microsoft.com/.default"]
         },
         disableAuthUpdate: builder.Configuration.GetValue<bool>("ENABLE_DRY_RUN")
     );
 
-Console.WriteLine($"Environment: {builder.Environment.EnvironmentName}");
+builder.Services
+    .AddMainService(options =>
+    {
+        options.MaxMessages = builder.Configuration.GetValue("MAX_MESSAGES", 25);
+    });
 
-builder.Services.ConfigureHttpJsonOptions(options =>
-{
-    options.SerializerOptions.TypeInfoResolverChain.Insert(0, CoreJsonContext.Default);
-    options.SerializerOptions.TypeInfoResolverChain.Insert(0, QueueJsonContext.Default);
-});
+using var app = builder.Build();
 
-builder.WebHost.UseKestrelHttpsConfiguration();
-
-var app = builder.Build();
-
-if (app.Environment.IsDevelopment())
-{
-    app.UseDeveloperExceptionPage();
-}
-
-app.UseCloudEvents();
-
-app.MapSubscribeHandler();
-
-AuthUpdateEndpoints.Map(app);
-
-await app.RunAsync();
+await app.RunAsync(cts.Token);

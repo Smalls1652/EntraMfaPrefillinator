@@ -256,7 +256,36 @@
 				"showReuseMessage": true,
 				"clear": true
 			}
-		}
+		},
+		{
+			"label": "Run: AuthUpdateApp",
+			"detail": "Run the AuthUpdateApp",
+			"icon": {
+				"id": "play",
+				"color": "terminal.ansiYellow"
+			},
+			"type": "process",
+			"command": "dotnet",
+			"args": [
+				"run"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}/src/AuthUpdateApp",
+				"env": {
+					"DOTNET_ENVIRONMENT": "Development",
+					"USE_LOCAL_QUEUE": "true",
+				}
+			},
+			"problemMatcher": "$msCompile",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": true
+			}
+		},
 		// Remaining tasks are only for the VSCode launch configs
 		// or are supporting tasks.
 		{

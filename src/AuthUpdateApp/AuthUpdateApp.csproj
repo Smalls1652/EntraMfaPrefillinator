@@ -1,6 +1,7 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -17,7 +18,7 @@
     <PackageId>EntraMfaPrefillinator.AuthUpdateApp</PackageId>
 
     <Description>
-      Web API for prefilling MFA details for Microsoft Entra ID.
+      Queue message processor for prefilling MFA details for a user in Microsoft Entra ID.
     </Description>
 
     <Authors>Timothy Small</Authors>
@@ -29,8 +30,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Update="appsettings.Development.json" CopyToOutputDirectory="Never"
-      CopyToPublishDirectory="Never" Condition="'$(Configuration)'=='Release'" />
+    <Content Include="appsettings.Development.json" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" Condition="'$(Configuration)'=='Debug' And Exists('appsettings.Development.json')" />
+    <Content Include="appsettings.Development.json" CopyToOutputDirectory="Never" CopyToPublishDirectory="Never" Condition="'$(Configuration)'=='Release'" />
+    <Content Include="appsettings.json" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" />
   </ItemGroup>
 
   <ItemGroup>
@@ -39,19 +41,18 @@
 
   <ItemGroup>
     <PackageReference Include="Azure.Monitor.OpenTelemetry.Exporter" Version="1.2.0" />
-    <PackageReference Include="Dapr.AspNetCore" Version="1.12.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
     <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.7.0" />
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.7.0" />
-    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.7.0" />
     <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.7.0" />
     <PackageReference Include="OpenTelemetry.ResourceDetectors.Azure" Version="1.0.0-beta.5" />
   </ItemGroup>
 
-  <Target Name="macos-linker-fallback"
-    Condition="'$(RuntimeIdentifier)'=='osx-arm64' Or '$(RuntimeIdentifier)'=='osx-x64'"
-    BeforeTargets="build">
+  <Target Name="macos-linker-fallback" Condition="'$(RuntimeIdentifier)'=='osx-arm64' Or '$(RuntimeIdentifier)'=='osx-x64'" BeforeTargets="build">
 
-    <Message Importance="high" Text="AuthUpdateApp -> 🟧 Falling back to old linker, due to some issues on macOS." />
+    <Message Importance="high" Text="AuthUpdateApp -&gt; 🟧 Falling back to old linker, due to some issues on macOS." />
 
     <ItemGroup>
       <LinkerArg Include="-Wl,-ld_classic" />

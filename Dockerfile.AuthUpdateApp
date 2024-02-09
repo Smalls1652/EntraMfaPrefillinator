@@ -21,6 +21,5 @@ RUN apt-get update; \
 FROM --platform=$TARGETPLATFORM mcr.microsoft.com/dotnet/runtime-deps:8.0-jammy-chiseled
 
 COPY --from=build-env /app/build/EntraMfaPrefillinator.AuthUpdateApp /app/
-COPY --from=build-env /app/build/appsettings.json /app/
 
 ENTRYPOINT ["/app/EntraMfaPrefillinator.AuthUpdateApp"]
