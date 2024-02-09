@@ -26,7 +26,6 @@ jobs:
       fail-fast: true
       matrix:
         projectPath: [
-          "./src/FunctionApp/",
           "./src/AuthUpdateApp/",
           "./src/Lib/",
           "./src/Tools/CsvImporter/"

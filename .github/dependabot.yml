@@ -9,9 +9,9 @@ updates:
     assignees:
       - "Smalls1652"
   
-  # NuGet config for 'EntraMfaPrefillinator.FunctionApp'
+  # NuGet config for 'EntraMfaPrefillinator.AuthUpdateApp'
   - package-ecosystem: "nuget"
-    directory: "/src/FunctionApp"
+    directory: "/src/AuthUpdateApp"
     target-branch: "main"
     ignore:
       - dependency-name: "Azure.Storage.Queues"
