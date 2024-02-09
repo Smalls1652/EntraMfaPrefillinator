@@ -6,10 +6,5 @@
     "dotnet.server.path": "latest",
     "task.quickOpen.history": 0,
     "task.autoDetect": "off",
-    "powershell.startAutomatically": false,
-    "azureFunctions.projectSubpath": "src/FunctionApp",
-    "azureFunctions.deploySubpath": "src/FunctionApp/bin/Release/net8.0/publish",
-    "azureFunctions.projectLanguage": "C#",
-    "azureFunctions.projectRuntime": "~4",
-    "azureFunctions.preDeployTask": "publish (functions)"
+    "powershell.startAutomatically": false
 }

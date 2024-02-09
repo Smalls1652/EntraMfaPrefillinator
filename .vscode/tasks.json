@@ -104,96 +104,6 @@
 			"problemMatcher": "$msCompile"
 		},
 		{
-			"label": "Start FunctionApp",
-			"detail": "Start the Azure Function App locally.",
-			"icon": {
-				"id": "zap",
-				"color": "terminal.ansiYellow"
-			},
-			"type": "process",
-			"command": "func",
-			"args": [
-				"host",
-				"start",
-				"--language-worker",
-				"dotnet-isolated"
-			],
-			"options": {
-				"cwd": "${workspaceFolder}/src/FunctionApp/bin/Debug/net8.0"
-			},
-			"windows": {
-				"command": "func",
-				"args": [
-					"host",
-					"start",
-					"--language-worker",
-					"dotnet-isolated"
-				],
-				"problemMatcher": "$func-dotnet-watch",
-				"options": {
-					"shell": {
-						"executable": "pwsh",
-						"args": [
-							"-Login",
-							"-NoProfile",
-							"-NoLogo"
-						]
-					}
-				}
-			},
-			"osx": {
-				"command": "func",
-				"args": [
-					"host",
-					"start",
-					"--language-worker",
-					"dotnet-isolated"
-				],
-				"problemMatcher": "$func-dotnet-watch",
-				"options": {
-					"shell": {
-						"executable": "pwsh",
-						"args": [
-							"-Login",
-							"-NoProfile",
-							"-NoLogo"
-						]
-					}
-				}
-			},
-			"isBackground": true,
-			"problemMatcher": "$func-dotnet-watch",
-			"dependsOn": [
-				"Build: EntraMfaPrefillinator.FunctionApp"
-			]
-		},
-		{
-			"label": "Build: EntraMfaPrefillinator.FunctionApp",
-			"detail": "Build the EntraMfaPrefillinator.FunctionApp project.",
-			"hide": true,
-			"type": "process",
-			"command": "dotnet",
-			"args": [
-				"build",
-				"${workspaceFolder}/src/FunctionApp",
-				"--configuration",
-				"Debug",
-				"/property:GenerateFullPaths=true"
-			],
-			"options": {
-				"cwd": "${workspaceFolder}"
-			},
-			"problemMatcher": "$msCompile",
-			"presentation": {
-				"echo": true,
-				"reveal": "always",
-				"focus": true,
-				"panel": "shared",
-				"showReuseMessage": true,
-				"clear": true
-			}
-		},
-		{
 			"label": "Publish: CsvImporter",
 			"detail": "Compile the CsvImporter CLI tool.",
 			"icon": {
@@ -285,90 +195,9 @@
 				"showReuseMessage": true,
 				"clear": true
 			}
-		},
+		}
 		// Remaining tasks are only for the VSCode launch configs
 		// or are supporting tasks.
-		{
-			"label": "clean (functions)",
-			"hide": true,
-			"command": "dotnet",
-			"args": [
-				"clean",
-				"/property:GenerateFullPaths=true",
-				"/consoleloggerparameters:NoSummary"
-			],
-			"type": "process",
-			"problemMatcher": "$msCompile",
-			"options": {
-				"cwd": "${workspaceFolder}/src/FunctionApp"
-			}
-		},
-		{
-			"label": "build (functions)",
-			"hide": true,
-			"command": "dotnet",
-			"args": [
-				"build",
-				"/property:GenerateFullPaths=true",
-				"/consoleloggerparameters:NoSummary"
-			],
-			"type": "process",
-			"dependsOn": "clean (functions)",
-			"group": {
-				"kind": "build",
-				"isDefault": true
-			},
-			"problemMatcher": "$msCompile",
-			"options": {
-				"cwd": "${workspaceFolder}/src/FunctionApp"
-			}
-		},
-		{
-			"label": "clean release (functions)",
-			"hide": true,
-			"command": "dotnet",
-			"args": [
-				"clean",
-				"--configuration",
-				"Release",
-				"/property:GenerateFullPaths=true",
-				"/consoleloggerparameters:NoSummary"
-			],
-			"type": "process",
-			"problemMatcher": "$msCompile",
-			"options": {
-				"cwd": "${workspaceFolder}/src/FunctionApp"
-			}
-		},
-		{
-			"label": "publish (functions)",
-			"hide": true,
-			"command": "dotnet",
-			"args": [
-				"publish",
-				"--configuration",
-				"Release",
-				"/property:GenerateFullPaths=true",
-				"/consoleloggerparameters:NoSummary"
-			],
-			"type": "process",
-			"dependsOn": "clean release (functions)",
-			"problemMatcher": "$msCompile",
-			"options": {
-				"cwd": "${workspaceFolder}/src/FunctionApp"
-			}
-		},
-		{
-			"hide": true,
-			"type": "func",
-			"dependsOn": "build (functions)",
-			"options": {
-				"cwd": "${workspaceFolder}/src/FunctionApp/bin/Debug/net8.0"
-			},
-			"command": "host start",
-			"isBackground": true,
-			"problemMatcher": "$func-dotnet-watch"
-		}
 	],
 	"inputs": [
 		{
@@ -391,7 +220,7 @@
 			"id": "projectItem",
 			"description": "Select a project.",
 			"type": "pickString",
-			"default": "src/FunctionApp",
+			"default": "EntraMfaPrefillinator.sln",
 			"options": [
 				{
 					"label": "Entire solution",
@@ -400,10 +229,6 @@
 				{
 					"label": "Lib",
 					"value": "src/Lib"
-				},
-				{
-					"label": "FunctionApp",
-					"value": "src/FunctionApp"
 				},
 				{
 					"label": "AuthUpdateApp",
