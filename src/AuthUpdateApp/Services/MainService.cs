@@ -7,6 +7,7 @@ using EntraMfaPrefillinator.Lib.Models.Graph;
 using EntraMfaPrefillinator.Lib.Services;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace EntraMfaPrefillinator.AuthUpdateApp.Services;
 
@@ -21,15 +22,13 @@ public class MainService : IHostedService, IDisposable
     private readonly CancellationTokenSource _cancellationTokenSource = new();
     private readonly MainServiceOptions _options;
 
-    public MainService(IHostApplicationLifetime appLifetime, ILogger<MainService> logger, IGraphClientService graphClientService, IQueueClientService queueClientService) : this(appLifetime, logger, graphClientService, queueClientService, new()) { }
-
-    public MainService(IHostApplicationLifetime appLifetime, ILogger<MainService> logger, IGraphClientService graphClientService, IQueueClientService queueClientService, MainServiceOptions options)
+    public MainService(IHostApplicationLifetime appLifetime, ILogger<MainService> logger, IGraphClientService graphClientService, IQueueClientService queueClientService, IOptions<MainServiceOptions> options)
     {
         _appLifetime = appLifetime;
         _logger = logger;
         _graphClientService = graphClientService;
         _queueClientService = queueClientService;
-        _options = options;
+        _options = options.Value;
     }
 
     public async Task RunAsync(CancellationToken cancellationToken = default)
