@@ -12,7 +12,7 @@ param vnetAddressSpace string = '10.0.0.0/16'
 param vnetContainersSubnetAddressBlock string = '10.0.0.0/23'
 
 @description('The container image to use.')
-param containerImage string = 'ghcr.io/smalls1652/entramfaprefillinator-authupdateapp:sha-52b607f'
+param containerImage string = 'ghcr.io/smalls1652/entramfaprefillinator-authupdateapp:v0.1.0-preview-02'
 
 @description('The max number of concurrent instance the container can scale to.')
 param maxScaleCount int = 5
