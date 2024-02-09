@@ -1,0 +1,373 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.24.24.22086",
+      "templateHash": "9185577402452391602"
+    }
+  },
+  "parameters": {
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description": "The location in Azure to host the resources. Uses the resource group's location by default."
+      }
+    },
+    "resourceBaseName": {
+      "type": "string",
+      "minLength": 1,
+      "metadata": {
+        "description": "The base name to use for the resources in the deployment."
+      }
+    },
+    "vnetAddressSpace": {
+      "type": "string",
+      "defaultValue": "10.0.0.0/16",
+      "metadata": {
+        "description": "The address space for the virtual network to have."
+      }
+    },
+    "vnetContainersSubnetAddressBlock": {
+      "type": "string",
+      "defaultValue": "10.0.0.0/23",
+      "metadata": {
+        "description": "The address space for the infrastructure subnet to have in the virtual network."
+      }
+    },
+    "containerImage": {
+      "type": "string",
+      "defaultValue": "ghcr.io/smalls1652/entramfaprefillinator-authupdateapp:sha-52b607f",
+      "metadata": {
+        "description": "The container image to use."
+      }
+    },
+    "maxScaleCount": {
+      "type": "int",
+      "defaultValue": 5,
+      "metadata": {
+        "description": "The max number of concurrent instance the container can scale to."
+      }
+    },
+    "entraIdAppClientId": {
+      "type": "string",
+      "minLength": 1,
+      "metadata": {
+        "description": "The client ID for the Entra ID app registration."
+      }
+    },
+    "entraIdAppTenantId": {
+      "type": "string",
+      "defaultValue": "[subscription().tenantId]",
+      "minLength": 1,
+      "metadata": {
+        "description": "The tenant ID for the Entra ID app registration."
+      }
+    },
+    "entraIdAppClientSecret": {
+      "type": "securestring",
+      "minLength": 1,
+      "metadata": {
+        "description": "The client secret token for the Entra ID app registration."
+      }
+    },
+    "containerJobMaxMessages": {
+      "type": "int",
+      "defaultValue": 32,
+      "minValue": 1,
+      "maxValue": 32,
+      "metadata": {
+        "description": "The max amount of messages the container job can process."
+      }
+    }
+  },
+  "variables": {
+    "randomString": "[uniqueString(subscription().id, resourceGroup().id)]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "apiVersion": "2023-01-01",
+      "name": "[variables('randomString')]",
+      "location": "[parameters('location')]",
+      "kind": "StorageV2",
+      "sku": {
+        "name": "Standard_LRS"
+      },
+      "properties": {
+        "accessTier": "Hot",
+        "allowBlobPublicAccess": false,
+        "dnsEndpointType": "Standard",
+        "publicNetworkAccess": "Enabled",
+        "allowCrossTenantReplication": false,
+        "minimumTlsVersion": "TLS1_2",
+        "allowSharedKeyAccess": true,
+        "supportsHttpsTrafficOnly": true,
+        "defaultToOAuthAuthentication": true,
+        "networkAcls": {
+          "bypass": "AzureServices",
+          "virtualNetworkRules": [],
+          "ipRules": [],
+          "defaultAction": "Allow"
+        },
+        "encryption": {
+          "requireInfrastructureEncryption": false,
+          "keySource": "Microsoft.Storage",
+          "services": {
+            "file": {
+              "keyType": "Account",
+              "enabled": true
+            },
+            "blob": {
+              "keyType": "Account",
+              "enabled": true
+            },
+            "queue": {
+              "keyType": "Account",
+              "enabled": true
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Network/virtualNetworks",
+      "apiVersion": "2023-06-01",
+      "name": "[format('{0}-vnet', parameters('resourceBaseName'))]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "[parameters('vnetAddressSpace')]"
+          ]
+        },
+        "subnets": [
+          {
+            "name": "containers-subnet",
+            "properties": {
+              "addressPrefix": "[parameters('vnetContainersSubnetAddressBlock')]"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.OperationalInsights/workspaces",
+      "apiVersion": "2022-10-01",
+      "name": "[format('{0}-logs', parameters('resourceBaseName'))]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "sku": {
+          "name": "PerGB2018"
+        },
+        "retentionInDays": 30
+      }
+    },
+    {
+      "type": "Microsoft.Insights/components",
+      "apiVersion": "2020-02-02",
+      "name": "[format('{0}-insights', parameters('resourceBaseName'))]",
+      "location": "[parameters('location')]",
+      "kind": "web",
+      "properties": {
+        "Application_Type": "web",
+        "Flow_Type": "Redfield",
+        "RetentionInDays": 90,
+        "WorkspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', format('{0}-logs', parameters('resourceBaseName')))]",
+        "IngestionMode": "LogAnalytics",
+        "publicNetworkAccessForIngestion": "Enabled",
+        "publicNetworkAccessForQuery": "Enabled"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.OperationalInsights/workspaces', format('{0}-logs', parameters('resourceBaseName')))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts/queueServices",
+      "apiVersion": "2023-01-01",
+      "name": "[format('{0}/{1}', variables('randomString'), 'default')]",
+      "properties": {
+        "cors": {
+          "corsRules": []
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('randomString'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts/queueServices/queues",
+      "apiVersion": "2023-01-01",
+      "name": "[format('{0}/{1}/{2}', variables('randomString'), 'default', 'authupdate-queue')]",
+      "properties": {
+        "metadata": {}
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts/queueServices', variables('randomString'), 'default')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts/queueServices/queues",
+      "apiVersion": "2023-01-01",
+      "name": "[format('{0}/{1}/{2}', variables('randomString'), 'default', 'authupdate-queue-poison')]",
+      "properties": {
+        "metadata": {}
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts/queueServices', variables('randomString'), 'default')]"
+      ]
+    },
+    {
+      "type": "Microsoft.App/managedEnvironments",
+      "apiVersion": "2023-05-01",
+      "name": "[format('{0}-env', parameters('resourceBaseName'))]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "zoneRedundant": false,
+        "vnetConfiguration": {
+          "internal": false,
+          "infrastructureSubnetId": "[reference(resourceId('Microsoft.Network/virtualNetworks', format('{0}-vnet', parameters('resourceBaseName'))), '2023-06-01').subnets[0].id]"
+        },
+        "appLogsConfiguration": {
+          "destination": "log-analytics",
+          "logAnalyticsConfiguration": {
+            "customerId": "[reference(resourceId('Microsoft.OperationalInsights/workspaces', format('{0}-logs', parameters('resourceBaseName'))), '2022-10-01').customerId]",
+            "sharedKey": "[listKeys(resourceId('Microsoft.OperationalInsights/workspaces', format('{0}-logs', parameters('resourceBaseName'))), '2022-10-01').primarySharedKey]"
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/virtualNetworks', format('{0}-vnet', parameters('resourceBaseName')))]",
+        "[resourceId('Microsoft.OperationalInsights/workspaces', format('{0}-logs', parameters('resourceBaseName')))]"
+      ]
+    },
+    {
+      "type": "Microsoft.App/jobs",
+      "apiVersion": "2023-05-01",
+      "name": "[format('{0}-job', parameters('resourceBaseName'))]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "environmentId": "[resourceId('Microsoft.App/managedEnvironments', format('{0}-env', parameters('resourceBaseName')))]",
+        "template": {
+          "containers": [
+            {
+              "name": "prefill-job",
+              "image": "[parameters('containerImage')]",
+              "resources": {
+                "cpu": "[json('0.25')]",
+                "memory": "0.5Gi"
+              },
+              "env": [
+                {
+                  "name": "CLIENT_ID",
+                  "value": "[parameters('entraIdAppClientId')]"
+                },
+                {
+                  "name": "TENANT_ID",
+                  "value": "[parameters('entraIdAppTenantId')]"
+                },
+                {
+                  "name": "CLIENT_SECRET",
+                  "secretRef": "entraid-app-client-secret"
+                },
+                {
+                  "name": "APPINSIGHTS_CONNECTIONSTRING",
+                  "secretRef": "azure-appinsights-instrumentation-key"
+                },
+                {
+                  "name": "AZURE_STORAGE_CONNECTIONSTRING",
+                  "secretRef": "azure-storage-connection-string"
+                },
+                {
+                  "name": "MAX_MESSAGES",
+                  "value": "[string(parameters('containerJobMaxMessages'))]"
+                },
+                {
+                  "name": "ENABLE_DRY_RUN",
+                  "value": "true"
+                }
+              ]
+            }
+          ]
+        },
+        "configuration": {
+          "secrets": [
+            {
+              "name": "azure-storage-connection-string",
+              "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1};EndpointSuffix=core.windows.net', variables('randomString'), listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('randomString')), '2023-01-01').keys[0].value)]"
+            },
+            {
+              "name": "azure-appinsights-instrumentation-key",
+              "value": "[reference(resourceId('Microsoft.Insights/components', format('{0}-insights', parameters('resourceBaseName'))), '2020-02-02').ConnectionString]"
+            },
+            {
+              "name": "entraid-app-client-secret",
+              "value": "[parameters('entraIdAppClientSecret')]"
+            }
+          ],
+          "replicaTimeout": 300,
+          "replicaRetryLimit": 0,
+          "triggerType": "Event",
+          "eventTriggerConfig": {
+            "parallelism": 1,
+            "replicaCompletionCount": 1,
+            "scale": {
+              "minExecutions": 0,
+              "maxExecutions": "[parameters('maxScaleCount')]",
+              "rules": [
+                {
+                  "name": "queue",
+                  "type": "azure-queue",
+                  "metadata": {
+                    "accountName": "[variables('randomString')]",
+                    "queueLength": "1",
+                    "queueName": "authupdate-queue"
+                  },
+                  "auth": [
+                    {
+                      "triggerParameter": "connection",
+                      "secretRef": "azure-storage-connection-string"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.App/managedEnvironments', format('{0}-env', parameters('resourceBaseName')))]",
+        "[resourceId('Microsoft.Insights/components', format('{0}-insights', parameters('resourceBaseName')))]",
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('randomString'))]"
+      ]
+    }
+  ],
+  "outputs": {
+    "containerAppJobResourceId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.App/jobs', format('{0}-job', parameters('resourceBaseName')))]"
+    },
+    "containerAppEnvironmentResourceId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.App/managedEnvironments', format('{0}-env', parameters('resourceBaseName')))]"
+    },
+    "logAnalyticsWorkspaceResourceId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.OperationalInsights/workspaces', format('{0}-logs', parameters('resourceBaseName')))]"
+    },
+    "appInsightsResourceId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.Insights/components', format('{0}-insights', parameters('resourceBaseName')))]"
+    },
+    "storageAccountResourceId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.Storage/storageAccounts', variables('randomString'))]"
+    },
+    "vnetResourceId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.Network/virtualNetworks', format('{0}-vnet', parameters('resourceBaseName')))]"
+    }
+  }
+}
