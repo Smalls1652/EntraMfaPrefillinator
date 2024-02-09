@@ -30,7 +30,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="appsettings.Development.json" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" Condition="'$(Configuration)'=='Debug'" />
+    <Content Include="appsettings.Development.json" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" Condition="'$(Configuration)'=='Debug' And Exists('appsettings.Development.json')" />
     <Content Include="appsettings.Development.json" CopyToOutputDirectory="Never" CopyToPublishDirectory="Never" Condition="'$(Configuration)'=='Release'" />
     <Content Include="appsettings.json" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" />
   </ItemGroup>
