@@ -18,7 +18,7 @@
     <PackageId>EntraMfaPrefillinator.AuthUpdateApp</PackageId>
 
     <Description>
-      Web API for prefilling MFA details for Microsoft Entra ID.
+      Queue message processor for prefilling MFA details for a user in Microsoft Entra ID.
     </Description>
 
     <Authors>Timothy Small</Authors>
