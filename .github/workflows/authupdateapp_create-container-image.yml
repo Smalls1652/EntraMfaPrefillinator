@@ -1,5 +1,5 @@
 # yaml-language-server: $schema=https://json.schemastore.org/github-workflow
-name: "AuthUpdateApp: Create container image"
+name: "AuthUpdateApp / Create container image"
 on:
   push:
     tags:
