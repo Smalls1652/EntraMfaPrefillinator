@@ -2,6 +2,9 @@ using EntraMfaPrefillinator.AuthUpdateApp.Models;
 
 namespace EntraMfaPrefillinator.AuthUpdateApp;
 
+/// <summary>
+/// Source generated JSON context for core types.
+/// </summary>
 [JsonSourceGenerationOptions(
     WriteIndented = false,
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,

@@ -11,6 +11,9 @@ using Microsoft.Extensions.Options;
 
 namespace EntraMfaPrefillinator.AuthUpdateApp.Services;
 
+/// <summary>
+/// The main service for the application.
+/// </summary>
 public class MainService : IHostedService, IDisposable
 {
     private bool _disposed;
@@ -31,6 +34,11 @@ public class MainService : IHostedService, IDisposable
         _options = options.Value;
     }
 
+    /// <summary>
+    /// Starts the operation to get and process queue messages.
+    /// </summary>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns></returns>
     public async Task RunAsync(CancellationToken cancellationToken = default)
     {
         using Activity? activity = _activitySource
@@ -69,6 +77,13 @@ public class MainService : IHostedService, IDisposable
         return;
     }
 
+    /// <summary>
+    /// Processes a queue message to update a user's authentication methods.
+    /// </summary>
+    /// <param name="queueMessage">The queue message to process.</param>
+    /// <param name="parentActivityId">The ID for the parent activity.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns></returns>
     public async Task ProcessQueueMessageAsync(QueueMessage queueMessage, string parentActivityId, CancellationToken cancellationToken = default)
     {
         using var activity = _activitySource.StartProcessUserAuthActivity(
@@ -81,6 +96,8 @@ public class MainService : IHostedService, IDisposable
 
         try
         {
+            // Read the contents of the queue message and
+            // deserialize it into a UserAuthUpdateQueueItem.
             Stream stream = queueMessage.Body.ToStream();
 
             UserAuthUpdateQueueItem queueItem;
@@ -100,10 +117,13 @@ public class MainService : IHostedService, IDisposable
                 throw;
             }
 
+            // Add tags to the activity for the queue item.
             activity?.AddUserAuthUpdateQueueItemTags(
                 queueItem: queueItem
             );
 
+            // Check if the request has a user name or user principal name.
+            // If not, throw an exception.
             try
             {
                 string userName = queueItem.UserName ?? queueItem.UserPrincipalName ?? throw new Exception("'userName' or 'userPrincipalName' must be supplied in the request.");
@@ -116,6 +136,7 @@ public class MainService : IHostedService, IDisposable
                 throw;
             }
 
+            // Get the user from the Graph API.
             User user;
             if (queueItem.UserName is not null || queueItem.EmployeeId is not null)
             {
@@ -154,6 +175,9 @@ public class MainService : IHostedService, IDisposable
                 throw ex;
             }
 
+            // If the request has an email address,
+            // check if the user already has an email auth method and
+            // add the email auth method if it doesn't exist.
             if (queueItem.EmailAddress is not null)
             {
                 activity?.AddUserEmailAuthMethodIncludedInRequestTag(true);
@@ -198,6 +222,9 @@ public class MainService : IHostedService, IDisposable
                 activity?.AddUserEmailAuthMethodIncludedInRequestTag(false);
             }
 
+            // If the request has a phone number,
+            // check if the user already has a phone auth method and
+            // add the phone auth method if it doesn't exist.
             if (queueItem.PhoneNumber is not null)
             {
                 activity?.AddUserPhoneAuthMethodIncludedInRequestTag(true);
@@ -248,18 +275,23 @@ public class MainService : IHostedService, IDisposable
         {
             if (!errorOccurred)
             {
+                // Delete the message from the queue if no error occurred.
                 _logger.LogInformation("Deleting message '{messageId}' from queue.", queueMessage.MessageId);
                 await _queueClientService.AuthUpdateQueueClient.DeleteMessageAsync(queueMessage.MessageId, queueMessage.PopReceipt, cancellationToken);
             }
             else
             {
+                // If an error occurred processing the message,
+                // check if the message has been dequeued 5 times.
                 if (queueMessage.DequeueCount >= 5)
                 {
+                    // If the message has been dequeued 5 times, delete the message from the queue.
                     _logger.LogWarning("Message '{messageId}' has been dequeued 5 times. Deleting message from queue.", queueMessage.MessageId);
                     await _queueClientService.AuthUpdateQueueClient.DeleteMessageAsync(queueMessage.MessageId, queueMessage.PopReceipt, cancellationToken);
                 }
                 else
                 {
+                    // Otherwise, log a warning and leave the message in the queue.
                     _logger.LogWarning("Error occurred processing message '{messageId}'. Message will be left in queue.", queueMessage.MessageId);
                 }
             }
@@ -269,6 +301,7 @@ public class MainService : IHostedService, IDisposable
         }
     }
 
+    /// <inheritdoc/>
     public Task StartAsync(CancellationToken cancellationToken)
     {
         _appLifetime.ApplicationStarted.Register(() => Task.Run(async () => await RunAsync(cancellationToken)));
@@ -280,6 +313,7 @@ public class MainService : IHostedService, IDisposable
         return Task.CompletedTask;
     }
 
+    /// <inheritdoc/>
     public Task StopAsync(CancellationToken cancellationToken)
     {
         _logger.LogInformation("MainService stopped.");
@@ -287,6 +321,7 @@ public class MainService : IHostedService, IDisposable
         return Task.CompletedTask;
     }
 
+    /// <inheritdoc/>
     public void Dispose()
     {
         ObjectDisposedException.ThrowIf(_disposed, this);

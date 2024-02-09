@@ -4,6 +4,9 @@ using Microsoft.Extensions.Logging;
 
 namespace EntraMfaPrefillinator.AuthUpdateApp.Hosting;
 
+/// <summary>
+/// A custom <see cref="IHostLifetime"/> implementation that handles the application lifetime for the AuthUpdateApp.
+/// </summary>
 internal sealed class AuthUpdateAppHostLifetime : IHostLifetime, IDisposable
 {
     public AuthUpdateAppHostLifetime(IHostEnvironment environment, IHostApplicationLifetime applicationLifetime, ILoggerFactory loggerFactory)

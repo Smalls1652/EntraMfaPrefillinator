@@ -2,6 +2,9 @@ using EntraMfaPrefillinator.Lib.Models;
 
 namespace EntraMfaPrefillinator.AuthUpdateApp;
 
+/// <summary>
+/// Source generated JSON context for queue message types.
+/// </summary>
 [JsonSourceGenerationOptions(
     WriteIndented = false,
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
