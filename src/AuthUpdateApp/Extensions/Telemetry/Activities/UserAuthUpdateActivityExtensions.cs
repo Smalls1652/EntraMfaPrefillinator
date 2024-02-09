@@ -3,18 +3,14 @@ using EntraMfaPrefillinator.Lib.Models;
 
 namespace EntraMfaPrefillinator.AuthUpdateApp.Extensions.Telemetry.Activities;
 
-public static class EndpointActivityExtensions
+public static class UserAuthUpdateActivityExtensions
 {
-    public static Activity? StartEndpointCallActivity(this ActivitySource activitySource, string activityName, string endpointName) => StartEndpointCallActivity(activitySource, activityName, endpointName, null);
-    public static Activity? StartEndpointCallActivity(this ActivitySource activitySource, string activityName, string endpointName, string? parentActivityId)
+    public static Activity? StartProcessUserAuthActivity(this ActivitySource activitySource, string activityName) => StartProcessUserAuthActivity(activitySource, activityName, null);
+    public static Activity? StartProcessUserAuthActivity(this ActivitySource activitySource, string activityName, string? parentActivityId)
     {
         return activitySource.StartActivity(
             name: activityName,
             kind: ActivityKind.Server,
-            tags: new ActivityTagsCollection
-            {
-                { "endpoint.name", endpointName }
-            },
             parentId: parentActivityId
         );
     }
