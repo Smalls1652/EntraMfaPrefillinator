@@ -139,41 +139,16 @@ public class MainService : IHostedService, IDisposable
 
             // Get the user from the Graph API.
             User user;
-            if (queueItem.UserName is not null || queueItem.EmployeeId is not null)
+            try
             {
-                try
-                {
-                    user = await _graphClientService.GetUserByUserNameAndEmployeeNumberAsync(queueItem.UserName, queueItem.EmployeeId);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error getting user, '{userName}' [{employeeId}].", queueItem.UserName, queueItem.EmployeeId);
-                    activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
-                    errorOccurred = true;
-                    throw;
-                }
+                user = await GetUserAsync(queueItem);
             }
-            else if (queueItem.UserPrincipalName is not null)
+            catch (GetUserException ex)
             {
-                try
-                {
-                    user = await _graphClientService.GetUserAsync(queueItem.UserPrincipalName);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error getting user, '{userPrincipalName}'.", queueItem.UserPrincipalName);
-                    activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
-                    errorOccurred = true;
-                    throw;
-                }
-            }
-            else
-            {
-                Exception ex = new("'userName' and 'employeeId' or 'userPrincipalName' must be supplied in the request.");
-                _logger.LogError(ex, "Required parameters not supplied in the request.");
+                _logger.LogError(ex, "Error getting user, '{userName}' [{employeeId}].", queueItem.UserName, queueItem.EmployeeId);
                 activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
                 errorOccurred = true;
-                throw ex;
+                throw;
             }
 
             // If the request has an email address,
@@ -300,6 +275,56 @@ public class MainService : IHostedService, IDisposable
             stopwatch.Stop();
             _logger.LogInformation("Processed request in {ElapsedMilliseconds}ms.", stopwatch.ElapsedMilliseconds);
         }
+    }
+
+    /// <summary>
+    /// Gets a user from the Graph API.
+    /// </summary>
+    /// <param name="queueItem">The queue item containing the user's information.</param>
+    /// <returns>The user from the Graph API.</returns>
+    /// <exception cref="GetUserException">An error occurred while getting the user.</exception>
+    private async Task<User> GetUserAsync(UserAuthUpdateQueueItem queueItem)
+    {
+        User user;
+        if (queueItem.UserName is not null || queueItem.EmployeeId is not null)
+        {
+            try
+            {
+                user = await _graphClientService.GetUserByUserNameAndEmployeeNumberAsync(queueItem.UserName, queueItem.EmployeeId);
+            }
+            catch (Exception ex)
+            {
+                throw new GetUserException(
+                    errorType: GetUserErrorType.UserNotFound,
+                    message: "An error occurred while getting the user.",
+                    innerException: ex
+                );
+            }
+        }
+        else if (queueItem.UserPrincipalName is not null)
+        {
+            try
+            {
+                user = await _graphClientService.GetUserAsync(queueItem.UserPrincipalName);
+            }
+            catch (Exception ex)
+            {
+                throw new GetUserException(
+                    errorType: GetUserErrorType.UserNotFound,
+                    message: "An error occurred while getting the user.",
+                    innerException: ex
+                );
+            }
+        }
+        else
+        {
+            throw new GetUserException(
+                errorType: GetUserErrorType.MissingUsername,
+                message: "A username or user principal name must be supplied in the request."
+            );
+        }
+
+        return user;
     }
 
     /// <inheritdoc/>
