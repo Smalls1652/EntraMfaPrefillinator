@@ -11,5 +11,5 @@ public class MainServiceOptions
     /// <remarks>
     /// The max value can go no higher than 32.
     /// </remarks>
-    public int MaxMessages { get; set; } = 25;
+    public int MaxMessages { get; set; } = 32;
 }

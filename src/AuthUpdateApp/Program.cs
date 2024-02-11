@@ -63,7 +63,7 @@ builder.Services
 builder.Services
     .AddMainService(options =>
     {
-        options.MaxMessages = builder.Configuration.GetValue("MAX_MESSAGES", 25);
+        options.MaxMessages = builder.Configuration.GetValue("MAX_MESSAGES", 32);
     });
 
 using var app = builder.Build();
