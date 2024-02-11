@@ -104,7 +104,7 @@
 			"problemMatcher": "$msCompile"
 		},
 		{
-			"label": "Compile (Native AOT)",
+			"label": "Compile project (Native AOT)",
 			"detail": "Compile a project with Native AOT.",
 			"icon": {
 				"id": "package",
