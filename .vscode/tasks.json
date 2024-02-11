@@ -104,8 +104,8 @@
 			"problemMatcher": "$msCompile"
 		},
 		{
-			"label": "Publish: CsvImporter",
-			"detail": "Compile the CsvImporter CLI tool.",
+			"label": "Compile (Native AOT)",
+			"detail": "Compile a project with Native AOT.",
 			"icon": {
 				"id": "package",
 				"color": "terminal.ansiRed"
@@ -114,13 +114,11 @@
 			"command": "dotnet",
 			"args": [
 				"publish",
-				"${workspaceFolder}/src/Tools/CsvImporter",
+				"${workspaceFolder}/${input:nativeAotCompileProject}",
 				"--configuration",
 				"Release",
 				"--runtime",
-				"${input:runtimeIdentifier}",
-				"--output",
-				"${workspaceFolder}/build/CsvImporter"
+				"${input:runtimeIdentifier}"
 			],
 			"options": {
 				"cwd": "${workspaceFolder}"
@@ -134,38 +132,6 @@
 				"showReuseMessage": true,
 				"clear": true
 			},
-		},
-		{
-			"label": "Publish: AuthUpdateApp",
-			"detail": "Compile the AuthUpdateApp.",
-			"icon": {
-				"id": "package",
-				"color": "terminal.ansiRed"
-			},
-			"type": "process",
-			"command": "dotnet",
-			"args": [
-				"publish",
-				"${workspaceFolder}/src/AuthUpdateApp",
-				"--configuration",
-				"Release",
-				"--runtime",
-				"${input:runtimeIdentifier}",
-				"--output",
-				"${workspaceFolder}/build/AuthUpdateApp"
-			],
-			"options": {
-				"cwd": "${workspaceFolder}"
-			},
-			"problemMatcher": "$msCompile",
-			"presentation": {
-				"echo": true,
-				"reveal": "always",
-				"focus": true,
-				"panel": "shared",
-				"showReuseMessage": true,
-				"clear": true
-			}
 		},
 		{
 			"label": "Run: AuthUpdateApp",
@@ -235,7 +201,7 @@
 					"value": "src/AuthUpdateApp"
 				},
 				{
-					"label": "Tools.CsvImporter",
+					"label": "CsvImporter",
 					"value": "src/Tools/CsvImporter"
 				}
 			]
@@ -291,6 +257,22 @@
 				{
 					"label": "AuthUpdateApp",
 					"value": "src/AuthUpdateApp"
+				}
+			]
+		},
+		{
+			"id": "nativeAotCompileProject",
+			"description": "Select a project to compile with Native AOT.",
+			"type": "pickString",
+			"default": "src/AuthUpdateApp",
+			"options": [
+				{
+					"label": "AuthUpdateApp",
+					"value": "src/AuthUpdateApp"
+				},
+				{
+					"label": "CsvImporter",
+					"value": "src/Tools/CsvImporter"
 				}
 			]
 		}
