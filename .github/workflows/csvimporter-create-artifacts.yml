@@ -48,7 +48,7 @@ jobs:
               if: ${{ runner.os == 'Linux' }}
               shell: pwsh
               run: |
-                dotnet publish ./src/Tools/CsvImporter/ --configuration "Release" --runtime "linux-x64" --output "./build/CsvImporter/";
+                dotnet publish ./src/Tools/CsvImporter/ --configuration "Release" --runtime "linux-x64";
                 Remove-Item -Path "./artifacts/publish/CsvImporter/release_linux-x64/*.pdb" -Recurse -Force -Verbose
 
             - name: Create artifact (Windows)
