@@ -49,7 +49,8 @@ jobs:
               shell: pwsh
               run: |
                 dotnet publish ./src/Tools/CsvImporter/ --configuration "Release" --runtime "linux-x64";
-                Remove-Item -Path "./artifacts/publish/CsvImporter/release_linux-x64/*.pdb" -Recurse -Force -Verbose
+                Remove-Item -Path "./artifacts/publish/CsvImporter/release_linux-x64/*.pdb" -Recurse -Force -Verbose;
+                Remove-Item -Path "./artifacts/publish/CsvImporter/release_linux-x64/*.dbg" -Recurse -Force -Verbose
 
             - name: Create artifact (Windows)
               uses: actions/upload-artifact@v4
