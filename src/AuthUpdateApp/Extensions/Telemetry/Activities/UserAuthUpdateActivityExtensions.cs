@@ -6,7 +6,7 @@ namespace EntraMfaPrefillinator.AuthUpdateApp.Extensions.Telemetry.Activities;
 /// <summary>
 /// Extension methods for creating and updating activities related to user auth updates.
 /// </summary>
-public static class UserAuthUpdateActivityExtensions
+internal static class UserAuthUpdateActivityExtensions
 {
     /// <summary>
     /// Starts and creates a new activity for processing a user auth update.

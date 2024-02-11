@@ -6,7 +6,7 @@ namespace EntraMfaPrefillinator.AuthUpdateApp.Extensions;
 /// Extension methods for configuring the <see cref="MainService"/> in the
 /// dependency injection container.
 /// </summary>
-public static class MainServiceStartupExtensions
+internal static class MainServiceStartupExtensions
 {
     /// <summary>
     /// Adds the <see cref="MainService"/> to the dependency injection container.

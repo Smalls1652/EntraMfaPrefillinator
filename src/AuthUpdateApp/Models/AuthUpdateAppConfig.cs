@@ -3,7 +3,7 @@ namespace EntraMfaPrefillinator.AuthUpdateApp.Models;
 /// <summary>
 /// Config options for the AuthUpdateApp.
 /// </summary>
-public class AuthUpdateAppConfig
+public sealed class AuthUpdateAppConfig
 {
     /// <summary>
     /// The Azure AD/Entra ID client application ID.
