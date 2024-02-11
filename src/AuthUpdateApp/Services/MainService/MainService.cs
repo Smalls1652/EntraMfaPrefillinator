@@ -87,7 +87,8 @@ public class MainService : IHostedService, IDisposable
     public async Task ProcessQueueMessageAsync(QueueMessage queueMessage, string parentActivityId, CancellationToken cancellationToken = default)
     {
         using var activity = _activitySource.StartProcessUserAuthActivity(
-            activityName: "ProcessUserAuthUpdate"
+            activityName: "ProcessUserAuthUpdate",
+            parentActivityId: parentActivityId
         );
 
         Stopwatch stopwatch = Stopwatch.StartNew();
