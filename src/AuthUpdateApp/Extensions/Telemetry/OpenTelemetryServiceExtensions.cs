@@ -11,7 +11,7 @@ namespace EntraMfaPrefillinator.AuthUpdateApp.Extensions.Telemetry;
 /// Extension methods for configuring OpenTelemetry in the
 /// dependency injection container.
 /// </summary>
-public static class OpenTelemetryServiceExtensions
+internal static class OpenTelemetryServiceExtensions
 {
     /// <summary>
     /// Configures OpenTelemetry logging.

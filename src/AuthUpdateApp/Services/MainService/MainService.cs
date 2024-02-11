@@ -14,7 +14,7 @@ namespace EntraMfaPrefillinator.AuthUpdateApp.Services;
 /// <summary>
 /// The main service for the application.
 /// </summary>
-public class MainService : IHostedService, IDisposable
+internal sealed class MainService : IHostedService, IDisposable
 {
     private bool _disposed;
     private readonly IHostApplicationLifetime _appLifetime;

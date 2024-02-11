@@ -3,7 +3,7 @@ namespace EntraMfaPrefillinator.AuthUpdateApp.Services;
 /// <summary>
 /// Config options for <see cref="MainService"/>.
 /// </summary>
-public class MainServiceOptions
+internal sealed class MainServiceOptions
 {
     /// <summary>
     /// The maximum number of messages to process in a single run.

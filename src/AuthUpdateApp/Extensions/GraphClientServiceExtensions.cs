@@ -6,7 +6,7 @@ namespace EntraMfaPrefillinator.Lib.Services;
 /// Extension methods for configuring the <see cref="GraphClientService"/> in the
 /// dependency injection container.
 /// </summary>
-public static class GraphClientServiceExtensions
+internal static class GraphClientServiceExtensions
 {
     /// <summary>
     /// Adds the <see cref="GraphClientService"/> to the dependency injection container.
