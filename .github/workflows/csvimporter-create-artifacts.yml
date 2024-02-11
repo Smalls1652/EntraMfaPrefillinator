@@ -39,31 +39,30 @@ jobs:
 
             - name: Compile project (Windows)
               if: ${{ runner.os == 'Windows' }}
+              shell: pwsh
               run: |
-                dotnet publish ./src/Tools/CsvImporter/ --configuration "Release" --runtime "win-x64" --output "./build/CsvImporter/"
+                dotnet publish ./src/Tools/CsvImporter/ --configuration "Release" --runtime "win-x64";
+                Remove-Item -Path "./artifacts/publish/CsvImporter/release_win-x64/*.pdb" -Recurse -Force -Verbose
 
             - name: Compile project (Linux)
               if: ${{ runner.os == 'Linux' }}
-              run: |
-                dotnet publish ./src/Tools/CsvImporter/ --configuration "Release" --runtime "linux-x64" --output "./build/CsvImporter/"
-
-            - name: List files
               shell: pwsh
               run: |
-                Get-ChildItem -Path "${{ github.workspace }}/build/" -Recurse | ForEach-Object { "$($PSItem.FullName)" }
+                dotnet publish ./src/Tools/CsvImporter/ --configuration "Release" --runtime "linux-x64" --output "./build/CsvImporter/";
+                Remove-Item -Path "./artifacts/publish/CsvImporter/release_linux-x64/*.pdb" -Recurse -Force -Verbose
 
             - name: Create artifact (Windows)
               uses: actions/upload-artifact@v4
               if: ${{ runner.os == 'Windows' }}
               with:
-                name: "CsvImporter_win-x64_${{ github.sha }}"
-                path: ${{ github.workspace }}/build/CsvImporter/**/*
+                name: "CsvImporter_win-x64_${{ github.ref_type == 'tag' && github.ref_name || github.sha }}"
+                path: ${{ github.workspace }}/artifacts/publish/CsvImporter/release_win-x64/**/*
                 if-no-files-found: error
 
             - name: Create artifact (Linux)
               uses: actions/upload-artifact@v4
               if: ${{ runner.os == 'Linux' }}
               with:
-                name: "CsvImporter_linux-x64_${{ github.sha }}"
-                path: ${{ github.workspace }}/build/CsvImporter/**/*
+                name: "CsvImporter_linux-x64_${{ github.ref_type == 'tag' && github.ref_name || github.sha }}"
+                path: ${{ github.workspace }}/artifacts/publish/CsvImporter/release_linux-x64/**/*
                 if-no-files-found: error
