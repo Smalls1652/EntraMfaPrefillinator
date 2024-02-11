@@ -9,17 +9,23 @@ COPY ./.config ./.config
 COPY ./GitVersion.yml ./
 COPY ./global.json ./
 COPY ./EntraMfaPrefillinator.sln ./
+COPY ./Directory.Build.props ./
 COPY ./src/AuthUpdateApp ./src/AuthUpdateApp
 COPY ./src/Lib ./src/Lib
 
 RUN apt-get update; \
-    apt-get install -y clang zlib1g-dev;\
-    dotnet tool restore; \
-    dotnet tool run dotnet-gitversion /updateprojectfiles; \
-    dotnet publish ./src/AuthUpdateApp --configuration "Release" --output "/app/build/" --runtime "${PLATFORM_RUNTIME_ID}" --self-contained
+    apt-get install -y clang zlib1g-dev
+
+RUN dotnet tool restore; \
+    dotnet tool run dotnet-gitversion /updateprojectfiles
+    
+RUN dotnet publish ./src/AuthUpdateApp --configuration "Release" --runtime "${PLATFORM_RUNTIME_ID}" --self-contained
 
 FROM --platform=$TARGETPLATFORM mcr.microsoft.com/dotnet/runtime-deps:8.0-jammy-chiseled
 
-COPY --from=build-env /app/build/EntraMfaPrefillinator.AuthUpdateApp /app/
+ARG PLATFORM_RUNTIME_ID="linux-x64"
+
+COPY --from=build-env /app/artifacts/publish/AuthUpdateApp/release_${PLATFORM_RUNTIME_ID}/EntraMfaPrefillinator.AuthUpdateApp /app/
+COPY --from=build-env /app/artifacts/publish/AuthUpdateApp/release_${PLATFORM_RUNTIME_ID}/appsettings.json /app/
 
 ENTRYPOINT ["/app/EntraMfaPrefillinator.AuthUpdateApp"]
