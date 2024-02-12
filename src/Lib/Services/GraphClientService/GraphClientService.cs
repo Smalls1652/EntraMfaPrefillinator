@@ -1,18 +1,26 @@
 using System.Text.RegularExpressions;
 using EntraMfaPrefillinator.Lib.Models.Graph;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.Identity.Client;
 
 namespace EntraMfaPrefillinator.Lib.Services;
 
 public partial class GraphClientService : IGraphClientService
 {
-    private readonly HttpClient _graphClient;
+    private readonly ILogger _logger;
+    private readonly IHttpClientFactory _httpClientFactory;
     private readonly IEnumerable<string> _apiScopes;
     private readonly bool _disableUpdateMethods;
     private readonly IConfidentialClientApplication _confidentialClientApplication;
 
-    public GraphClientService(GraphClientConfig graphClientConfig)
+    public GraphClientService(ILogger<GraphClientService> logger, IHttpClientFactory httpClientFactory, IOptions<GraphClientServiceOptions> options)
     {
+        _logger = logger;
+
+        _httpClientFactory = httpClientFactory;
+
+        var graphClientConfig = options.Value;
         _apiScopes = graphClientConfig.ApiScopes;
 
         _confidentialClientApplication = ConfidentialClientApplicationBuilder
@@ -21,20 +29,8 @@ public partial class GraphClientService : IGraphClientService
             .WithTenantId(graphClientConfig.TenantId)
             .Build();
 
-        _graphClient = new()
-        {
-            BaseAddress = new Uri("https://graph.microsoft.com/beta/")
-        };
-        
-        _graphClient.DefaultRequestHeaders.Add("ConsistencyLevel", "eventual");
+        _disableUpdateMethods = graphClientConfig.DisableUpdateMethods;
     }
-
-    public GraphClientService(GraphClientConfig graphClientConfig, bool disableUpdateMethods) : this(graphClientConfig)
-    {
-        _disableUpdateMethods = disableUpdateMethods;
-    }
-
-    public HttpClient GraphClient => _graphClient;
 
     private bool _isConnected => _authToken is not null;
     private AuthenticationResult? _authToken;

@@ -4,8 +4,6 @@ namespace EntraMfaPrefillinator.Lib.Services;
 
 public interface IGraphClientService
 {
-    HttpClient GraphClient { get; }
-
     Task<User> GetUserAsync(string userId);
     Task<User> GetUserByUserNameAndEmployeeNumberAsync(string? userName, string? employeeNumber);
     Task<PhoneAuthenticationMethod> AddPhoneAuthenticationMethodAsync(string userId, string phoneNumber);
