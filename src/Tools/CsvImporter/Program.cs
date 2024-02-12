@@ -1,7 +1,7 @@
 ﻿using System.Text;
 using System.Text.Json;
+using EntraMfaPrefillinator.Lib.Services.Extensions;
 using EntraMfaPrefillinator.Tools.CsvImporter;
-using EntraMfaPrefillinator.Tools.CsvImporter.Extensions.QueueClient;
 using EntraMfaPrefillinator.Tools.CsvImporter.Extensions.ServiceSetup;
 using EntraMfaPrefillinator.Tools.CsvImporter.Hosting;
 using EntraMfaPrefillinator.Tools.CsvImporter.Logging;

@@ -1,10 +1,9 @@
 using Azure.Core;
-using EntraMfaPrefillinator.Lib.Services;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace EntraMfaPrefillinator.Tools.CsvImporter.Extensions.QueueClient;
+namespace EntraMfaPrefillinator.Lib.Services.Extensions;
 
-internal static class QueueClientServiceStartupExtensions
+public static class QueueClientServiceExtensions
 {
     public static IServiceCollection AddCsvImporterQueueClientService(this IServiceCollection services, string queueUri, TokenCredential tokenCredential)
     {
