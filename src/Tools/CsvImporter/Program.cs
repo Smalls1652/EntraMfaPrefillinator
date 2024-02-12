@@ -161,12 +161,12 @@ try
     if (builder.Configuration.GetValue<bool>("USE_LOCAL_QUEUE"))
     {
         builder.Services
-            .AddCsvImporterQueueClientService();
+            .AddQueueClientService();
     }
     else
     {
         builder.Services
-            .AddCsvImporterQueueClientService(
+            .AddQueueClientService(
                 queueUri: csvImporterConfig.QueueUri!,
                 tokenCredential: AuthUtils.CreateTokenCredential(csvImporterConfig.QueueUri!)
         );
