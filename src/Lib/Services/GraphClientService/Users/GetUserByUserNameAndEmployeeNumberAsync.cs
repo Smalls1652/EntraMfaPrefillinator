@@ -34,16 +34,11 @@ public partial class GraphClientService
         string apiFilter = HttpUtility.UrlEncode(apiFilterBuilder.ToString());
         string apiEndpoint = $"users?$filter={apiFilter}&$select=id,userPrincipalName,displayName,onPremisesSamAccountName,employeeId";
 
-        string? apiResultString = await SendApiCallAsync(
+        string apiResultString = await SendApiCallAsync(
             endpoint: apiEndpoint,
             httpMethod: HttpMethod.Get
-        );
-
-        if (apiResultString is null)
-        {
-            throw new Exception("API result string is null.");
-        }
-
+        ) ?? throw new Exception("API result was null.");
+        
         User user;
         GraphCollection<User> userCollection;
         try

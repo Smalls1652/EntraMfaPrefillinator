@@ -9,15 +9,10 @@ public partial class GraphClientService
     {
         string apiEndpoint = $"users/{userId}?$select=id,userPrincipalName,displayName";
 
-        string? apiResultString = await SendApiCallAsync(
+        string apiResultString = await SendApiCallAsync(
             endpoint: apiEndpoint,
             httpMethod: HttpMethod.Get
-        );
-
-        if (apiResultString is null)
-        {
-            throw new Exception("API result string is null.");
-        }
+        ) ?? throw new Exception("API result was null.");
 
         User user;
         try

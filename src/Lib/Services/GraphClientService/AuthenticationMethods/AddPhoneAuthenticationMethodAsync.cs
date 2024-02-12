@@ -19,19 +19,14 @@ public partial class GraphClientService
             PhoneType = "mobile"
         };
 
-        string? apiResultString = await SendApiCallAsync(
+        string apiResultString = await SendApiCallAsync(
             endpoint: apiEndpoint,
             httpMethod: HttpMethod.Post,
             body: JsonSerializer.Serialize(
                 value: newPhoneAuthMethod,
                 jsonTypeInfo: GraphJsonContext.Default.PhoneAuthenticationMethod
             )
-        );
-
-        if (apiResultString is null)
-        {
-            throw new Exception("API result string is null.");
-        }
+        ) ?? throw new Exception("API result was null.");
 
         PhoneAuthenticationMethod phoneAuthMethod;
         try

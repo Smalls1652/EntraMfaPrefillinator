@@ -18,19 +18,14 @@ public partial class GraphClientService
             EmailAddress = emailAddress
         };
 
-        string? apiResultString = await SendApiCallAsync(
+        string apiResultString = await SendApiCallAsync(
             endpoint: apiEndpoint,
             httpMethod: HttpMethod.Post,
             body: JsonSerializer.Serialize(
                 value: newEmailAuthMethod,
                 jsonTypeInfo: GraphJsonContext.Default.EmailAuthenticationMethod
             )
-        );
-
-        if (apiResultString is null)
-        {
-            throw new Exception("API result string is null.");
-        }
+        ) ?? throw new Exception("API result was null.");
 
         EmailAuthenticationMethod emailAuthMethod;
         try

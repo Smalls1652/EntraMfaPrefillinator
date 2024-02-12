@@ -8,15 +8,10 @@ public partial class GraphClientService
     {
         string apiEndpoint = $"users/{userId}/authentication/emailMethods";
 
-        string? apiResultString = await SendApiCallAsync(
+        string apiResultString = await SendApiCallAsync(
             endpoint: apiEndpoint,
             httpMethod: HttpMethod.Get
-        );
-
-        if (apiResultString is null)
-        {
-            throw new Exception("API result string is null.");
-        }
+        ) ?? throw new Exception("API result was null.");
 
         GraphCollection<EmailAuthenticationMethod> emailAuthMethods;
         try
