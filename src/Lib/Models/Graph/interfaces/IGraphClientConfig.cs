@@ -24,4 +24,9 @@ public interface IGraphClientConfig
     /// The credential to use for authenticating with the Microsoft Graph API.
     /// </summary>
     IGraphClientCredential Credential { get; set; }
+
+    /// <summary>
+    /// Whether to disable updating authentication methods.
+    /// </summary>
+    bool DisableUpdateMethods { get; set; }
 }
