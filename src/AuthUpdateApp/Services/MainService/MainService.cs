@@ -141,7 +141,7 @@ internal sealed class MainService : IHostedService, IDisposable
             User user;
             try
             {
-                user = await GetUserAsync(queueItem);
+                user = await GetUserAsync(queueItem, activity);
             }
             catch (GetUserException ex)
             {
@@ -157,7 +157,7 @@ internal sealed class MainService : IHostedService, IDisposable
             if (queueItem.EmailAddress is not null)
             {
                 activity?.AddUserEmailAuthMethodIncludedInRequestTag(true);
-                EmailAuthenticationMethod[]? emailAuthMethods = await _graphClientService.GetEmailAuthenticationMethodsAsync(user.Id);
+                EmailAuthenticationMethod[]? emailAuthMethods = await _graphClientService.GetEmailAuthenticationMethodsAsync(user.Id, activity?.Id);
 
                 if (emailAuthMethods is not null && emailAuthMethods.Length != 0)
                 {
@@ -204,7 +204,7 @@ internal sealed class MainService : IHostedService, IDisposable
             if (queueItem.PhoneNumber is not null)
             {
                 activity?.AddUserPhoneAuthMethodIncludedInRequestTag(true);
-                PhoneAuthenticationMethod[]? phoneAuthMethods = await _graphClientService.GetPhoneAuthenticationMethodsAsync(user.Id);
+                PhoneAuthenticationMethod[]? phoneAuthMethods = await _graphClientService.GetPhoneAuthenticationMethodsAsync(user.Id, activity?.Id);
 
                 if (phoneAuthMethods is not null && phoneAuthMethods.Length != 0)
                 {
@@ -283,14 +283,14 @@ internal sealed class MainService : IHostedService, IDisposable
     /// <param name="queueItem">The queue item containing the user's information.</param>
     /// <returns>The user from the Graph API.</returns>
     /// <exception cref="GetUserException">An error occurred while getting the user.</exception>
-    private async Task<User> GetUserAsync(UserAuthUpdateQueueItem queueItem)
+    private async Task<User> GetUserAsync(UserAuthUpdateQueueItem queueItem, Activity? activity)
     {
         User user;
         if (queueItem.UserName is not null || queueItem.EmployeeId is not null)
         {
             try
             {
-                user = await _graphClientService.GetUserByUserNameAndEmployeeNumberAsync(queueItem.UserName, queueItem.EmployeeId);
+                user = await _graphClientService.GetUserByUserNameAndEmployeeNumberAsync(queueItem.UserName, queueItem.EmployeeId, activity?.Id);
             }
             catch (Exception ex)
             {
@@ -305,7 +305,7 @@ internal sealed class MainService : IHostedService, IDisposable
         {
             try
             {
-                user = await _graphClientService.GetUserAsync(queueItem.UserPrincipalName);
+                user = await _graphClientService.GetUserAsync(queueItem.UserPrincipalName, activity?.Id);
             }
             catch (Exception ex)
             {

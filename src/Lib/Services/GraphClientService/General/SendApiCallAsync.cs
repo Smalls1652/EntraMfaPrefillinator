@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
+using Microsoft.Extensions.Logging;
 
 namespace EntraMfaPrefillinator.Lib.Services;
 
@@ -16,6 +17,8 @@ public partial class GraphClientService
     private async Task<string?> SendApiCallAsync(string endpoint, HttpMethod httpMethod, string? body)
     {
         await ConnectAsync();
+
+        using HttpClient graphClient = _httpClientFactory.CreateClient("GraphApiClient");
 
         string? content = null;
         bool isFinished = false;
@@ -41,7 +44,7 @@ public partial class GraphClientService
                 );
             }
 
-            using HttpResponseMessage response = await _graphClient.SendAsync(request);
+            using HttpResponseMessage response = await graphClient.SendAsync(request);
 
             switch (response.StatusCode)
             {
@@ -49,6 +52,8 @@ public partial class GraphClientService
                     RetryConditionHeaderValue retryAfter = response.Headers.RetryAfter!;
 
                     TimeSpan retryBuffer = retryAfter.Delta!.Value.Add(TimeSpan.FromSeconds(15));
+
+                    _logger.LogWarning("[{endpoint}] Currently rate limited by the Graph API. Retrying in {RetryBuffer}s.", endpoint, retryBuffer.TotalSeconds);
 
                     await Task.Delay(retryBuffer);
                     break;

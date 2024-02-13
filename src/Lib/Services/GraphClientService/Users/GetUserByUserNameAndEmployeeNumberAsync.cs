@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text;
 using System.Web;
 using EntraMfaPrefillinator.Lib.Models.Graph;
@@ -7,10 +8,23 @@ namespace EntraMfaPrefillinator.Lib.Services;
 public partial class GraphClientService
 {
     /// <inheritdoc />
-    public async Task<User> GetUserByUserNameAndEmployeeNumberAsync(string? userName, string? employeeNumber)
+    public async Task<User> GetUserByUserNameAndEmployeeNumberAsync(string? userName, string? employeeNumber) => await GetUserByUserNameAndEmployeeNumberAsync(userName, employeeNumber, null);
+    public async Task<User> GetUserByUserNameAndEmployeeNumberAsync(string? userName, string? employeeNumber, string? parentActivityId)
     {
+        using var activity = _activitySource.StartActivity(
+            name: "GetUserByUserNameAndEmployeeNumberAsync",
+            kind: ActivityKind.Client,
+            tags: new ActivityTagsCollection
+            {
+                { "userName", userName },
+                { "employeeNumber", employeeNumber }
+            },
+            parentId: parentActivityId
+        );
+
         if (userName is null && employeeNumber is null)
         {
+            activity?.SetStatus(ActivityStatusCode.Error, "Both userName and employeeNumber cannot be null.");
             throw new ArgumentNullException(nameof(userName), "Both userName and employeeNumber cannot be null.");
         }
 
@@ -34,16 +48,11 @@ public partial class GraphClientService
         string apiFilter = HttpUtility.UrlEncode(apiFilterBuilder.ToString());
         string apiEndpoint = $"users?$filter={apiFilter}&$select=id,userPrincipalName,displayName,onPremisesSamAccountName,employeeId";
 
-        string? apiResultString = await SendApiCallAsync(
+        string apiResultString = await SendApiCallAsync(
             endpoint: apiEndpoint,
             httpMethod: HttpMethod.Get
-        );
-
-        if (apiResultString is null)
-        {
-            throw new Exception("API result string is null.");
-        }
-
+        ) ?? throw new Exception("API result was null.");
+        
         User user;
         GraphCollection<User> userCollection;
         try
@@ -55,6 +64,7 @@ public partial class GraphClientService
 
             if (userCollection.Value is null)
             {
+                activity?.SetStatus(ActivityStatusCode.Error, "User collection value is null.");
                 throw new Exception("User collection value is null.");
             }
 
@@ -62,6 +72,7 @@ public partial class GraphClientService
 
             if (string.IsNullOrEmpty(user.Id))
             {
+                activity?.SetStatus(ActivityStatusCode.Error, "User ID is null or empty.");
                 throw new Exception("User ID is null or empty.");
             }
         }
@@ -72,6 +83,7 @@ public partial class GraphClientService
                 jsonTypeInfo: GraphJsonContext.Default.GraphErrorResponse
             );
 
+            activity?.SetStatus(ActivityStatusCode.Error, errorResponse?.Error?.Message ?? "Unknown error.");
             throw new Exception(errorResponse!.Error!.Message);
         }
 

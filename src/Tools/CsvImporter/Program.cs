@@ -1,7 +1,7 @@
 ﻿using System.Text;
 using System.Text.Json;
+using EntraMfaPrefillinator.Lib.Services.Extensions;
 using EntraMfaPrefillinator.Tools.CsvImporter;
-using EntraMfaPrefillinator.Tools.CsvImporter.Extensions.QueueClient;
 using EntraMfaPrefillinator.Tools.CsvImporter.Extensions.ServiceSetup;
 using EntraMfaPrefillinator.Tools.CsvImporter.Hosting;
 using EntraMfaPrefillinator.Tools.CsvImporter.Logging;
@@ -161,12 +161,12 @@ try
     if (builder.Configuration.GetValue<bool>("USE_LOCAL_QUEUE"))
     {
         builder.Services
-            .AddCsvImporterQueueClientService();
+            .AddQueueClientService();
     }
     else
     {
         builder.Services
-            .AddCsvImporterQueueClientService(
+            .AddQueueClientService(
                 queueUri: csvImporterConfig.QueueUri!,
                 tokenCredential: AuthUtils.CreateTokenCredential(csvImporterConfig.QueueUri!)
         );

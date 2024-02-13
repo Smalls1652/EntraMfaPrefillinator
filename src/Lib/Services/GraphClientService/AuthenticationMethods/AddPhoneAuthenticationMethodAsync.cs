@@ -1,13 +1,26 @@
+using System.Diagnostics;
 using EntraMfaPrefillinator.Lib.Models.Graph;
 
 namespace EntraMfaPrefillinator.Lib.Services;
 
 public partial class GraphClientService
 {
-    public async Task<PhoneAuthenticationMethod> AddPhoneAuthenticationMethodAsync(string userId, string phoneNumber)
+    public async Task<PhoneAuthenticationMethod> AddPhoneAuthenticationMethodAsync(string userId, string phoneNumber) => await AddPhoneAuthenticationMethodAsync(userId, phoneNumber, null);
+    public async Task<PhoneAuthenticationMethod> AddPhoneAuthenticationMethodAsync(string userId, string phoneNumber, string? parentActivityId)
     {
+        using var activity = _activitySource.StartActivity(
+            name: "AddPhoneAuthenticationMethodAsync",
+            kind: ActivityKind.Client,
+            tags: new ActivityTagsCollection
+            {
+                { "userId", userId }
+            },
+            parentId: parentActivityId
+        );
+
         if (_disableUpdateMethods)
         {
+            activity?.SetStatus(ActivityStatusCode.Ok, "Dry run mode is enabled.");
             throw new GraphClientDryRunException("AddPhoneAuthenticationMethodAsync() was called, but the service is currently configured to disable update methods.");
         }
 
@@ -19,19 +32,14 @@ public partial class GraphClientService
             PhoneType = "mobile"
         };
 
-        string? apiResultString = await SendApiCallAsync(
+        string apiResultString = await SendApiCallAsync(
             endpoint: apiEndpoint,
             httpMethod: HttpMethod.Post,
             body: JsonSerializer.Serialize(
                 value: newPhoneAuthMethod,
                 jsonTypeInfo: GraphJsonContext.Default.PhoneAuthenticationMethod
             )
-        );
-
-        if (apiResultString is null)
-        {
-            throw new Exception("API result string is null.");
-        }
+        ) ?? throw new Exception("API result was null.");
 
         PhoneAuthenticationMethod phoneAuthMethod;
         try
@@ -47,6 +55,8 @@ public partial class GraphClientService
                 json: apiResultString,
                 jsonTypeInfo: GraphJsonContext.Default.GraphErrorResponse
             );
+
+            activity?.SetStatus(ActivityStatusCode.Error, errorResponse?.Error?.Message ?? "Unknown error.");
 
             throw new Exception(errorResponse!.Error!.Message);
         }
