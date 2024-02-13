@@ -4,6 +4,10 @@ updates:
   - package-ecosystem: "nuget"
     directory: "/src/Lib"
     target-branch: "main"
+    ignore:
+      - dependency-name: "Microsoft.Extensions.DependencyInjection"
+      - dependency-name: "Microsoft.Extensions.Http"
+      - dependency-name: "Microsoft.Extensions.Logging"
     schedule:
       interval: "daily"
     assignees:
