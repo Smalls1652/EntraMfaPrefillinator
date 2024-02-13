@@ -100,6 +100,7 @@ internal static class OpenTelemetryServiceExtensions
 
                 tracing
                     .AddSource("EntraMfaPrefillinator.AuthUpdateApp.Services.MainService")
+                    .AddSource("EntraMfaPrefillinator.Lib.Services.GraphClientService")
                     .SetResourceBuilder(resourceBuilder)
                     .AddHttpClientInstrumentation();
 
