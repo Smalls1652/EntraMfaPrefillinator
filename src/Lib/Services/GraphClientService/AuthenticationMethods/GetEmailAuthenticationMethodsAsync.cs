@@ -1,11 +1,23 @@
+using System.Diagnostics;
 using EntraMfaPrefillinator.Lib.Models.Graph;
 
 namespace EntraMfaPrefillinator.Lib.Services;
 
 public partial class GraphClientService
 {
-    public async Task<EmailAuthenticationMethod[]?> GetEmailAuthenticationMethodsAsync(string userId)
+    public async Task<EmailAuthenticationMethod[]?> GetEmailAuthenticationMethodsAsync(string userId) => await GetEmailAuthenticationMethodsAsync(userId, null);
+    public async Task<EmailAuthenticationMethod[]?> GetEmailAuthenticationMethodsAsync(string userId, string? parentActivityId)
     {
+        using var activity = _activitySource.StartActivity(
+            name: "GetEmailAuthenticationMethodsAsync",
+            kind: ActivityKind.Client,
+            tags: new ActivityTagsCollection
+            {
+                { "userId", userId }
+            },
+            parentId: parentActivityId
+        );
+
         string apiEndpoint = $"users/{userId}/authentication/emailMethods";
 
         string apiResultString = await SendApiCallAsync(
@@ -27,6 +39,8 @@ public partial class GraphClientService
                 json: apiResultString,
                 jsonTypeInfo: GraphJsonContext.Default.GraphErrorResponse
             );
+
+            activity?.SetStatus(ActivityStatusCode.Error, errorResponse?.Error?.Message ?? "Unknown error.");
 
             throw new Exception(errorResponse!.Error!.Message);
         }

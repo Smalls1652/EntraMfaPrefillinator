@@ -1,13 +1,26 @@
+using System.Diagnostics;
 using EntraMfaPrefillinator.Lib.Models.Graph;
 
 namespace EntraMfaPrefillinator.Lib.Services;
 
 public partial class GraphClientService
 {
-    public async Task<EmailAuthenticationMethod> AddEmailAuthenticationMethodAsync(string userId, string emailAddress)
+    public async Task<EmailAuthenticationMethod> AddEmailAuthenticationMethodAsync(string userId, string emailAddress) => await AddEmailAuthenticationMethodAsync(userId, emailAddress, null);
+    public async Task<EmailAuthenticationMethod> AddEmailAuthenticationMethodAsync(string userId, string emailAddress, string? parentActivityId)
     {
+        using var activity = _activitySource.StartActivity(
+            name: "AddEmailAuthenticationMethodAsync",
+            kind: ActivityKind.Client,
+            tags: new ActivityTagsCollection
+            {
+                { "userId", userId }
+            },
+            parentId: parentActivityId
+        );
+
         if (_disableUpdateMethods)
         {
+            activity?.SetStatus(ActivityStatusCode.Ok, "Dry run mode is enabled.");
             throw new GraphClientDryRunException("AddEmailAuthenticationMethodAsync() was called, but the service is currently configured to disable update methods.");
         }
 
@@ -41,6 +54,8 @@ public partial class GraphClientService
                 json: apiResultString,
                 jsonTypeInfo: GraphJsonContext.Default.GraphErrorResponse
             );
+
+            activity?.SetStatus(ActivityStatusCode.Error, errorResponse?.Error?.Message ?? "Unknown error.");
 
             throw new Exception(errorResponse!.Error!.Message);
         }
