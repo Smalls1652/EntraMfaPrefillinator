@@ -49,13 +49,9 @@ builder.Services
     );
 
 builder.Services
-    .AddSingleton<IQueueClientService, QueueClientService>(
-        service => new(
-            connectionString: builder.Configuration.GetValue<string>("AZURE_STORAGE_CONNECTIONSTRING") ?? throw new ConfigException("AZURE_STORAGE_CONNECTIONSTRING is not set.")
-        )
-    );
-
-builder.Services
+    .AddQueueClientService(
+        connectionString: builder.Configuration.GetValue<string>("AZURE_STORAGE_CONNECTIONSTRING") ?? throw new ConfigException("AZURE_STORAGE_CONNECTIONSTRING is not set.")
+    )
     .AddGraphClientService(options =>
     {
         options.ClientId = builder.Configuration.GetValue<string>("CLIENT_ID") ?? throw new ConfigException("CLIENT_ID is not set.");
