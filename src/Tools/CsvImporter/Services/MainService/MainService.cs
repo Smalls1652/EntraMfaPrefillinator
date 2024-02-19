@@ -15,6 +15,9 @@ namespace EntraMfaPrefillinator.Tools.CsvImporter.Services;
 
 public sealed class MainService : IMainService, IHostedService, IDisposable
 {
+    private bool _disposed;
+    private CancellationTokenSource? _cts;
+    private Task? _runTask;
     private readonly IHostApplicationLifetime _appLifetime;
     private readonly ILogger _logger;
     private readonly IConfiguration _configuration;
@@ -22,7 +25,6 @@ public sealed class MainService : IMainService, IHostedService, IDisposable
     private readonly ICsvImporterSqliteService _dbService;
     private readonly ICsvFileReaderService _csvFileReader;
     private readonly MainServiceOptions _options;
-    private readonly CancellationTokenSource _cancellationTokenSource = new();
 
     public MainService(IHostApplicationLifetime appLifetime, ILoggerFactory loggerFactory, IConfiguration configuration, IQueueClientService queueClientService, ICsvImporterSqliteService dbService, ICsvFileReaderService csvFileReader, IOptions<MainServiceOptions> options)
     {
@@ -111,7 +113,7 @@ public sealed class MainService : IMainService, IHostedService, IDisposable
                 {
                     deltaList = await _csvFileReader.GetDeltaAsync(
                         currentList: userDetailsList,
-                        cancellationToken: _cancellationTokenSource.Token
+                        cancellationToken: cancellationToken
                     );
                 }
                 catch (OperationCanceledException)
@@ -248,25 +250,40 @@ public sealed class MainService : IMainService, IHostedService, IDisposable
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        _appLifetime.ApplicationStarted.Register(() => Task.Run(async () => await RunAsync(cancellationToken)));
+        _cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
-        _appLifetime.ApplicationStopping.Register(() => _cancellationTokenSource.Cancel());
+        _runTask = RunAsync(_cts.Token);
 
         _logger.LogInformation("MainService started.");
 
         return Task.CompletedTask;
     }
 
-    public Task StopAsync(CancellationToken cancellationToken)
+    public async Task StopAsync(CancellationToken cancellationToken)
     {
+        if (_runTask is not null)
+        {
+            try
+            {
+                _cts?.Cancel();
+            }
+            finally
+            {
+                await _runTask
+                    .WaitAsync(cancellationToken)
+                    .ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
+            }
+        }
         _logger.LogInformation("MainService stopped.");
-
-        return Task.CompletedTask;
     }
 
     public void Dispose()
     {
-        _cancellationTokenSource.Cancel();
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        _cts?.Dispose();
+        _disposed = true;
+
         GC.SuppressFinalize(this);
     }
 
