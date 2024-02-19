@@ -17,12 +17,13 @@ namespace EntraMfaPrefillinator.AuthUpdateApp.Services;
 internal sealed class MainService : IHostedService, IDisposable
 {
     private bool _disposed;
+    private CancellationTokenSource? _cts;
+    private Task? _runTask;
     private readonly IHostApplicationLifetime _appLifetime;
     private readonly ILogger _logger;
     private readonly IGraphClientService _graphClientService;
     private readonly IQueueClientService _queueClientService;
     private readonly ActivitySource _activitySource = new("EntraMfaPrefillinator.AuthUpdateApp.Services.MainService");
-    private readonly CancellationTokenSource _cancellationTokenSource = new();
     private readonly MainServiceOptions _options;
 
     public MainService(IHostApplicationLifetime appLifetime, ILogger<MainService> logger, IGraphClientService graphClientService, IQueueClientService queueClientService, IOptions<MainServiceOptions> options)
@@ -330,9 +331,9 @@ internal sealed class MainService : IHostedService, IDisposable
     /// <inheritdoc/>
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        _appLifetime.ApplicationStarted.Register(() => Task.Run(async () => await RunAsync(cancellationToken)));
+        _cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
-        _appLifetime.ApplicationStopping.Register(() => _cancellationTokenSource.Cancel());
+        _runTask = RunAsync(_cts.Token);
 
         _logger.LogInformation("MainService started.");
 
@@ -340,11 +341,23 @@ internal sealed class MainService : IHostedService, IDisposable
     }
 
     /// <inheritdoc/>
-    public Task StopAsync(CancellationToken cancellationToken)
+    public async Task StopAsync(CancellationToken cancellationToken)
     {
-        _logger.LogInformation("MainService stopped.");
+        if (_runTask is not null)
+        {
+            try
+            {
+                _cts?.Cancel();
+            }
+            finally
+            {
+                await _runTask
+                    .WaitAsync(cancellationToken)
+                    .ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
+            }
+        }
 
-        return Task.CompletedTask;
+        _logger.LogInformation("MainService stopped.");
     }
 
     /// <inheritdoc/>
@@ -353,7 +366,7 @@ internal sealed class MainService : IHostedService, IDisposable
         ObjectDisposedException.ThrowIf(_disposed, this);
 
         _activitySource.Dispose();
-        _cancellationTokenSource.Cancel();
+        _cts?.Dispose();
 
         _disposed = true;
         GC.SuppressFinalize(this);
