@@ -32,19 +32,37 @@ public partial class GraphClientService
                 json: apiResultString,
                 jsonTypeInfo: GraphJsonContext.Default.GraphCollectionEmailAuthenticationMethod
             )!;
+
+            return emailAuthMethods.Value;
         }
-        catch
+        catch (ArgumentNullException)
         {
-            GraphErrorResponse? errorResponse = JsonSerializer.Deserialize(
-                json: apiResultString,
-                jsonTypeInfo: GraphJsonContext.Default.GraphErrorResponse
-            );
-
-            activity?.SetStatus(ActivityStatusCode.Error, errorResponse?.Error?.Message ?? "Unknown error.");
-
-            throw new Exception(errorResponse!.Error!.Message);
+            activity?.SetStatus(ActivityStatusCode.Error);
+            throw;
         }
+        catch (JsonException)
+        {
+            try
+            {
+                GraphErrorResponse? errorResponse = JsonSerializer.Deserialize(
+                    json: apiResultString,
+                    jsonTypeInfo: GraphJsonContext.Default.GraphErrorResponse
+                );
 
-        return emailAuthMethods.Value;
+                activity?.SetStatus(ActivityStatusCode.Error, errorResponse?.Error?.Message ?? "Unknown error.");
+                throw new Exception(errorResponse!.Error!.Message);
+            }
+            catch (JsonException)
+            {
+                activity?.SetStatus(ActivityStatusCode.Error);
+                throw new Exception("An unknown error occurred.");
+            }
+            throw;
+        }
+        catch (Exception)
+        {
+            activity?.SetStatus(ActivityStatusCode.Error);
+            throw;
+        }
     }
 }

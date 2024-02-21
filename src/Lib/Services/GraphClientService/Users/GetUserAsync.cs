@@ -6,8 +6,8 @@ namespace EntraMfaPrefillinator.Lib.Services;
 public partial class GraphClientService
 {
     /// <inheritdoc />
-    public async Task<User> GetUserAsync(string userId) => await GetUserAsync(userId, null);
-    public async Task<User> GetUserAsync(string userId, string? parentActivityId)
+    public async Task<User?> GetUserAsync(string userId) => await GetUserAsync(userId, null);
+    public async Task<User?> GetUserAsync(string userId, string? parentActivityId)
     {
         using var activity = _activitySource.StartActivity(
             name: "GetUserAsync",
@@ -26,7 +26,7 @@ public partial class GraphClientService
             httpMethod: HttpMethod.Get
         ) ?? throw new Exception("API result was null.");
 
-        User user;
+        User? user;
         try
         {
             user = JsonSerializer.Deserialize(
@@ -34,24 +34,36 @@ public partial class GraphClientService
                 jsonTypeInfo: GraphJsonContext.Default.User
             )!;
 
-            if (string.IsNullOrEmpty(user.Id))
-            {
-                activity?.SetStatus(ActivityStatusCode.Error, "User ID is null or empty.");
-                throw new Exception("User ID is null or empty.");
-            }
+            return user;
         }
-        catch
+        catch (ArgumentNullException)
         {
-            GraphErrorResponse? errorResponse = JsonSerializer.Deserialize(
-                json: apiResultString,
-                jsonTypeInfo: GraphJsonContext.Default.GraphErrorResponse
-            );
-
-            activity?.SetStatus(ActivityStatusCode.Error, errorResponse?.Error?.Message ?? "Unknown error.");
-
-            throw new Exception(errorResponse!.Error!.Message);
+            activity?.SetStatus(ActivityStatusCode.Error);
+            throw;
         }
+        catch (JsonException)
+        {
+            try
+            {
+                GraphErrorResponse? errorResponse = JsonSerializer.Deserialize(
+                    json: apiResultString,
+                    jsonTypeInfo: GraphJsonContext.Default.GraphErrorResponse
+                );
 
-        return user;
+                activity?.SetStatus(ActivityStatusCode.Error, errorResponse?.Error?.Message ?? "Unknown error.");
+                throw new Exception(errorResponse!.Error!.Message);
+            }
+            catch (JsonException)
+            {
+                activity?.SetStatus(ActivityStatusCode.Error);
+                throw new Exception("An unknown error occurred.");
+            }
+            throw;
+        }
+        catch (Exception)
+        {
+            activity?.SetStatus(ActivityStatusCode.Error);
+            throw;
+        }
     }
 }
