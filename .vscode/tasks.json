@@ -161,9 +161,33 @@
 				"showReuseMessage": true,
 				"clear": true
 			}
-		}
+		},
 		// Remaining tasks are only for the VSCode launch configs
 		// or are supporting tasks.
+		{
+			"label": "Build AuthUpdateApp",
+			"hide": true,
+			"type": "process",
+			"command": "dotnet",
+			"args": [
+				"build",
+				"${workspaceFolder}/src/AuthUpdateApp",
+				"--configuration",
+				"Debug"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"problemMatcher": "$msCompile",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": true
+			}
+		}
 	],
 	"inputs": [
 		{
