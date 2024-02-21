@@ -89,8 +89,6 @@ internal sealed class MainService : IHostedService, IDisposable
         activity?.SetStatus(ActivityStatusCode.Ok);
 
         _appLifetime.StopApplication();
-
-        return;
     }
 
     /// <summary>
