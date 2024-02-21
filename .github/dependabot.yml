@@ -13,6 +13,15 @@ updates:
     assignees:
       - "Smalls1652"
   
+  # NuGet config for 'EntraMfaPrefillinator.Hosting'
+  - package-ecosystem: "nuget"
+    directory: "/src/Hosting"
+    target-branch: "main"
+    schedule:
+      interval: "daily"
+    assignees:
+      - "Smalls1652"
+  
   # NuGet config for 'EntraMfaPrefillinator.AuthUpdateApp'
   - package-ecosystem: "nuget"
     directory: "/src/AuthUpdateApp"
