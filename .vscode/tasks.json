@@ -186,6 +186,33 @@
 				"panel": "shared",
 				"showReuseMessage": true,
 				"clear": true
+			},
+			"dependsOn": [
+				"Clean AuthUpdateApp"
+			]
+		},
+		{
+			"label": "Clean AuthUpdateApp",
+			"hide": true,
+			"type": "process",
+			"command": "dotnet",
+			"args": [
+				"clean",
+				"${workspaceFolder}/src/AuthUpdateApp",
+				"--configuration",
+				"Debug"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"problemMatcher": "$msCompile",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": true
 			}
 		}
 	],
