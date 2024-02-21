@@ -11,6 +11,7 @@ COPY ./global.json ./
 COPY ./EntraMfaPrefillinator.sln ./
 COPY ./Directory.Build.props ./
 COPY ./src/AuthUpdateApp ./src/AuthUpdateApp
+COPY ./src/Hosting ./src/Hosting
 COPY ./src/Lib ./src/Lib
 
 RUN apt-get update; \

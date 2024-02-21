@@ -1,7 +1,8 @@
 using EntraMfaPrefillinator.AuthUpdateApp;
 using EntraMfaPrefillinator.AuthUpdateApp.Extensions;
 using EntraMfaPrefillinator.AuthUpdateApp.Extensions.Telemetry;
-using EntraMfaPrefillinator.AuthUpdateApp.Hosting;
+using EntraMfaPrefillinator.Hosting;
+using EntraMfaPrefillinator.Hosting.Extensions;
 using EntraMfaPrefillinator.Lib.Models.Graph;
 using EntraMfaPrefillinator.Lib.Services;
 using EntraMfaPrefillinator.Lib.Services.Extensions;
@@ -24,10 +25,7 @@ ILogger programLogger = programLoggerFactory.CreateLogger("EntraMfaPrefillinator
 HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
 
 builder.Services
-    .RemoveAll<IHostLifetime>();
-
-builder.Services
-    .AddSingleton<IHostLifetime, AuthUpdateAppHostLifetime>();
+    .AddSlimHostLifetime();
 
 builder.Configuration
     .AddEnvironmentVariables()

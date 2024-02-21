@@ -29,6 +29,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Lib\Lib.csproj" />
+    <ProjectReference Include="..\..\Hosting\Hosting.csproj" />
   </ItemGroup>
 
   <ItemGroup>

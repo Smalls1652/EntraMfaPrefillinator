@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <RootNamespace>EntraMfaPrefillinator.Hosting</RootNamespace>
+    <AssemblyName>EntraMfaPrefillinator.Hosting</AssemblyName>
+    <PackageId>EntraMfaPrefillinator.Hosting</PackageId>
+
+    <Description>
+      Shared class library for EntraMfaPrefillinator's typical console app hosting.
+    </Description>
+
+    <Authors>Timothy Small</Authors>
+    <Company>Smalls.Online</Company>
+    <Copyright>© Smalls.Online</Copyright>
+
+    <RepositoryUrl>https://github.com/Smalls1652/EntraMfaPrefillinator</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" PrivateAssets="all"/>
+  </ItemGroup>
+
+</Project>
