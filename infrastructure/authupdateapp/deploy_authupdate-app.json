@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.25.53.49325",
-      "templateHash": "15769980137530326297"
+      "templateHash": "5241450296089501552"
     }
   },
   "parameters": {
@@ -39,7 +39,7 @@
     },
     "containerImage": {
       "type": "string",
-      "defaultValue": "ghcr.io/smalls1652/entramfaprefillinator-authupdateapp:v0.1.0-preview-05",
+      "defaultValue": "ghcr.io/smalls1652/entramfaprefillinator-authupdateapp:v0.1.0-preview-06",
       "metadata": {
         "description": "The container image to use."
       }
