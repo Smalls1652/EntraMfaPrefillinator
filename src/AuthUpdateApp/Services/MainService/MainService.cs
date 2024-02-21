@@ -295,7 +295,7 @@ internal sealed class MainService : IHostedService, IDisposable
         {
             try
             {
-                user = await _graphClientService.GetUserByUserNameAndEmployeeNumberAsync(queueItem.UserName, queueItem.EmployeeId, activity?.Id);
+                user = await _graphClientService.GetUserByUserNameAndEmployeeNumberAsync(queueItem.UserName, queueItem.EmployeeId, activity?.Id) ?? throw new NullReferenceException("Returned user was null.");
             }
             catch (Exception ex)
             {
@@ -310,7 +310,7 @@ internal sealed class MainService : IHostedService, IDisposable
         {
             try
             {
-                user = await _graphClientService.GetUserAsync(queueItem.UserPrincipalName, activity?.Id);
+                user = await _graphClientService.GetUserAsync(queueItem.UserPrincipalName, activity?.Id) ?? throw new NullReferenceException("Returned user was null.");
             }
             catch (Exception ex)
             {
