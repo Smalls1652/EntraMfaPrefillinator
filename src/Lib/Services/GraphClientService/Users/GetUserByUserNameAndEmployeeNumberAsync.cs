@@ -67,7 +67,7 @@ public partial class GraphClientService
                 return null;
             }
 
-            user = Array.Find(userCollection.Value, item => item.OnPremisesSamAccountName == userName || item.EmployeeId == employeeNumber) ?? throw new Exception("User not found.");
+            user = Array.Find(userCollection.Value, item => item.OnPremisesSamAccountName == userName || item.EmployeeId == employeeNumber);
 
             return user;
         }
@@ -95,10 +95,10 @@ public partial class GraphClientService
             }
             throw;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             activity?.SetStatus(ActivityStatusCode.Error);
-            throw new Exception("An unknown error occurred.", ex);
+            throw;
         }
     }
 }
