@@ -254,8 +254,6 @@ public sealed class MainService : IMainService, IHostedService, IDisposable
 
         _runTask = RunAsync(_cts.Token);
 
-        _logger.LogInformation("MainService started.");
-
         return Task.CompletedTask;
     }
 
@@ -274,7 +272,6 @@ public sealed class MainService : IMainService, IHostedService, IDisposable
                     .ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
             }
         }
-        _logger.LogInformation("MainService stopped.");
     }
 
     public void Dispose()
