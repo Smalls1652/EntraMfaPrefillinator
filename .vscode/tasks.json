@@ -186,10 +186,7 @@
 				"panel": "shared",
 				"showReuseMessage": true,
 				"clear": true
-			},
-			"dependsOn": [
-				"Clean AuthUpdateApp"
-			]
+			}
 		},
 		{
 			"label": "Clean AuthUpdateApp",
