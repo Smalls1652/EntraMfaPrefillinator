@@ -10,7 +10,7 @@
                 "DOTNET_ENVIRONMENT": "Development",
                 "USE_LOCAL_QUEUE": "true"
             },
-            "justMyCode": false,
+            "justMyCode": true,
             "logging": {
                 "moduleLoad": false
             },
