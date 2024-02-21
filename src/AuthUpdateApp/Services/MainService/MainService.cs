@@ -71,7 +71,20 @@ internal sealed class MainService : IHostedService, IDisposable
             tasks[i] = ProcessQueueMessageAsync(queueMessages.Value[i], activity?.Id!, cancellationToken);
         }
 
-        await Task.WhenAll(tasks);
+        _logger.LogInformation("Waiting for all tasks to complete...");
+
+        try
+        {
+            await Task.WhenAll(tasks);
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogWarning("Operation was canceled.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An error occurred while processing queue messages.");
+        }
 
         activity?.SetStatus(ActivityStatusCode.Ok);
 
@@ -104,22 +117,11 @@ internal sealed class MainService : IHostedService, IDisposable
             // deserialize it into a UserAuthUpdateQueueItem.
             Stream stream = queueMessage.Body.ToStream();
 
-            UserAuthUpdateQueueItem queueItem;
-            try
-            {
-                queueItem = await JsonSerializer.DeserializeAsync(
-                    utf8Json: stream,
-                    jsonTypeInfo: QueueJsonContext.Default.UserAuthUpdateQueueItem,
-                    cancellationToken: cancellationToken
-                ) ?? throw new Exception("Failed to deserialize queue message.");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error deserializing queue message.");
-                activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
-                errorOccurred = true;
-                throw;
-            }
+            UserAuthUpdateQueueItem queueItem = await JsonSerializer.DeserializeAsync(
+                utf8Json: stream,
+                jsonTypeInfo: QueueJsonContext.Default.UserAuthUpdateQueueItem,
+                cancellationToken: cancellationToken
+            ) ?? throw new Exception("Failed to deserialize queue message.");
 
             // Add tags to the activity for the queue item.
             activity?.AddUserAuthUpdateQueueItemTags(
@@ -128,17 +130,7 @@ internal sealed class MainService : IHostedService, IDisposable
 
             // Check if the request has a user name or user principal name.
             // If not, throw an exception.
-            try
-            {
-                string userName = queueItem.UserName ?? queueItem.UserPrincipalName ?? throw new Exception("'userName' or 'userPrincipalName' must be supplied in the request.");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting user, '{userName}' [{employeeId}].", queueItem.UserName, queueItem.EmployeeId);
-                activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
-                errorOccurred = true;
-                throw;
-            }
+            string userName = queueItem.UserName ?? queueItem.UserPrincipalName ?? throw new Exception("'userName' or 'userPrincipalName' must be supplied in the request.");
 
             // Get the user from the Graph API.
             User user;
@@ -146,11 +138,15 @@ internal sealed class MainService : IHostedService, IDisposable
             {
                 user = await GetUserAsync(queueItem, activity);
             }
-            catch (GetUserException ex)
+            catch (GetUserException)
             {
-                _logger.LogError(ex, "Error getting user, '{userName}' [{employeeId}].", queueItem.UserName, queueItem.EmployeeId);
-                activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
-                errorOccurred = true;
+                //_logger.LogError(ex, "Error getting user, '{userName}' [{employeeId}].", queueItem.UserName, queueItem.EmployeeId);
+                //activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+                //errorOccurred = true;
+                throw;
+            }
+            catch (Exception)
+            {
                 throw;
             }
 
@@ -186,11 +182,11 @@ internal sealed class MainService : IHostedService, IDisposable
                         _logger.LogWarning("Dry run is enabled. Skipping adding email auth method for '{userPrincipalName}'.", user.UserPrincipalName);
                         activity?.AddUserEmailAuthUpdateDryRunTag(true);
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
-                        _logger.LogError(ex, "Error adding email auth method for '{userPrincipalName}'.", user.UserPrincipalName);
-                        activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
-                        errorOccurred = true;
+                        //_logger.LogError(ex, "Error adding email auth method for '{userPrincipalName}'.", user.UserPrincipalName);
+                        //activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+                        //errorOccurred = true;
                         throw;
                     }
                 }
@@ -233,11 +229,11 @@ internal sealed class MainService : IHostedService, IDisposable
                         _logger.LogWarning("Dry run is enabled. Skipping adding phone auth method for '{userPrincipalName}'.", user.UserPrincipalName);
                         activity?.AddUserPhoneAuthUpdateDryRunTag(true);
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
-                        _logger.LogError(ex, "Error adding phone auth method for '{userPrincipalName}'.", user.UserPrincipalName);
-                        activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
-                        errorOccurred = true;
+                        //_logger.LogError(ex, "Error adding phone auth method for '{userPrincipalName}'.", user.UserPrincipalName);
+                        //activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+                        //errorOccurred = true;
                         throw;
                     }
                 }
@@ -249,6 +245,12 @@ internal sealed class MainService : IHostedService, IDisposable
             }
 
             return;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "{Message}", ex.Message);
+            activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+            errorOccurred = true;
         }
         finally
         {
