@@ -48,6 +48,8 @@ internal sealed class MainService : IHostedService, IDisposable
                 kind: ActivityKind.Internal
             );
 
+        _logger.LogInformation("Getting messages from queue...");
+
         NullableResponse<QueueMessage[]> queueMessages = await _queueClientService.AuthUpdateQueueClient.ReceiveMessagesAsync(
             maxMessages: _options.MaxMessages,
             cancellationToken: cancellationToken
@@ -335,8 +337,6 @@ internal sealed class MainService : IHostedService, IDisposable
 
         _runTask = RunAsync(_cts.Token);
 
-        _logger.LogInformation("MainService started.");
-
         return Task.CompletedTask;
     }
 
@@ -356,8 +356,6 @@ internal sealed class MainService : IHostedService, IDisposable
                     .ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
             }
         }
-
-        _logger.LogInformation("MainService stopped.");
     }
 
     /// <inheritdoc/>
