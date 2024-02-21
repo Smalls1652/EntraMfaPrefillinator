@@ -4,8 +4,8 @@
             "name": "Debug AuthUpdateApp",
             "type": "coreclr",
             "request": "launch",
-            "program": "${workspaceFolder}/src/AuthUpdateApp/bin/Debug/net8.0/EntraMfaPrefillinator.AuthUpdateApp.dll",
-            "cwd": "${workspaceFolder}/src/AuthUpdateApp/bin/Debug/net8.0/",
+            "program": "${workspaceFolder}/artifacts/bin/AuthUpdateApp/debug/EntraMfaPrefillinator.AuthUpdateApp.dll",
+            "cwd": "${workspaceFolder}/artifacts/bin/AuthUpdateApp/debug/",
             "env": {
                 "DOTNET_ENVIRONMENT": "Development",
                 "USE_LOCAL_QUEUE": "true"
