@@ -3,12 +3,13 @@ using System.Text.Json;
 using EntraMfaPrefillinator.Lib.Services.Extensions;
 using EntraMfaPrefillinator.Tools.CsvImporter;
 using EntraMfaPrefillinator.Tools.CsvImporter.Extensions.ServiceSetup;
-using EntraMfaPrefillinator.Tools.CsvImporter.Hosting;
 using EntraMfaPrefillinator.Tools.CsvImporter.Logging;
 using EntraMfaPrefillinator.Tools.CsvImporter.Models;
 using EntraMfaPrefillinator.Tools.CsvImporter.Models.Exceptions;
 using EntraMfaPrefillinator.Tools.CsvImporter.Services;
 using EntraMfaPrefillinator.Tools.CsvImporter.Utilities;
+using EntraMfaPrefillinator.Hosting;
+using EntraMfaPrefillinator.Hosting.Extensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -97,8 +98,8 @@ preLaunchLogger.LogInformation("Creating host...");
 // Start building the host.
 var builder = Host.CreateApplicationBuilder(args);
 
-builder.Services.RemoveAll<IHostLifetime>();
-builder.Services.AddSingleton<IHostLifetime, CsvImporterHostLifetime>();
+builder.Services
+    .AddSlimHostLifetime();
 
 // Add the configuration for the host.
 builder.Configuration
