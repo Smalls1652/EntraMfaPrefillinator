@@ -74,10 +74,10 @@ public partial class GraphClientService
             }
             throw;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             activity?.SetStatus(ActivityStatusCode.Error);
-            throw new Exception("An unknown error occurred.", ex);
+            throw;
         }
     }
 }
