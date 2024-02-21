@@ -28,6 +28,7 @@ jobs:
         projectPath: [
           "./src/AuthUpdateApp/",
           "./src/Lib/",
+          "./src/Hosting/",
           "./src/Tools/CsvImporter/"
         ]
     env:
