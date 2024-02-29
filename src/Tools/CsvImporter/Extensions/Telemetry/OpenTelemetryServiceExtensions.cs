@@ -103,6 +103,7 @@ internal static class OpenTelemetryServiceExtensions
 
                 metrics.SetResourceBuilder(resourceBuilder)
                     .AddRuntimeInstrumentation()
+                    .AddProcessInstrumentation()
                     .AddHttpClientInstrumentation();
 
                 metrics.AddOtlpExporter();
