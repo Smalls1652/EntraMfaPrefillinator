@@ -169,7 +169,7 @@ try
         builder.Services
             .AddQueueClientService(
                 queueUri: csvImporterConfig.QueueUri!,
-                tokenCredential: AuthUtils.CreateTokenCredential(csvImporterConfig.QueueUri!)
+                tokenCredential: AuthUtils.CreateQueueTokenCredential(csvImporterConfig.QueueUri!)
         );
     }
 }

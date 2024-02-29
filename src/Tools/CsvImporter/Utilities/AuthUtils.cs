@@ -12,7 +12,7 @@ internal static class AuthUtils
         return connectionString;
     }
 
-    public static TokenCredential CreateTokenCredential(string? queueUri)
+    public static TokenCredential CreateQueueTokenCredential(string? queueUri)
     {
         string queueUriString = queueUri ?? Environment.GetEnvironmentVariable("QUEUE_URI") ?? throw new NullReferenceException("QUEUE_URI environment variable not set or missing from config file.");
 
