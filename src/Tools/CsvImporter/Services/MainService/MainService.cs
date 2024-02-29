@@ -18,6 +18,7 @@ public sealed class MainService : IMainService, IHostedService, IDisposable
     private bool _disposed;
     private CancellationTokenSource? _cts;
     private Task? _runTask;
+    private readonly ActivitySource _activitySource = new("EntraMfaPrefillinator.Tools.CsvImporter.MainService");
     private readonly IHostApplicationLifetime _appLifetime;
     private readonly ILogger _logger;
     private readonly IConfiguration _configuration;
@@ -39,6 +40,11 @@ public sealed class MainService : IMainService, IHostedService, IDisposable
 
     public async Task RunAsync(CancellationToken cancellationToken = default)
     {
+        using var activity = _activitySource.StartActivity(
+            name: "RunAsync",
+            kind: ActivityKind.Server
+        );
+
         Stopwatch stopwatch = Stopwatch.StartNew();
 
         try
@@ -95,6 +101,7 @@ public sealed class MainService : IMainService, IHostedService, IDisposable
                 return;
             }
 
+            activity?.SetTag("user.foundInCsv.count", userDetailsList.Count); ;
             _logger.LogInformation("Found {UserDetailsCount} users in CSV file", userDetailsList.Count);
             
             // Get the current count of users in the database.
@@ -129,6 +136,7 @@ public sealed class MainService : IMainService, IHostedService, IDisposable
                     return;
                 }
 
+                activity?.SetTag("user.delta.count", deltaList.Count);
                 _logger.LogInformation("Filtered down to {DeltaListCount} users not in last run CSV file", deltaList.Count);
                 userDetailsList = deltaList;
 
@@ -140,6 +148,7 @@ public sealed class MainService : IMainService, IHostedService, IDisposable
             // Filter out users without an email or phone number set.
             List<UserDetails> filteredUserDetailsList = userDetailsList.FindAll(userDetails => userDetails.SecondaryEmail is not null || userDetails.PhoneNumber is not null);
 
+            activity?.SetTag("user.filtered.count", filteredUserDetailsList.Count);
             _logger.LogInformation("Filtered to {FilteredUserDetailsCount} users with email or phone number", filteredUserDetailsList.Count);
 
             // If there are no users to process, exit.
@@ -279,6 +288,7 @@ public sealed class MainService : IMainService, IHostedService, IDisposable
         ObjectDisposedException.ThrowIf(_disposed, this);
 
         _cts?.Dispose();
+        _activitySource.Dispose();
         _disposed = true;
 
         GC.SuppressFinalize(this);
