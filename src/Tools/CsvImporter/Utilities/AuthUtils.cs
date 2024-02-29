@@ -19,14 +19,34 @@ internal static class AuthUtils
         try
         {
             return new ChainedTokenCredential(
-                new AzureCliCredential(),
-                new AzurePowerShellCredential(),
-                new ManagedIdentityCredential()
+                [
+                    new AzureCliCredential(),
+                    new AzurePowerShellCredential(),
+                    new ManagedIdentityCredential()
+                ]
             );
         }
         catch (Exception ex)
         {
             throw new Exception($"Error creating token credential for '{queueUriString}': {ex.Message}", ex);
+        }
+    }
+
+    public static TokenCredential CreateGeneralTokenCredential()
+    {
+        try
+        {
+            return new ChainedTokenCredential(
+                [
+                    new AzureCliCredential(),
+                    new AzurePowerShellCredential(),
+                    new ManagedIdentityCredential()
+                ]
+            );
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"Error creating general token credential: {ex.Message}", ex);
         }
     }
 }
