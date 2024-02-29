@@ -1,4 +1,4 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
@@ -10,8 +10,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CsvImporter", "src\Tools\CsvImporter\CsvImporter.csproj", "{B5F8BD80-AEDB-4F1B-AEA9-E53E0DF95310}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuthUpdateApp", "src\AuthUpdateApp\AuthUpdateApp.csproj", "{98FC2A62-7E39-4DCF-868C-974F9155475A}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{D21D4747-47B3-4FAD-B3BE-86532CE3B91C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hosting", "src\Hosting\Hosting.csproj", "{F96FD9F1-4FBB-4235-AE62-D7055DECC6AD}"
 EndProject
@@ -43,6 +41,5 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{B5F8BD80-AEDB-4F1B-AEA9-E53E0DF95310} = {33DE40FB-A917-4A86-AA79-5BAB5CC8E66A}
-		{F96FD9F1-4FBB-4235-AE62-D7055DECC6AD} = {D21D4747-47B3-4FAD-B3BE-86532CE3B91C}
 	EndGlobalSection
 EndGlobal
