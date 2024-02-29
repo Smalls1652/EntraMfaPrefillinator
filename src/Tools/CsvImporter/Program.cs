@@ -15,6 +15,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using EntraMfaPrefillinator.Tools.CsvImporter.Extensions.Telemetry;
 
 // Create a logger factory for pre-launch logging.
 ILoggerFactory preLaunchLoggerFactory = LoggerFactory.Create(configure =>
@@ -141,11 +142,50 @@ builder.Logging
     {
         options.SingleLine = false;
         options.UseUtcTimestamp = true;
-    })
-    .AddFileLogger(options =>
-    {
-        options.FilePath = logFilePath;
     });
+
+if (csvImporterConfig.LoggingAndTelemetry.EnableFileLogging)
+{
+    builder.Logging
+        .AddFileLogger(options =>
+        {
+            options.FilePath = logFilePath;
+        });
+}
+
+// Configure the basic OpenTelemetry logging and telemetry without Azure Application Insights.
+if (csvImporterConfig.LoggingAndTelemetry.EnableOpenTelemetry && !csvImporterConfig.LoggingAndTelemetry.EnableOpenTelelmetryAzureAppInsights)
+{
+    preLaunchLogger.LogInformation("Configuring OpenTelemetry logging and telemetry...");
+    builder.Logging
+        .AddOpenTelemetryLogging(csvImporterConfig.LoggingAndTelemetry.OpenTelemetryInstanceId);
+
+    builder.Services
+        .AddOpenTelemetryMetricsAndTracing(csvImporterConfig.LoggingAndTelemetry.OpenTelemetryInstanceId);
+}
+
+if (csvImporterConfig.LoggingAndTelemetry.EnableOpenTelemetry && csvImporterConfig.LoggingAndTelemetry.EnableOpenTelelmetryAzureAppInsights)
+{
+    preLaunchLogger.LogInformation("Configuring OpenTelemetry logging and telemetry with Azure Application Insights...");
+
+    preLaunchLogger.LogInformation("Instance ID: {OpenTelemetryInstanceId}", csvImporterConfig.LoggingAndTelemetry.OpenTelemetryInstanceId);
+    preLaunchLogger.LogInformation("Token credential enabled: {EnableOpenTelemetryAzureTokenCredential}", csvImporterConfig.LoggingAndTelemetry.EnableOpenTelemetryAzureTokenCredential);
+
+    builder.Logging
+        .AddOpenTelemetryLogging(
+            instanceId: csvImporterConfig.LoggingAndTelemetry.OpenTelemetryInstanceId,
+            azureAppInsightsConnectionString: csvImporterConfig.LoggingAndTelemetry.AzureAppInsightsConnectionString ?? throw new NullReferenceException("Azure Application Insights connection string is null."),
+            tokenCredential: csvImporterConfig.LoggingAndTelemetry.EnableOpenTelemetryAzureTokenCredential ? AuthUtils.CreateGeneralTokenCredential() : null
+        );
+
+    builder.Services
+        .AddOpenTelemetryMetricsAndTracing(
+            instanceId: csvImporterConfig.LoggingAndTelemetry.OpenTelemetryInstanceId,
+            azureAppInsightsConnectionString: csvImporterConfig.LoggingAndTelemetry.AzureAppInsightsConnectionString ?? throw new NullReferenceException("Azure Application Insights connection string is null."),
+            tokenCredential: csvImporterConfig.LoggingAndTelemetry.EnableOpenTelemetryAzureTokenCredential ? AuthUtils.CreateGeneralTokenCredential() : null
+        );
+
+}
 
 // Add the MainService to the host.
 // This service will be automatically run when the host is started.
@@ -169,7 +209,7 @@ try
         builder.Services
             .AddQueueClientService(
                 queueUri: csvImporterConfig.QueueUri!,
-                tokenCredential: AuthUtils.CreateTokenCredential(csvImporterConfig.QueueUri!)
+                tokenCredential: AuthUtils.CreateQueueTokenCredential(csvImporterConfig.QueueUri!)
         );
     }
 }
