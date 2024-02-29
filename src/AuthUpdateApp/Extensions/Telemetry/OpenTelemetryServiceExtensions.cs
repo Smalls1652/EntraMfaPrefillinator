@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using OpenTelemetry.Instrumentation.Runtime;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
+using OpenTelemetry.ResourceDetectors.Azure;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
@@ -36,7 +37,8 @@ internal static class OpenTelemetryServiceExtensions
 
             var resourceBuilder = ResourceBuilder
                 .CreateDefault()
-                .AddService("EntraMfaPrefillinator.AuthUpdateApp");
+                .AddService("EntraMfaPrefillinator.AuthUpdateApp")
+                .AddDetector(new AzureContainerAppsResourceDetector());
 
             logging
                 .SetResourceBuilder(resourceBuilder)
@@ -78,7 +80,8 @@ internal static class OpenTelemetryServiceExtensions
             {
                 var resourceBuilder = ResourceBuilder
                     .CreateDefault()
-                    .AddService("EntraMfaPrefillinator.AuthUpdateApp");
+                    .AddService("EntraMfaPrefillinator.AuthUpdateApp")
+                    .AddDetector(new AzureContainerAppsResourceDetector());
 
                 metrics.SetResourceBuilder(resourceBuilder)
                     .AddRuntimeInstrumentation()
@@ -98,7 +101,8 @@ internal static class OpenTelemetryServiceExtensions
             {
                 var resourceBuilder = ResourceBuilder
                     .CreateDefault()
-                    .AddService("EntraMfaPrefillinator.AuthUpdateApp");
+                    .AddService("EntraMfaPrefillinator.AuthUpdateApp")
+                    .AddDetector(new AzureContainerAppsResourceDetector());
 
                 tracing
                     .AddSource("EntraMfaPrefillinator.AuthUpdateApp.Services.MainService")
