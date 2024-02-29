@@ -30,6 +30,12 @@ internal static class OpenTelemetryServiceExtensions
     /// <returns>The modified <see cref="ILoggingBuilder"/>.</returns>
     public static ILoggingBuilder AddOpenTelemetryLogging(this ILoggingBuilder builder, string? azureAppInsightsConnectionString)
     {
+        Dictionary<string, object> openTelemetryProperties = new()
+        {
+            { "service.name", "AuthUpdateApp" },
+            { "service.namespace", "EntraMfaPrefillinator" }
+        };
+
         builder.AddOpenTelemetry(logging =>
         {
             logging.IncludeScopes = true;
@@ -38,7 +44,8 @@ internal static class OpenTelemetryServiceExtensions
             var resourceBuilder = ResourceBuilder
                 .CreateDefault()
                 .AddService("EntraMfaPrefillinator.AuthUpdateApp")
-                .AddDetector(new AzureContainerAppsResourceDetector());
+                .AddDetector(new AzureContainerAppsResourceDetector())
+                .AddAttributes(openTelemetryProperties);
 
             logging
                 .SetResourceBuilder(resourceBuilder)
@@ -73,6 +80,12 @@ internal static class OpenTelemetryServiceExtensions
     {
         services.AddMetrics();
 
+        Dictionary<string, object> openTelemetryProperties = new()
+        {
+            { "service.name", "AuthUpdateApp" },
+            { "service.namespace", "EntraMfaPrefillinator" }
+        };
+
         services
             .AddOpenTelemetry()
             .ConfigureResource(resourceBuilder => resourceBuilder.AddService("EntraMfaPrefillinator.AuthUpdateApp"))
@@ -81,7 +94,8 @@ internal static class OpenTelemetryServiceExtensions
                 var resourceBuilder = ResourceBuilder
                     .CreateDefault()
                     .AddService("EntraMfaPrefillinator.AuthUpdateApp")
-                    .AddDetector(new AzureContainerAppsResourceDetector());
+                    .AddDetector(new AzureContainerAppsResourceDetector())
+                    .AddAttributes(openTelemetryProperties);
 
                 metrics.SetResourceBuilder(resourceBuilder)
                     .AddRuntimeInstrumentation()
@@ -102,7 +116,8 @@ internal static class OpenTelemetryServiceExtensions
                 var resourceBuilder = ResourceBuilder
                     .CreateDefault()
                     .AddService("EntraMfaPrefillinator.AuthUpdateApp")
-                    .AddDetector(new AzureContainerAppsResourceDetector());
+                    .AddDetector(new AzureContainerAppsResourceDetector())
+                    .AddAttributes(openTelemetryProperties);
 
                 tracing
                     .AddSource("EntraMfaPrefillinator.AuthUpdateApp.Services.MainService")
