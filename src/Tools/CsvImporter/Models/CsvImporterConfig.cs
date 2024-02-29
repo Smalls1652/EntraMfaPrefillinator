@@ -33,4 +33,7 @@ public sealed class CsvImporterConfig
 
     [JsonPropertyName("queueMessageTTL")]
     public QueueMessageTimeToLiveConfig QueueMessageTTL { get; set; } = new();
+
+    [JsonPropertyName("loggingAndTelemetry")]
+    public LoggingConfig LoggingAndTelemetry { get; set; } = new();
 }
