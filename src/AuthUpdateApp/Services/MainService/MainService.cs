@@ -236,6 +236,44 @@ internal sealed class MainService : IHostedService, IDisposable
                     }
                 }
             }
+            else if (queueItem.PhoneNumber is null && queueItem.HomePhone is not null)
+            {
+                activity?.AddUserPhoneAuthMethodIncludedInRequestTag(true);
+                PhoneAuthenticationMethod[]? phoneAuthMethods = await _graphClientService.GetPhoneAuthenticationMethodsAsync(user.Id, activity?.Id);
+
+                if (phoneAuthMethods is not null && phoneAuthMethods.Length != 0)
+                {
+                    _logger.LogWarning("'{userPrincipalName}' already has phone auth methods configured. Skipping...", user.UserPrincipalName);
+                    activity?.AddUserHasExisitingPhoneAuthMethodTag(true);
+                }
+                else
+                {
+                    activity?.AddUserHasExisitingPhoneAuthMethodTag(false);
+                    try
+                    {
+                        await _graphClientService.AddOfficePhoneAuthenticationMethodAsync(
+                            userId: user.Id,
+                            phoneNumber: queueItem.HomePhone
+                        );
+
+                        _logger.LogInformation("Added office phone auth method for '{userPrincipalName}'.", user.UserPrincipalName);
+                        activity?.AddUserHadPhoneAuthMethodAddedTag(true);
+                        activity?.AddUserPhoneAuthUpdateDryRunTag(false);
+                    }
+                    catch (GraphClientDryRunException)
+                    {
+                        _logger.LogWarning("Dry run is enabled. Skipping adding office phone auth method for '{userPrincipalName}'.", user.UserPrincipalName);
+                        activity?.AddUserPhoneAuthUpdateDryRunTag(true);
+                    }
+                    catch (Exception)
+                    {
+                        //_logger.LogError(ex, "Error adding phone auth method for '{userPrincipalName}'.", user.UserPrincipalName);
+                        //activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+                        //errorOccurred = true;
+                        throw;
+                    }
+                }
+            }
             else
             {
                 _logger.LogWarning("'{userPrincipalName}' did not have a phone number supplied in the request. Skipping...", user.UserPrincipalName);
