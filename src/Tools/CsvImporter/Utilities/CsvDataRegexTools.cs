@@ -20,7 +20,7 @@ internal static partial class CsvDataRegexTools
     private static partial Regex ValidCsvLineRegex();
 
     [GeneratedRegex(
-        pattern: "\"(?'employeeNumber'.*?)\",\"(?'userName'.*?)\",\"(?'emailAddress'.*?)\",\"(?'phoneNumber'.*?)\""
+        pattern: "\"(?'employeeNumber'.*?)\",\"(?'userName'.*?)\",\"(?'emailAddress'.*?)\",\"(?'phoneNumber'.*?)\",\"(?'homePhoneNumber'.*?)\""
     )]
     public static partial Regex UserDetailsCsvLineRegex();
 
