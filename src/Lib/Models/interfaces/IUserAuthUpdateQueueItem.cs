@@ -7,4 +7,5 @@ public interface IUserAuthUpdateQueueItem
     string? UserPrincipalName { get; set; }
     string? EmailAddress { get; set; }
     string? PhoneNumber { get; set; }
+    string? HomePhone { get; set; }
 }
