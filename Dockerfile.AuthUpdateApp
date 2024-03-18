@@ -4,9 +4,6 @@ ARG PLATFORM_RUNTIME_ID="linux-x64"
 
 WORKDIR /app
 
-COPY ./.git ./.git
-COPY ./.config ./.config
-COPY ./GitVersion.yml ./
 COPY ./global.json ./
 COPY ./EntraMfaPrefillinator.sln ./
 COPY ./Directory.Build.props ./
@@ -16,9 +13,6 @@ COPY ./src/Lib ./src/Lib
 
 RUN apt-get update; \
     apt-get install -y clang zlib1g-dev
-
-RUN dotnet tool restore; \
-    dotnet tool run dotnet-gitversion /updateprojectfiles
     
 RUN dotnet publish ./src/AuthUpdateApp --configuration "Release" --runtime "${PLATFORM_RUNTIME_ID}" --self-contained
 
