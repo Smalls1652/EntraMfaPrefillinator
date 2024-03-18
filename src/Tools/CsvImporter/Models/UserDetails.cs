@@ -22,12 +22,14 @@ public sealed class UserDetails
     /// <param name="userName">The user's username.</param>
     /// <param name="secondaryEmail">The user's secondary email address.</param>
     /// <param name="phoneNumber">The user's phone number.</param>
-    public UserDetails(string? employeeNumber, string? userName, string? secondaryEmail, string? phoneNumber)
+    /// <param name="homePhoneNumber">The user's home phone number.</param>
+    public UserDetails(string? employeeNumber, string? userName, string? secondaryEmail, string? phoneNumber, string? homePhoneNumber)
     {
         EmployeeNumber = employeeNumber;
         UserName = userName;
         SecondaryEmail = secondaryEmail;
         PhoneNumber = phoneNumber;
+        HomePhoneNumber = homePhoneNumber;
     }
 
     /// <summary>
@@ -45,6 +47,7 @@ public sealed class UserDetails
         UserName = ParseUserName(userDetailsMatch.Groups["userName"].Value);
         SecondaryEmail = ParseSecondaryEmail(userDetailsMatch.Groups["emailAddress"].Value);
         PhoneNumber = ParsePhoneNumber(userDetailsMatch.Groups["phoneNumber"].Value);
+        HomePhoneNumber = ParseHomePhoneNumber(userDetailsMatch.Groups["homePhoneNumber"].Value);
     }
 
     /// <summary>
@@ -67,6 +70,11 @@ public sealed class UserDetails
     /// The user's phone number.
     /// </summary>
     public string? PhoneNumber { get; set; }
+
+    /// <summary>
+    /// The user's home phone number.
+    /// </summary>
+    public string? HomePhoneNumber { get; set; }
 
     /// <summary>
     /// Whether or not was in a previous run.
@@ -136,5 +144,25 @@ public sealed class UserDetails
         }
 
         return phoneNumber;
+    }
+
+    /// <summary>
+    /// Parse the home phone number provided.
+    /// </summary>
+    /// <param name="homePhoneNumber">The phone number to parse.</param>
+    /// <returns>The parsed home phone number.</returns>
+    private static string? ParseHomePhoneNumber(string? homePhoneNumber)
+    {
+        if (string.IsNullOrWhiteSpace(homePhoneNumber))
+        {
+            return null;
+        }
+
+        if (!CsvDataRegexTools.PhoneNumberHasCountryCode(homePhoneNumber))
+        {
+            homePhoneNumber = $"+1 {homePhoneNumber}";
+        }
+
+        return homePhoneNumber;
     }
 }

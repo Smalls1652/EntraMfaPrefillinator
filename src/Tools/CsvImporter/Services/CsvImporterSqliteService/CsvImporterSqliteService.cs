@@ -50,7 +50,8 @@ public class CsvImporterSqliteService : ICsvImporterSqliteService, IDisposable
     EmployeeNumber TEXT PRIMARY KEY,
     UserName TEXT,
     SecondaryEmail TEXT NULL,
-    PhoneNumber TEXT NULL
+    PhoneNumber TEXT NULL,
+    HomePhoneNumber TEXT NULL
 );";
 
         command.CommandText = tableCreateCommand;
@@ -85,14 +86,15 @@ public class CsvImporterSqliteService : ICsvImporterSqliteService, IDisposable
     {
         SqliteCommand command = _connection!.CreateCommand();
 
-        string insertCommand = @"INSERT INTO UserDetails (EmployeeNumber, UserName, SecondaryEmail, PhoneNumber)
-VALUES (@EmployeeNumber, @UserName, @SecondaryEmail, @PhoneNumber);";
+        string insertCommand = @"INSERT INTO UserDetails (EmployeeNumber, UserName, SecondaryEmail, PhoneNumber, HomePhoneNumber)
+VALUES (@EmployeeNumber, @UserName, @SecondaryEmail, @PhoneNumber, @HomePhoneNumber);";
 
         command.CommandText = insertCommand;
         command.Parameters.AddWithValue("@EmployeeNumber", userDetails.EmployeeNumber);
         command.Parameters.AddWithValue("@UserName", userDetails.UserName);
         command.Parameters.AddWithValue("@SecondaryEmail", userDetails.SecondaryEmail ?? string.Empty);
         command.Parameters.AddWithValue("@PhoneNumber", userDetails.PhoneNumber ?? string.Empty);
+        command.Parameters.AddWithValue("@HomePhoneNumber", userDetails.HomePhoneNumber ?? string.Empty);
 
         return command;
     }
@@ -106,13 +108,14 @@ VALUES (@EmployeeNumber, @UserName, @SecondaryEmail, @PhoneNumber);";
     {
         SqliteCommand command = _connection!.CreateCommand();
 
-        string updateCommand = @"UPDATE UserDetails SET UserName = @UserName, SecondaryEmail = @SecondaryEmail, PhoneNumber = @PhoneNumber WHERE EmployeeNumber = @EmployeeNumber;";
+        string updateCommand = @"UPDATE UserDetails SET UserName = @UserName, SecondaryEmail = @SecondaryEmail, PhoneNumber = @PhoneNumber, HomePhoneNumber = @HomePhoneNumber WHERE EmployeeNumber = @EmployeeNumber;";
 
         command.CommandText = updateCommand;
         command.Parameters.AddWithValue("@EmployeeNumber", userDetails.EmployeeNumber);
         command.Parameters.AddWithValue("@UserName", userDetails.UserName);
         command.Parameters.AddWithValue("@SecondaryEmail", userDetails.SecondaryEmail ?? string.Empty);
         command.Parameters.AddWithValue("@PhoneNumber", userDetails.PhoneNumber ?? string.Empty);
+        command.Parameters.AddWithValue("@HomePhoneNumber", userDetails.HomePhoneNumber ?? string.Empty);
 
         return command;
     }
@@ -135,14 +138,15 @@ VALUES (@EmployeeNumber, @UserName, @SecondaryEmail, @PhoneNumber);";
 
             await using SqliteCommand command = _connection!.CreateCommand();
 
-            string insertCommand = @"INSERT INTO UserDetails (EmployeeNumber, UserName, SecondaryEmail, PhoneNumber)
-VALUES (@EmployeeNumber, @UserName, @SecondaryEmail, @PhoneNumber);";
+            string insertCommand = @"INSERT INTO UserDetails (EmployeeNumber, UserName, SecondaryEmail, PhoneNumber, HomePhoneNumber)
+VALUES (@EmployeeNumber, @UserName, @SecondaryEmail, @PhoneNumber, @HomePhoneNumber);";
 
             command.CommandText = insertCommand;
             command.Parameters.AddWithValue("@EmployeeNumber", userDetails.EmployeeNumber);
             command.Parameters.AddWithValue("@UserName", userDetails.UserName);
             command.Parameters.AddWithValue("@SecondaryEmail", userDetails.SecondaryEmail ?? string.Empty);
             command.Parameters.AddWithValue("@PhoneNumber", userDetails.PhoneNumber ?? string.Empty);
+            command.Parameters.AddWithValue("@HomePhoneNumber", userDetails.HomePhoneNumber ?? string.Empty);
 
             await command.ExecuteNonQueryAsync();
         }
@@ -213,7 +217,7 @@ VALUES (@EmployeeNumber, @UserName, @SecondaryEmail, @PhoneNumber);";
 
             await using SqliteCommand command = _connection!.CreateCommand();
 
-            string selectCommand = @"SELECT EmployeeNumber, UserName, SecondaryEmail, PhoneNumber FROM UserDetails WHERE EmployeeNumber = @EmployeeNumber;";
+            string selectCommand = @"SELECT EmployeeNumber, UserName, SecondaryEmail, PhoneNumber, HomePhoneNumber FROM UserDetails WHERE EmployeeNumber = @EmployeeNumber;";
 
             command.CommandText = selectCommand;
             command.Parameters.AddWithValue("@EmployeeNumber", employeeNumber);
@@ -276,7 +280,7 @@ VALUES (@EmployeeNumber, @UserName, @SecondaryEmail, @PhoneNumber);";
 
             await using SqliteCommand command = _connection!.CreateCommand();
 
-            string selectCommand = @"SELECT EmployeeNumber, UserName, SecondaryEmail, PhoneNumber FROM UserDetails;";
+            string selectCommand = @"SELECT EmployeeNumber, UserName, SecondaryEmail, PhoneNumber, HomePhoneNumber FROM UserDetails;";
 
             command.CommandText = selectCommand;
 
@@ -296,7 +300,8 @@ VALUES (@EmployeeNumber, @UserName, @SecondaryEmail, @PhoneNumber);";
                     EmployeeNumber = reader.GetString(0),
                     UserName = reader.GetString(1),
                     SecondaryEmail = reader.GetString(2),
-                    PhoneNumber = reader.GetString(3)
+                    PhoneNumber = reader.GetString(3),
+                    HomePhoneNumber = reader.GetString(4)
                 };
 
                 userDetailsList.Add(userDetails);

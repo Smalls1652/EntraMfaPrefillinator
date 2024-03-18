@@ -16,4 +16,7 @@ public class UserAuthUpdateQueueItem : IUserAuthUpdateQueueItem
 
     [JsonPropertyName("phoneNumber")]
     public string? PhoneNumber { get; set; }
+
+    [JsonPropertyName("homePhone")]
+    public string? HomePhone { get; set; }
 }

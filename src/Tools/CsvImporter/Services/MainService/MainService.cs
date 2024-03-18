@@ -306,7 +306,8 @@ public sealed class MainService : IMainService, IHostedService, IDisposable
                 EmployeeId = userDetails.EmployeeNumber,
                 UserName = userDetails.UserName,
                 EmailAddress = userDetails.SecondaryEmail,
-                PhoneNumber = userDetails.PhoneNumber
+                PhoneNumber = userDetails.PhoneNumber,
+                HomePhone = userDetails.HomePhoneNumber
             };
 
             // Serialize the user auth update to JSON and send it to the queue.
