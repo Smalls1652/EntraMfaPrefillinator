@@ -1,4 +1,4 @@
-FROM --platform=$TARGETPLATFORM mcr.microsoft.com/dotnet/sdk:8.0 AS build-env
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/nightly/sdk:8.0-jammy-aot AS build-env
 
 ARG TARGETOS
 ARG TARGETARCH
@@ -13,9 +13,6 @@ COPY ./Directory.Build.props ./
 COPY ./src/AuthUpdateApp ./src/AuthUpdateApp
 COPY ./src/Hosting ./src/Hosting
 COPY ./src/Lib ./src/Lib
-
-RUN apt-get update; \
-    apt-get install -y clang zlib1g-dev
 
 RUN dotnet publish "./src/AuthUpdateApp" --configuration "Release" --os "${TARGETOS}" --arch "${TARGETARCH}" --self-contained
 
