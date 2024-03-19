@@ -1,6 +1,7 @@
-FROM --platform=$TARGETPLATFORM mcr.microsoft.com/dotnet/sdk:8.0 AS build-env
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:8.0 AS build-env
 
-ARG PLATFORM_RUNTIME_ID="linux-x64"
+ARG TARGETOS
+ARG TARGETARCH
 
 WORKDIR /app
 
@@ -13,14 +14,15 @@ COPY ./src/Lib ./src/Lib
 
 RUN apt-get update; \
     apt-get install -y clang zlib1g-dev
-    
-RUN dotnet publish ./src/AuthUpdateApp --configuration "Release" --runtime "${PLATFORM_RUNTIME_ID}" --self-contained
+
+RUN dotnet publish "./src/AuthUpdateApp" --configuration "Release" --os "${TARGETOS}" --arch "${TARGETARCH}" --self-contained
 
 FROM --platform=$TARGETPLATFORM mcr.microsoft.com/dotnet/runtime-deps:8.0-jammy-chiseled
 
-ARG PLATFORM_RUNTIME_ID="linux-x64"
+ARG TARGETOS
+ARG TARGETARCH
 
-COPY --from=build-env /app/artifacts/publish/AuthUpdateApp/release_${PLATFORM_RUNTIME_ID}/EntraMfaPrefillinator.AuthUpdateApp /app/
-COPY --from=build-env /app/artifacts/publish/AuthUpdateApp/release_${PLATFORM_RUNTIME_ID}/appsettings.json /app/
+COPY --from=build-env /app/artifacts/publish/AuthUpdateApp/release_${TARGETOS}-${TARGETARCH}/EntraMfaPrefillinator.AuthUpdateApp /app/
+COPY --from=build-env /app/artifacts/publish/AuthUpdateApp/release_${TARGETOS}-${TARGETARCH}/appsettings.json /app/
 
 ENTRYPOINT ["/app/EntraMfaPrefillinator.AuthUpdateApp"]
