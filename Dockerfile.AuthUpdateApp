@@ -3,6 +3,8 @@ FROM --platform=$TARGETPLATFORM mcr.microsoft.com/dotnet/sdk:8.0 AS build-env
 ARG TARGETOS
 ARG TARGETARCH
 
+ENV CONTAINER_IMAGE_BUILD=true
+
 WORKDIR /app
 
 COPY ./global.json ./
@@ -22,7 +24,7 @@ FROM --platform=$TARGETPLATFORM mcr.microsoft.com/dotnet/runtime-deps:8.0-jammy-
 ARG TARGETOS
 ARG TARGETARCH
 
-COPY --from=build-env /app/artifacts/publish/AuthUpdateApp/release_${TARGETOS}-${TARGETARCH}/EntraMfaPrefillinator.AuthUpdateApp /app/
-COPY --from=build-env /app/artifacts/publish/AuthUpdateApp/release_${TARGETOS}-${TARGETARCH}/appsettings.json /app/
+COPY --from=build-env /app/artifacts/publish/AuthUpdateApp/release/EntraMfaPrefillinator.AuthUpdateApp /app/
+COPY --from=build-env /app/artifacts/publish/AuthUpdateApp/release/appsettings.json /app/
 
 ENTRYPOINT ["/app/EntraMfaPrefillinator.AuthUpdateApp"]
