@@ -19,10 +19,10 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Azure.Storage.Queues" Version="12.17.1" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" PrivateAssets="all"/>
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.Identity.Client" Version="4.60.1" />
+    <PackageReference Include="Azure.Storage.Queues" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Extensions.Http" PrivateAssets="all"/>
+    <PackageReference Include="Microsoft.Extensions.Logging" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Identity.Client" />
   </ItemGroup>
 </Project>
