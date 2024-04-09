@@ -1,45 +1,44 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
+  <!-- Core properties -->
   <PropertyGroup>
+    <RootNamespace>EntraMfaPrefillinator.AuthUpdateApp</RootNamespace>
+    <AssemblyName>EntraMfaPrefillinator.AuthUpdateApp</AssemblyName>
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <InvariantGlobalization>true</InvariantGlobalization>
-    <PublishAot>true</PublishAot>
-    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
-    <OptimizationPreference>Speed</OptimizationPreference>
-    <EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
   </PropertyGroup>
-
+  <!-- Package properties -->
   <PropertyGroup>
-    <RootNamespace>EntraMfaPrefillinator.AuthUpdateApp</RootNamespace>
-    <AssemblyName>EntraMfaPrefillinator.AuthUpdateApp</AssemblyName>
     <PackageId>EntraMfaPrefillinator.AuthUpdateApp</PackageId>
-
     <Description>
       Queue message processor for prefilling MFA details for a user in Microsoft Entra ID.
     </Description>
-
     <Authors>Timothy Small</Authors>
     <Company>Smalls.Online</Company>
     <Copyright>© Smalls.Online</Copyright>
-
     <RepositoryUrl>https://github.com/Smalls1652/EntraMfaPrefillinator</RepositoryUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
-
+  <!-- Publish properties -->
+  <PropertyGroup>
+    <PublishAot>true</PublishAot>
+    <OptimizationPreference>Speed</OptimizationPreference>
+    <SelfContained>true</SelfContained>
+  </PropertyGroup>
+  <!-- Additional settings -->
+  <PropertyGroup>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    <EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
+  </PropertyGroup>
+  <!-- Includable files -->
   <ItemGroup>
     <Content Include="appsettings.Development.json" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" Condition="'$(Configuration)'=='Debug' And Exists('appsettings.Development.json')" />
     <Content Include="appsettings.Development.json" CopyToOutputDirectory="Never" CopyToPublishDirectory="Never" Condition="'$(Configuration)'=='Release'" />
     <Content Include="appsettings.json" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" />
   </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Lib\Lib.csproj" />
-    <ProjectReference Include="..\Hosting\Hosting.csproj" />
-  </ItemGroup>
-
+  <!-- Dependencies -->
   <ItemGroup>
     <PackageReference Include="Azure.Monitor.OpenTelemetry.Exporter" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
@@ -52,7 +51,18 @@
     <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" />
     <PackageReference Include="OpenTelemetry.ResourceDetectors.Azure" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Lib\Lib.csproj" />
+    <ProjectReference Include="..\Hosting\Hosting.csproj" />
+  </ItemGroup>
+  <!-- Custom targets -->
+  <!-- 
+    Name:
+      macos-linker-fallback
 
+    Description:
+      This target is used to add a linker argument to the macOS build process, to work around an issue with the new linker.
+  -->
   <Target Name="macos-linker-fallback" Condition="'$(RuntimeIdentifier)'=='osx-arm64' Or '$(RuntimeIdentifier)'=='osx-x64'" BeforeTargets="build">
 
     <Message Importance="high" Text="AuthUpdateApp -&gt; 🟧 Falling back to old linker, due to some issues on macOS." />
