@@ -4,6 +4,7 @@ artifacts/
 appsettings.*.json
 dapr-components/
 
+.azurite/
 __blobstorage__/
 __queuestorage__/
 __azurite_*.json
