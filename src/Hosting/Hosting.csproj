@@ -22,6 +22,6 @@
   <!-- Dependencies -->
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" PrivateAssets="all"/>
+    <PackageReference Include="Microsoft.Extensions.Hosting" PrivateAssets="all" />
   </ItemGroup>
 </Project>

@@ -34,9 +34,13 @@
   </PropertyGroup>
   <!-- Includable files -->
   <ItemGroup>
-    <Content Include="appsettings.Development.json" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" Condition="'$(Configuration)'=='Debug' And Exists('appsettings.Development.json')" />
-    <Content Include="appsettings.Development.json" CopyToOutputDirectory="Never" CopyToPublishDirectory="Never" Condition="'$(Configuration)'=='Release'" />
-    <Content Include="appsettings.json" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" />
+    <Content Include="appsettings.Development.json" CopyToOutputDirectory="Always"
+      CopyToPublishDirectory="Always"
+      Condition="'$(Configuration)'=='Debug' And Exists('appsettings.Development.json')" />
+    <Content Include="appsettings.Development.json" CopyToOutputDirectory="Never"
+      CopyToPublishDirectory="Never" Condition="'$(Configuration)'=='Release'" />
+    <Content Include="appsettings.json" CopyToOutputDirectory="Always"
+      CopyToPublishDirectory="Always" />
   </ItemGroup>
   <!-- Dependencies -->
   <ItemGroup>
@@ -61,11 +65,15 @@
       macos-linker-fallback
 
     Description:
-      This target is used to add a linker argument to the macOS build process, to work around an issue with the new linker.
+      This target is used to add a linker argument to the macOS build process, to work around an issue
+  with the new linker.
   -->
-  <Target Name="macos-linker-fallback" Condition="'$(RuntimeIdentifier)'=='osx-arm64' Or '$(RuntimeIdentifier)'=='osx-x64'" BeforeTargets="build">
+  <Target Name="macos-linker-fallback"
+    Condition="'$(RuntimeIdentifier)'=='osx-arm64' Or '$(RuntimeIdentifier)'=='osx-x64'"
+    BeforeTargets="build">
 
-    <Message Importance="high" Text="AuthUpdateApp -&gt; 🟧 Falling back to old linker, due to some issues on macOS." />
+    <Message Importance="high"
+      Text="AuthUpdateApp -&gt; 🟧 Falling back to old linker, due to some issues on macOS." />
 
     <ItemGroup>
       <LinkerArg Include="-Wl,-ld_classic" />
