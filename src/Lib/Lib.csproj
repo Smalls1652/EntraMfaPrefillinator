@@ -1,13 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
-  </PropertyGroup>
+  <!-- Core properties -->
   <PropertyGroup>
     <RootNamespace>EntraMfaPrefillinator.Lib</RootNamespace>
     <AssemblyName>EntraMfaPrefillinator.Lib</AssemblyName>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <!-- Package properties -->
+  <PropertyGroup>
     <PackageId>EntraMfaPrefillinator.Lib</PackageId>
     <Description>
       Class library for EntraMfaPrefillinator.
@@ -18,10 +19,15 @@
     <RepositoryUrl>https://github.com/Smalls1652/EntraMfaPrefillinator</RepositoryUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
+  <!-- Additional settings -->
+  <PropertyGroup>
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+  </PropertyGroup>
+  <!-- Dependencies -->
   <ItemGroup>
     <PackageReference Include="Azure.Storage.Queues" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.Extensions.Http" PrivateAssets="all"/>
+    <PackageReference Include="Microsoft.Extensions.Http" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Extensions.Logging" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Identity.Client" />
   </ItemGroup>

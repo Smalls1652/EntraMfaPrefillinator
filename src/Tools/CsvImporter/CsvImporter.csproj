@@ -1,37 +1,37 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <!-- Core properties -->
   <PropertyGroup>
+    <RootNamespace>EntraMfaPrefillinator.Tools.CsvImporter</RootNamespace>
+    <AssemblyName>entramfacsvimporter</AssemblyName>
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
-    <PublishAot>true</PublishAot>
-    <OptimizationPreference>Speed</OptimizationPreference>
-    <EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
   </PropertyGroup>
-
+  <!-- Package properties -->
   <PropertyGroup>
-    <RootNamespace>EntraMfaPrefillinator.Tools.CsvImporter</RootNamespace>
-    <AssemblyName>entramfacsvimporter</AssemblyName>
     <PackageId>EntraMfaPrefillinator.Tools.CsvImporter</PackageId>
-
     <Description>
       CLI tool for importing CSV files into the EntraMfaPrefillinator message queue.
     </Description>
-
     <Authors>Timothy Small</Authors>
     <Company>Smalls.Online</Company>
-    <Copyright>© Smalls.Online</Copyright>
-
+    <Copyright>© 2024 Smalls.Online</Copyright>
     <RepositoryUrl>https://github.com/Smalls1652/EntraMfaPrefillinator</RepositoryUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\Lib\Lib.csproj" />
-    <ProjectReference Include="..\..\Hosting\Hosting.csproj" />
-  </ItemGroup>
-
+  <!-- Publish properties -->
+  <PropertyGroup>
+    <PublishAot>true</PublishAot>
+    <OptimizationPreference>Speed</OptimizationPreference>
+    <SelfContained>true</SelfContained>
+  </PropertyGroup>
+  <!-- Additional settings -->
+  <PropertyGroup>
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    <EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
+  </PropertyGroup>
+  <!-- Dependencies -->
   <ItemGroup>
     <PackageReference Include="Azure.Identity" />
     <PackageReference Include="Azure.Monitor.OpenTelemetry.Exporter" />
@@ -42,5 +42,9 @@
     <PackageReference Include="OpenTelemetry.Instrumentation.Http" />
     <PackageReference Include="OpenTelemetry.Instrumentation.Process" />
     <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Lib\Lib.csproj" />
+    <ProjectReference Include="..\..\Hosting\Hosting.csproj" />
   </ItemGroup>
 </Project>
