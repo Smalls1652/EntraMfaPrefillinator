@@ -6,7 +6,7 @@
         <PackageVersion Include="Azure.Identity" Version="1.10.4" />
         <PackageVersion Include="Azure.Monitor.OpenTelemetry.Exporter" Version="1.2.0" />
         <PackageVersion Include="Azure.Storage.Queues" Version="12.17.1" />
-        <PackageVersion Include="Microsoft.Data.Sqlite" Version="8.0.3" />
+        <PackageVersion Include="Microsoft.Data.Sqlite" Version="8.0.4" />
         <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
         <PackageVersion Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
         <PackageVersion Include="Microsoft.Extensions.Http" Version="8.0.0" />
