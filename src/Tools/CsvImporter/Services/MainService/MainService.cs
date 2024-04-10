@@ -146,7 +146,7 @@ public sealed class MainService : IMainService, IHostedService, IDisposable
 
 
             // Filter out users without an email or phone number set.
-            List<UserDetails> filteredUserDetailsList = userDetailsList.FindAll(userDetails => userDetails.SecondaryEmail is not null || userDetails.PhoneNumber is not null);
+            List<UserDetails> filteredUserDetailsList = userDetailsList.FindAll(userDetails => userDetails.SecondaryEmail is not null || userDetails.PhoneNumber is not null || userDetails.HomePhoneNumber is not null);
 
             activity?.SetTag("user.filtered.count", filteredUserDetailsList.Count);
             _logger.LogInformation("Filtered to {FilteredUserDetailsCount} users with email or phone number", filteredUserDetailsList.Count);
