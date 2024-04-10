@@ -91,7 +91,7 @@ public sealed class CsvFileReaderService : ICsvFileReaderService
 
             // If the user was found in the last run CSV file and the email or phone number has changed,
             // add the user to the delta list.
-            if (lastRunUserDetailsItem.PhoneNumber != userDetailsItem.PhoneNumber || lastRunUserDetailsItem.SecondaryEmail != userDetailsItem.SecondaryEmail)
+            if (lastRunUserDetailsItem.PhoneNumber != userDetailsItem.PhoneNumber || lastRunUserDetailsItem.SecondaryEmail != userDetailsItem.SecondaryEmail || lastRunUserDetailsItem.HomePhoneNumber != userDetailsItem.HomePhoneNumber)
             {
                 userDetailsItem.IsInLastRun = true;
                 deltaList.Add(userDetailsItem);
