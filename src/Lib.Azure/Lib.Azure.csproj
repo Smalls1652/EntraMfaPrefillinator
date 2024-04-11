@@ -2,7 +2,7 @@
     <!-- Core properties -->
     <PropertyGroup>
         <RootNamespace>EntraMfaPrefillinator.Lib.Azure</RootNamespace>
-        <AssemblyName>EntraMfaPrefillinator.Lib.AzureQueue</AssemblyName>
+        <AssemblyName>EntraMfaPrefillinator.Lib.Azure</AssemblyName>
         <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
