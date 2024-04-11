@@ -21,7 +21,7 @@
     </PropertyGroup>
     <!-- Publish properties -->
     <PropertyGroup>
-        <IsTrimmable>true</IsTrimmable>
+        <IsTrimmable>false</IsTrimmable>
     </PropertyGroup>
     <!-- Additional settings -->
     <PropertyGroup>
