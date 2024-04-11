@@ -44,6 +44,7 @@
   </ItemGroup>
   <!-- Dependencies -->
   <ItemGroup>
+    <PackageReference Include="Azure.Storage.Queues" />
     <PackageReference Include="Azure.Monitor.OpenTelemetry.Exporter" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="Microsoft.Extensions.Hosting" />
