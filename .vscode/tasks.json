@@ -1,344 +1,346 @@
 {
-	"version": "2.0.0",
-	"tasks": [
-		{
-			"label": "Watch",
-			"detail": "Run the app for local debugging and watch for changes.",
-			"icon": {
-				"id": "eye-watch",
-				"color": "terminal.ansiCyan"
-			},
-			"type": "process",
-			"command": "dotnet",
-			"args": [
-				"watch",
-				"--",
-				"run",
-				"/consoleloggerparameters:NoSummary"
-			],
-			"options": {
-				"cwd": "${workspaceFolder}/${input:watchProject}",
-				"env": {
-					"ASPNETCORE_ENVIRONMENT": "Development"
-				}
-			},
-			"runOptions": {
-				"instanceLimit": 2
-			},
-			"presentation": {
-				"echo": false,
-				"reveal": "always",
-				"focus": false,
-				"panel": "shared",
-				"showReuseMessage": true,
-				"clear": true
-			},
-			"isBackground": true,
-			"problemMatcher": [
-				{
-					"base": "$msCompile",
-					"background": {
-						"activeOnStart": true,
-						"beginsPattern": "^info: Microsoft.\\Hosting\\.Lifetime",
-						"endsPattern": "^\\s*Application started\\..+?$"
-					}
-				}
-			]
-		},
-		{
-			"label": "Build project",
-			"detail": "Build a project.",
-			"icon": {
-				"id": "tools",
-				"color": "terminal.ansiYellow"
-			},
-			"type": "process",
-			"command": "dotnet",
-			"args": [
-				"build",
-				"${workspaceFolder}/${input:projectItem}",
-				"--configuration",
-				"${input:dotnetConfiguration}"
-			],
-			"options": {
-				"cwd": "${workspaceFolder}"
-			},
-			"problemMatcher": "$msCompile"
-		},
-		{
-			"label": "Clean project",
-			"detail": "Clean a project.",
-			"icon": {
-				"id": "trashcan",
-				"color": "terminal.ansiBlack"
-			},
-			"type": "process",
-			"command": "dotnet",
-			"args": [
-				"clean",
-				"${workspaceFolder}/${input:projectItem}",
-				"--configuration",
-				"${input:dotnetConfiguration}"
-			],
-			"options": {
-				"cwd": "${workspaceFolder}"
-			},
-			"problemMatcher": "$msCompile"
-		},
-		{
-			"label": "Restore project",
-			"detail": "Restore a project.",
-			"icon": {
-				"id": "sync",
-				"color": "terminal.ansiBlue"
-			},
-			"type": "process",
-			"command": "dotnet",
-			"args": [
-				"restore",
-				"${workspaceFolder}/${input:projectItem}"
-			],
-			"options": {
-				"cwd": "${workspaceFolder}"
-			},
-			"problemMatcher": "$msCompile"
-		},
-		{
-			"label": "Publish project",
-			"detail": "Publish/compile a project.",
-			"icon": {
-				"id": "package",
-				"color": "terminal.ansiRed"
-			},
-			"type": "process",
-			"command": "dotnet",
-			"args": [
-				"publish",
-				"${workspaceFolder}/${input:nativeAotCompileProject}",
-				"--configuration",
-				"Release",
-				"--runtime",
-				"${input:runtimeIdentifier}"
-			],
-			"options": {
-				"cwd": "${workspaceFolder}"
-			},
-			"problemMatcher": "$msCompile",
-			"presentation": {
-				"echo": true,
-				"reveal": "always",
-				"focus": true,
-				"panel": "shared",
-				"showReuseMessage": true,
-				"clear": true
-			},
-		},
-		{
-			"label": "Run: AuthUpdateApp",
-			"detail": "Run the AuthUpdateApp",
-			"icon": {
-				"id": "play",
-				"color": "terminal.ansiYellow"
-			},
-			"type": "process",
-			"command": "dotnet",
-			"args": [
-				"run"
-			],
-			"options": {
-				"cwd": "${workspaceFolder}/src/AuthUpdateApp",
-				"env": {
-					"DOTNET_ENVIRONMENT": "Development",
-					"USE_LOCAL_QUEUE": "true",
-				}
-			},
-			"problemMatcher": "$msCompile",
-			"presentation": {
-				"echo": true,
-				"reveal": "always",
-				"focus": false,
-				"panel": "shared",
-				"showReuseMessage": true,
-				"clear": true
-			}
-		},
-		// Remaining tasks are only for the VSCode launch configs
-		// or are supporting tasks.
-		{
-			"label": "Build AuthUpdateApp",
-			"hide": true,
-			"type": "process",
-			"command": "dotnet",
-			"args": [
-				"build",
-				"${workspaceFolder}/src/AuthUpdateApp",
-				"--configuration",
-				"Debug"
-			],
-			"options": {
-				"cwd": "${workspaceFolder}"
-			},
-			"problemMatcher": "$msCompile",
-			"presentation": {
-				"echo": true,
-				"reveal": "always",
-				"focus": false,
-				"panel": "shared",
-				"showReuseMessage": true,
-				"clear": true
-			}
-		},
-		{
-			"label": "Clean AuthUpdateApp",
-			"hide": true,
-			"type": "process",
-			"command": "dotnet",
-			"args": [
-				"clean",
-				"${workspaceFolder}/src/AuthUpdateApp",
-				"--configuration",
-				"Debug"
-			],
-			"options": {
-				"cwd": "${workspaceFolder}"
-			},
-			"problemMatcher": "$msCompile",
-			"presentation": {
-				"echo": true,
-				"reveal": "always",
-				"focus": false,
-				"panel": "shared",
-				"showReuseMessage": true,
-				"clear": true
-			}
-		}
-	],
-	"inputs": [
-		{
-			"id": "dotnetConfiguration",
-			"description": "Select a configuration for compilation.",
-			"type": "pickString",
-			"default": "Debug",
-			"options": [
-				{
-					"label": "Debug",
-					"value": "Debug"
-				},
-				{
-					"label": "Release",
-					"value": "Release"
-				}
-			]
-		},
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Watch",
+      "detail": "Run the app for local debugging and watch for changes.",
+      "icon": {
+        "id": "eye-watch",
+        "color": "terminal.ansiCyan"
+      },
+      "type": "process",
+      "command": "dotnet",
+      "args": [
+        "watch",
+        "--",
+        "run",
+        "/consoleloggerparameters:NoSummary"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/${input:watchProject}",
+        "env": {
+          "ASPNETCORE_ENVIRONMENT": "Development"
+        }
+      },
+      "runOptions": {
+        "instanceLimit": 2
+      },
+      "presentation": {
+        "echo": false,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": true
+      },
+      "isBackground": true,
+      "problemMatcher": [
         {
-			"id": "dotnetPublishConfiguration",
-			"description": "Select a configuration for compilation.",
-			"type": "pickString",
-			"default": "Release",
-			"options": [
-				{
-					"label": "Debug",
-					"value": "Debug"
-				},
-				{
-					"label": "Release",
-					"value": "Release"
-				}
-			]
-		},
-		{
-			"id": "projectItem",
-			"description": "Select a project.",
-			"type": "pickString",
-			"default": "EntraMfaPrefillinator.sln",
-			"options": [
-				{
-					"label": "Entire solution",
-					"value": "EntraMfaPrefillinator.sln"
-				},
-				{
-					"label": "Lib",
-					"value": "src/Lib"
-				},
-				{
-					"label": "AuthUpdateApp",
-					"value": "src/AuthUpdateApp"
-				},
-				{
-					"label": "CsvImporter",
-					"value": "src/Tools/CsvImporter"
-				}
-			]
-		},
-		{
-			"id": "containerPlatformArch",
-			"description": "Select a platform architecture for the container.",
-			"type": "pickString",
-			"default": "linux/arm64",
-			"options": [
-				"linux/amd64",
-				"linux/arm64"
-			]
-		},
-		{
-			"id": "runtimeIdentifier",
-			"description": "Select a runtime identifier for the build.",
-			"type": "pickString",
-			"default": "osx-arm64",
-			"options": [
-				{
-					"label": "macOS (arm64)",
-					"value": "osx-arm64"
-				},
-				{
-					"label": "macOS (x64)",
-					"value": "osx-x64"
-				},
-				{
-					"label": "Linux (arm64)",
-					"value": "linux-arm64"
-				},
-				{
-					"label": "Linux (x64)",
-					"value": "linux-x64"
-				},
-				{
-					"label": "Windows (x64)",
-					"value": "win-x64"
-				},
-				{
-					"label": "Windows (x86)",
-					"value": "win-x86"
-				}
-			]
-		},
-		{
-			"id": "watchProject",
-			"description": "Select a project to watch for changes.",
-			"type": "pickString",
-			"default": "src/AuthUpdateApp",
-			"options": [
-				{
-					"label": "AuthUpdateApp",
-					"value": "src/AuthUpdateApp"
-				}
-			]
-		},
-		{
-			"id": "nativeAotCompileProject",
-			"description": "Select a project to compile with Native AOT.",
-			"type": "pickString",
-			"default": "src/AuthUpdateApp",
-			"options": [
-				{
-					"label": "AuthUpdateApp",
-					"value": "src/AuthUpdateApp"
-				},
-				{
-					"label": "CsvImporter",
-					"value": "src/Tools/CsvImporter"
-				}
-			]
-		}
-	]
+          "base": "$msCompile",
+          "background": {
+            "activeOnStart": true,
+            "beginsPattern": "^info: Microsoft.\\Hosting\\.Lifetime",
+            "endsPattern": "^\\s*Application started\\..+?$"
+          }
+        }
+      ]
+    },
+    {
+      "label": "Build project",
+      "detail": "Build a project.",
+      "icon": {
+        "id": "tools",
+        "color": "terminal.ansiYellow"
+      },
+      "type": "process",
+      "command": "dotnet",
+      "args": [
+        "build",
+        "${workspaceFolder}/${input:projectItem}",
+        "--configuration",
+        "${input:dotnetConfiguration}"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "Clean project",
+      "detail": "Clean a project.",
+      "icon": {
+        "id": "trashcan",
+        "color": "terminal.ansiBlack"
+      },
+      "type": "process",
+      "command": "dotnet",
+      "args": [
+        "clean",
+        "${workspaceFolder}/${input:projectItem}",
+        "--configuration",
+        "${input:dotnetConfiguration}"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "Restore project",
+      "detail": "Restore a project.",
+      "icon": {
+        "id": "sync",
+        "color": "terminal.ansiBlue"
+      },
+      "type": "process",
+      "command": "dotnet",
+      "args": [
+        "restore",
+        "${workspaceFolder}/${input:projectItem}"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "Publish project",
+      "detail": "Publish/compile a project.",
+      "icon": {
+        "id": "package",
+        "color": "terminal.ansiRed"
+      },
+      "type": "process",
+      "command": "dotnet",
+      "args": [
+        "publish",
+        "${workspaceFolder}/${input:nativeAotCompileProject}",
+        "--configuration",
+        "Release",
+        "--runtime",
+        "${input:runtimeIdentifier}"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": "$msCompile",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": true
+      }
+    },
+    {
+      "label": "Run: AuthUpdateApp",
+      "detail": "Run the AuthUpdateApp",
+      "icon": {
+        "id": "play",
+        "color": "terminal.ansiYellow"
+      },
+      "type": "process",
+      "command": "dotnet",
+      "args": [
+        "run"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/src/AuthUpdateApp",
+        "env": {
+          "DOTNET_ENVIRONMENT": "Development",
+          "USE_LOCAL_QUEUE": "true"
+        }
+      },
+      "problemMatcher": "$msCompile",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": true
+      }
+    },
+    {
+      "label": "Build AuthUpdateApp",
+      "hide": true,
+      "type": "process",
+      "command": "dotnet",
+      "args": [
+        "build",
+        "${workspaceFolder}/src/AuthUpdateApp",
+        "--configuration",
+        "Debug"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": "$msCompile",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": true
+      }
+    },
+    {
+      "label": "Clean AuthUpdateApp",
+      "hide": true,
+      "type": "process",
+      "command": "dotnet",
+      "args": [
+        "clean",
+        "${workspaceFolder}/src/AuthUpdateApp",
+        "--configuration",
+        "Debug"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": "$msCompile",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": true
+      }
+    }
+  ],
+  "inputs": [
+    {
+      "id": "dotnetConfiguration",
+      "description": "Select a configuration for compilation.",
+      "type": "pickString",
+      "default": "Debug",
+      "options": [
+        {
+          "label": "Debug",
+          "value": "Debug"
+        },
+        {
+          "label": "Release",
+          "value": "Release"
+        }
+      ]
+    },
+    {
+      "id": "dotnetPublishConfiguration",
+      "description": "Select a configuration for compilation.",
+      "type": "pickString",
+      "default": "Release",
+      "options": [
+        {
+          "label": "Debug",
+          "value": "Debug"
+        },
+        {
+          "label": "Release",
+          "value": "Release"
+        }
+      ]
+    },
+    {
+      "id": "projectItem",
+      "description": "Select a project.",
+      "type": "pickString",
+      "default": "EntraMfaPrefillinator.sln",
+      "options": [
+        {
+          "label": "Entire solution",
+          "value": "EntraMfaPrefillinator.sln"
+        },
+        {
+          "label": "Lib",
+          "value": "src/Lib"
+        },
+        {
+          "label": "Lib.Azure",
+          "value": "src/Lib.Azure/"
+        },
+        {
+          "label": "AuthUpdateApp",
+          "value": "src/AuthUpdateApp"
+        },
+        {
+          "label": "CsvImporter",
+          "value": "src/Tools/CsvImporter"
+        }
+      ]
+    },
+    {
+      "id": "containerPlatformArch",
+      "description": "Select a platform architecture for the container.",
+      "type": "pickString",
+      "default": "linux/arm64",
+      "options": [
+        "linux/amd64",
+        "linux/arm64"
+      ]
+    },
+    {
+      "id": "runtimeIdentifier",
+      "description": "Select a runtime identifier for the build.",
+      "type": "pickString",
+      "default": "osx-arm64",
+      "options": [
+        {
+          "label": "macOS (arm64)",
+          "value": "osx-arm64"
+        },
+        {
+          "label": "macOS (x64)",
+          "value": "osx-x64"
+        },
+        {
+          "label": "Linux (arm64)",
+          "value": "linux-arm64"
+        },
+        {
+          "label": "Linux (x64)",
+          "value": "linux-x64"
+        },
+        {
+          "label": "Windows (x64)",
+          "value": "win-x64"
+        },
+        {
+          "label": "Windows (x86)",
+          "value": "win-x86"
+        }
+      ]
+    },
+    {
+      "id": "watchProject",
+      "description": "Select a project to watch for changes.",
+      "type": "pickString",
+      "default": "src/AuthUpdateApp",
+      "options": [
+        {
+          "label": "AuthUpdateApp",
+          "value": "src/AuthUpdateApp"
+        }
+      ]
+    },
+    {
+      "id": "nativeAotCompileProject",
+      "description": "Select a project to compile with Native AOT.",
+      "type": "pickString",
+      "default": "src/AuthUpdateApp",
+      "options": [
+        {
+          "label": "AuthUpdateApp",
+          "value": "src/AuthUpdateApp"
+        },
+        {
+          "label": "CsvImporter",
+          "value": "src/Tools/CsvImporter"
+        }
+      ]
+    }
+  ]
 }
