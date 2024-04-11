@@ -13,10 +13,10 @@ permissions:
 jobs:
     create-artifacts:
         name: Create artifacts
-        runs-on: ${{ matrix.os }}
+        runs-on: ubuntu-latest
         strategy:
           matrix:
-            os: [ ubuntu-latest, windows-latest ]
+            runtime-identifier: [ linux-x64, linux-arm64, win-x64, win-arm64, osx-x64, osx-arm64 ]
         env:
             DOTNET_NOLOGO: true
         
@@ -37,33 +37,17 @@ jobs:
             - name: Update project files with GitVersion
               run: dotnet tool run dotnet-gitversion /updateprojectfiles
 
-            - name: Compile project (Windows)
-              if: ${{ runner.os == 'Windows' }}
+            - name: Compile project
               shell: pwsh
               run: |
-                dotnet publish ./src/Tools/CsvImporter/ --configuration "Release" --runtime "win-x64";
-                Remove-Item -Path "./artifacts/publish/CsvImporter/release_win-x64/*.pdb" -Recurse -Force -Verbose
+                dotnet publish ./src/Tools/CsvImporter/ --configuration "Release" --runtime "${{ matrix.runtime-identifier }}";
+                Remove-Item -Path "./artifacts/publish/CsvImporter/release_${{ matrix.runtime-identifier }}/*.pdb" -Recurse -Force -Verbose;
+                Remove-Item -Path "./artifacts/publish/CsvImporter/release_${{ matrix.runtime-identifier }}/*.dbg" -Recurse -Force -Verbose;
+                Remove-Item -Path "./artifacts/publish/CsvImporter/release_${{ matrix.runtime-identifier }}/*.dsym" -Recurse -Force -Verbose
 
-            - name: Compile project (Linux)
-              if: ${{ runner.os == 'Linux' }}
-              shell: pwsh
-              run: |
-                dotnet publish ./src/Tools/CsvImporter/ --configuration "Release" --runtime "linux-x64";
-                Remove-Item -Path "./artifacts/publish/CsvImporter/release_linux-x64/*.pdb" -Recurse -Force -Verbose;
-                Remove-Item -Path "./artifacts/publish/CsvImporter/release_linux-x64/*.dbg" -Recurse -Force -Verbose
-
-            - name: Create artifact (Windows)
+            - name: Create artifact
               uses: actions/upload-artifact@v4
-              if: ${{ runner.os == 'Windows' }}
               with:
-                name: "CsvImporter_win-x64_${{ github.ref_type == 'tag' && github.ref_name || github.sha }}"
-                path: ${{ github.workspace }}/artifacts/publish/CsvImporter/release_win-x64/**/*
-                if-no-files-found: error
-
-            - name: Create artifact (Linux)
-              uses: actions/upload-artifact@v4
-              if: ${{ runner.os == 'Linux' }}
-              with:
-                name: "CsvImporter_linux-x64_${{ github.ref_type == 'tag' && github.ref_name || github.sha }}"
-                path: ${{ github.workspace }}/artifacts/publish/CsvImporter/release_linux-x64/**/*
+                name: "CsvImporter_${{ matrix.runtime-identifier }}_${{ github.ref_type == 'tag' && github.ref_name || github.sha }}"
+                path: ${{ github.workspace }}/artifacts/publish/CsvImporter/release_${{ matrix.runtime-identifier }}/**/*
                 if-no-files-found: error
