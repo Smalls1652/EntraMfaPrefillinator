@@ -22,14 +22,19 @@
   </PropertyGroup>
   <!-- Publish properties -->
   <PropertyGroup>
-    <PublishAot>true</PublishAot>
+    <PublishAot>false</PublishAot>
     <OptimizationPreference>Speed</OptimizationPreference>
+    <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>true</SelfContained>
+    <PublishTrimmed>true</PublishTrimmed>
+    <TrimMode>partial</TrimMode>
+    <CopyOutputSymbolsToPublishDirectory>false</CopyOutputSymbolsToPublishDirectory>
   </PropertyGroup>
   <!-- Additional settings -->
   <PropertyGroup>
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
   </PropertyGroup>
   <!-- Dependencies -->
   <ItemGroup>
@@ -46,5 +51,8 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Lib\Lib.csproj" />
     <ProjectReference Include="..\..\Hosting\Hosting.csproj" />
+  </ItemGroup>
+  <!-- Trimming options -->
+  <ItemGroup>
   </ItemGroup>
 </Project>
