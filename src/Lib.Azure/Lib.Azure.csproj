@@ -11,7 +11,7 @@
     <PropertyGroup>
         <PackageId>EntraMfaPrefillinator.Lib.Azure</PackageId>
         <Description>
-            Class library for EntraMfaPrefillinator.
+            Class library for Azure related items for EntraMfaPrefillinator.
         </Description>
         <Authors>Timothy Small</Authors>
         <Company>Smalls.Online</Company>
