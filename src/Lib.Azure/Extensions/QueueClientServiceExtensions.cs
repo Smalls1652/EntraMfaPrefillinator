@@ -1,7 +1,10 @@
 using Azure.Core;
+
+using EntraMfaPrefillinator.Lib.Azure.Services;
+
 using Microsoft.Extensions.DependencyInjection;
 
-namespace EntraMfaPrefillinator.Lib.Services.Extensions;
+namespace EntraMfaPrefillinator.Lib.Azure.Extensions;
 
 public static class QueueClientServiceExtensions
 {
