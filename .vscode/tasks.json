@@ -104,8 +104,8 @@
 			"problemMatcher": "$msCompile"
 		},
 		{
-			"label": "Compile project (Native AOT)",
-			"detail": "Compile a project with Native AOT.",
+			"label": "Publish project",
+			"detail": "Publish/compile a project.",
 			"icon": {
 				"id": "package",
 				"color": "terminal.ansiRed"
@@ -219,6 +219,22 @@
 			"description": "Select a configuration for compilation.",
 			"type": "pickString",
 			"default": "Debug",
+			"options": [
+				{
+					"label": "Debug",
+					"value": "Debug"
+				},
+				{
+					"label": "Release",
+					"value": "Release"
+				}
+			]
+		},
+        {
+			"id": "dotnetPublishConfiguration",
+			"description": "Select a configuration for compilation.",
+			"type": "pickString",
+			"default": "Release",
 			"options": [
 				{
 					"label": "Debug",

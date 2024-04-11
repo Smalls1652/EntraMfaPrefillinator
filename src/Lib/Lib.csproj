@@ -19,6 +19,10 @@
     <RepositoryUrl>https://github.com/Smalls1652/EntraMfaPrefillinator</RepositoryUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
+  <!-- Publish properties -->
+  <PropertyGroup>
+    <IsTrimmable>true</IsTrimmable>
+  </PropertyGroup>
   <!-- Additional settings -->
   <PropertyGroup>
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
