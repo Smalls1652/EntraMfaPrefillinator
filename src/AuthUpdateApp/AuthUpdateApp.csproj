@@ -56,8 +56,9 @@
     <PackageReference Include="OpenTelemetry.ResourceDetectors.Azure" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Lib\Lib.csproj" />
     <ProjectReference Include="..\Hosting\Hosting.csproj" />
+    <ProjectReference Include="..\Lib\Lib.csproj" />
+    <ProjectReference Include="..\Lib.Azure\Lib.Azure.csproj" />
   </ItemGroup>
   <!-- Custom targets -->
   <!-- 

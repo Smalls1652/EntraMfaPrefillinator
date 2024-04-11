@@ -3,9 +3,10 @@ using EntraMfaPrefillinator.AuthUpdateApp.Extensions;
 using EntraMfaPrefillinator.AuthUpdateApp.Extensions.Telemetry;
 using EntraMfaPrefillinator.Hosting;
 using EntraMfaPrefillinator.Hosting.Extensions;
+using EntraMfaPrefillinator.Lib.Azure.Extensions;
 using EntraMfaPrefillinator.Lib.Models.Graph;
-using EntraMfaPrefillinator.Lib.Services;
 using EntraMfaPrefillinator.Lib.Services.Extensions;
+
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
