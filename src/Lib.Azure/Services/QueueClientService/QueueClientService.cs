@@ -1,7 +1,7 @@
 using Azure.Core;
 using Azure.Storage.Queues;
 
-namespace EntraMfaPrefillinator.Lib.Services;
+namespace EntraMfaPrefillinator.Lib.Azure.Services;
 
 public partial class QueueClientService : IQueueClientService
 {

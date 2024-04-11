@@ -1,6 +1,6 @@
 ﻿using System.Text;
 using System.Text.Json;
-using EntraMfaPrefillinator.Lib.Services.Extensions;
+using EntraMfaPrefillinator.Lib.Azure.Extensions;
 using EntraMfaPrefillinator.Tools.CsvImporter;
 using EntraMfaPrefillinator.Tools.CsvImporter.Extensions.ServiceSetup;
 using EntraMfaPrefillinator.Tools.CsvImporter.Logging;

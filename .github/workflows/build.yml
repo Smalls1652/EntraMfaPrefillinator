@@ -30,6 +30,7 @@ jobs:
         projectPath: [
           "./src/AuthUpdateApp/",
           "./src/Lib/",
+          "./src/Lib.Azure",
           "./src/Hosting/",
           "./src/Tools/CsvImporter/"
         ]

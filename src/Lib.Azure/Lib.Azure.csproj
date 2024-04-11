@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <!-- Core properties -->
+    <PropertyGroup>
+        <RootNamespace>EntraMfaPrefillinator.Lib.Azure</RootNamespace>
+        <AssemblyName>EntraMfaPrefillinator.Lib.Azure</AssemblyName>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+    <!-- Package properties -->
+    <PropertyGroup>
+        <PackageId>EntraMfaPrefillinator.Lib.Azure</PackageId>
+        <Description>
+            Class library for Azure related items for EntraMfaPrefillinator.
+        </Description>
+        <Authors>Timothy Small</Authors>
+        <Company>Smalls.Online</Company>
+        <Copyright>© Smalls.Online</Copyright>
+        <RepositoryUrl>https://github.com/Smalls1652/EntraMfaPrefillinator</RepositoryUrl>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    </PropertyGroup>
+    <!-- Publish properties -->
+    <PropertyGroup>
+        <IsTrimmable>false</IsTrimmable>
+    </PropertyGroup>
+    <!-- Additional settings -->
+    <PropertyGroup>
+        <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    </PropertyGroup>
+    <!-- Dependencies -->
+    <ItemGroup>
+        <PackageReference Include="Azure.Storage.Queues" PrivateAssets="all"/>
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" PrivateAssets="all" />
+        <PackageReference Include="Microsoft.Extensions.Http" PrivateAssets="all" />
+        <PackageReference Include="Microsoft.Extensions.Logging" PrivateAssets="all" />
+    </ItemGroup>
+</Project>

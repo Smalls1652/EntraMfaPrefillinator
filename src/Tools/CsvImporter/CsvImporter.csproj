@@ -39,6 +39,7 @@
   <!-- Dependencies -->
   <ItemGroup>
     <PackageReference Include="Azure.Identity" />
+    <PackageReference Include="Azure.Storage.Queues" />
     <PackageReference Include="Azure.Monitor.OpenTelemetry.Exporter" />
     <PackageReference Include="Microsoft.Data.Sqlite" />
     <PackageReference Include="Microsoft.Extensions.Hosting" />
@@ -49,8 +50,9 @@
     <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Lib\Lib.csproj" />
     <ProjectReference Include="..\..\Hosting\Hosting.csproj" />
+    <ProjectReference Include="..\..\Lib\Lib.csproj" />
+    <ProjectReference Include="..\..\Lib.Azure\Lib.Azure.csproj"/>
   </ItemGroup>
   <!-- Trimming options -->
   <ItemGroup>

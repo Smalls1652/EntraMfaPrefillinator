@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Text.Json;
 using EntraMfaPrefillinator.Lib.Models;
-using EntraMfaPrefillinator.Lib.Services;
+using EntraMfaPrefillinator.Lib.Azure.Services;
 using EntraMfaPrefillinator.Tools.CsvImporter.Models;
 using EntraMfaPrefillinator.Tools.CsvImporter.Utilities;
 using Microsoft.Data.Sqlite;

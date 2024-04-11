@@ -1,10 +1,14 @@
 using System.Diagnostics;
+
 using Azure;
 using Azure.Storage.Queues.Models;
+
 using EntraMfaPrefillinator.AuthUpdateApp.Extensions.Telemetry.Activities;
+using EntraMfaPrefillinator.Lib.Azure.Services;
 using EntraMfaPrefillinator.Lib.Models;
 using EntraMfaPrefillinator.Lib.Models.Graph;
 using EntraMfaPrefillinator.Lib.Services;
+
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;

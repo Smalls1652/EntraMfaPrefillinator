@@ -1,6 +1,6 @@
 using Azure.Storage.Queues;
 
-namespace EntraMfaPrefillinator.Lib.Services;
+namespace EntraMfaPrefillinator.Lib.Azure.Services;
 
 /// <summary>
 /// Interface for the queue client service.
