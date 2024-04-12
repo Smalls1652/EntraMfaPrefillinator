@@ -32,7 +32,8 @@ jobs:
           "./src/Lib/",
           "./src/Lib.Azure",
           "./src/Hosting/",
-          "./src/Tools/CsvImporter/"
+          "./src/Tools/CsvImporter/",
+          "./src/Tools/CsvImporter.Database/",
         ]
     env:
       DOTNET_NOLOGO: true
