@@ -1,4 +1,4 @@
-﻿{
+{
   "version": "2.0.0",
   "tasks": [
     {
@@ -147,6 +147,35 @@
       ],
       "options": {
         "cwd": "${workspaceFolder}/src/AuthUpdateApp",
+        "env": {
+          "DOTNET_ENVIRONMENT": "Development",
+          "USE_LOCAL_QUEUE": "true"
+        }
+      },
+      "problemMatcher": "$msCompile",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": true
+      }
+    },
+    {
+      "label": "Run: CsvImporter",
+      "detail": "Run the CsvImporter",
+      "icon": {
+        "id": "play",
+        "color": "terminal.ansiYellow"
+      },
+      "type": "process",
+      "command": "dotnet",
+      "args": [
+        "run"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/src/Tools/CsvImporter",
         "env": {
           "DOTNET_ENVIRONMENT": "Development",
           "USE_LOCAL_QUEUE": "true"
