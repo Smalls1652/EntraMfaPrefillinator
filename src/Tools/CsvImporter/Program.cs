@@ -1,21 +1,24 @@
 ﻿using System.Text;
 using System.Text.Json;
+
+using EntraMfaPrefillinator.Hosting;
+using EntraMfaPrefillinator.Hosting.Extensions;
 using EntraMfaPrefillinator.Lib.Azure.Extensions;
 using EntraMfaPrefillinator.Tools.CsvImporter;
+using EntraMfaPrefillinator.Tools.CsvImporter.Database.Extensions;
 using EntraMfaPrefillinator.Tools.CsvImporter.Extensions.ServiceSetup;
+using EntraMfaPrefillinator.Tools.CsvImporter.Extensions.Telemetry;
 using EntraMfaPrefillinator.Tools.CsvImporter.Logging;
 using EntraMfaPrefillinator.Tools.CsvImporter.Models;
 using EntraMfaPrefillinator.Tools.CsvImporter.Models.Exceptions;
 using EntraMfaPrefillinator.Tools.CsvImporter.Services;
 using EntraMfaPrefillinator.Tools.CsvImporter.Utilities;
-using EntraMfaPrefillinator.Hosting;
-using EntraMfaPrefillinator.Hosting.Extensions;
+
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using EntraMfaPrefillinator.Tools.CsvImporter.Extensions.Telemetry;
 
 // Create a logger factory for pre-launch logging.
 ILoggerFactory preLaunchLoggerFactory = LoggerFactory.Create(configure =>
@@ -52,8 +55,20 @@ string logsDirPath = Path.Combine(
 
 string dbPath = Path.Combine(
     path1: configDirPath,
+    path2: "CsvImporter.sqlite"
+);
+
+string oldDbPath = Path.Combine(
+    path1: configDirPath,
     path2: "CsvImporter.db"
 );
+
+if (File.Exists(oldDbPath))
+{
+    preLaunchLogger.LogWarning("Old database file found. Renaming...");
+    File.Copy(oldDbPath, dbPath);
+    File.Move(oldDbPath, $"{oldDbPath}.bak");
+}
 
 if (!Directory.Exists(logsDirPath))
 {
@@ -142,7 +157,8 @@ builder.Logging
     {
         options.SingleLine = false;
         options.UseUtcTimestamp = true;
-    });
+    })
+    .AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Warning);
 
 if (csvImporterConfig.LoggingAndTelemetry.EnableFileLogging)
 {
@@ -221,10 +237,7 @@ catch (Exception ex)
 }
 
 builder.Services
-    .AddCsvImporterSqliteService(options =>
-    {
-        options.DbPath = dbPath;
-    })
+    .AddUserDetailsDbContextFactory(dbPath)
     .AddCsvFileReaderService();
 
 // Dispose the pre-launch logger factory.
@@ -233,9 +246,7 @@ preLaunchLoggerFactory.Dispose();
 // Build the host.
 using var host = builder.Build();
 
-var dbService = host.Services.GetRequiredService<ICsvImporterSqliteService>();
-
-await dbService.InitializeDatabaseAsync();
+await host.ApplyUserDetailsDbContextFactoryMigrations();
 
 // Run the host.
 await host.RunAsync();

@@ -1,5 +1,4 @@
-using EntraMfaPrefillinator.Tools.CsvImporter.Models;
-using Microsoft.Extensions.Logging;
+using EntraMfaPrefillinator.Lib.Models;
 
 namespace EntraMfaPrefillinator.Tools.CsvImporter.Services;
 

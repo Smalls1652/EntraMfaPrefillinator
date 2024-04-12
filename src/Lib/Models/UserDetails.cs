@@ -1,12 +1,14 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.RegularExpressions;
-using EntraMfaPrefillinator.Tools.CsvImporter.Utilities;
+using EntraMfaPrefillinator.Lib.Utilities;
 
-namespace EntraMfaPrefillinator.Tools.CsvImporter.Models;
+namespace EntraMfaPrefillinator.Lib.Models;
 
 /// <summary>
 /// Holds data imported, from a CSV file, for a user's details.
 /// </summary>
+[Table("UserDetails")]
 public sealed class UserDetails
 {
     /// <summary>
@@ -54,31 +56,39 @@ public sealed class UserDetails
     /// The user's employee number.
     /// </summary>
     [Key]
+    [Column("EmployeeNumber")]
+    [Required]
     public string? EmployeeNumber { get; set; }
 
     /// <summary>
     /// The user's username.
     /// </summary>
+    [Column("UserName")]
+    [Required]
     public string? UserName { get; set; }
 
     /// <summary>
     /// The user's secondary email address.
     /// </summary>
+    [Column("SecondaryEmail")]
     public string? SecondaryEmail { get; set; }
 
     /// <summary>
     /// The user's phone number.
     /// </summary>
+    [Column("PhoneNumber")]
     public string? PhoneNumber { get; set; }
 
     /// <summary>
     /// The user's home phone number.
     /// </summary>
+    [Column("HomePhoneNumber")]
     public string? HomePhoneNumber { get; set; }
 
     /// <summary>
     /// Whether or not was in a previous run.
     /// </summary>
+    [NotMapped]
     public bool IsInLastRun { get; set; } = false;
 
     /// <summary>

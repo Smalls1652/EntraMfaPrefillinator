@@ -1,14 +1,16 @@
 using System.Diagnostics;
 using System.Text.Json;
-using EntraMfaPrefillinator.Lib.Models;
+
 using EntraMfaPrefillinator.Lib.Azure.Services;
+using EntraMfaPrefillinator.Lib.Models;
+using EntraMfaPrefillinator.Tools.CsvImporter.Database.Contexts;
 using EntraMfaPrefillinator.Tools.CsvImporter.Models;
 using EntraMfaPrefillinator.Tools.CsvImporter.Utilities;
-using Microsoft.Data.Sqlite;
+
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 
 namespace EntraMfaPrefillinator.Tools.CsvImporter.Services;
@@ -23,17 +25,17 @@ public sealed class MainService : IMainService, IHostedService, IDisposable
     private readonly ILogger _logger;
     private readonly IConfiguration _configuration;
     private readonly IQueueClientService _queueClientService;
-    private readonly ICsvImporterSqliteService _dbService;
+    private readonly IDbContextFactory<UserDetailsDbContext> _dbContextFactory;
     private readonly ICsvFileReaderService _csvFileReader;
     private readonly MainServiceOptions _options;
 
-    public MainService(IHostApplicationLifetime appLifetime, ILoggerFactory loggerFactory, IConfiguration configuration, IQueueClientService queueClientService, ICsvImporterSqliteService dbService, ICsvFileReaderService csvFileReader, IOptions<MainServiceOptions> options)
+    public MainService(IHostApplicationLifetime appLifetime, ILoggerFactory loggerFactory, IConfiguration configuration, IQueueClientService queueClientService, IDbContextFactory<UserDetailsDbContext> dbContextFactory, ICsvFileReaderService csvFileReader, IOptions<MainServiceOptions> options)
     {
         _appLifetime = appLifetime;
         _logger = loggerFactory.CreateLogger("MainService");
         _configuration = configuration;
         _queueClientService = queueClientService;
-        _dbService = dbService;
+        _dbContextFactory = dbContextFactory;
         _csvFileReader = csvFileReader;
         _options = options.Value;
     }
@@ -58,7 +60,7 @@ public sealed class MainService : IMainService, IHostedService, IDisposable
 
             bool isDeltaRun = false;
 
-            await _dbService.OpenAsync();
+            using UserDetailsDbContext dbContext = _dbContextFactory.CreateDbContext();
 
             // Resolve CSV file path.
             _logger.LogInformation("Reading CSV file from {CsvFilePath}", configFile.Config.CsvFilePath);
@@ -105,7 +107,7 @@ public sealed class MainService : IMainService, IHostedService, IDisposable
             _logger.LogInformation("Found {UserDetailsCount} users in CSV file", userDetailsList.Count);
             
             // Get the current count of users in the database.
-            int lastRunUserDetailsCount = await _dbService.GetUserDetailsCountAsync();
+            int lastRunUserDetailsCount = await dbContext.UserDetails.CountAsync(cancellationToken);
 
             // If there are users in the database, run the delta against the current list.
             
@@ -180,7 +182,7 @@ public sealed class MainService : IMainService, IHostedService, IDisposable
                 {
                     newQueueItemTask = SendUserAuthUpdateQueueItemAsync(semaphoreSlim, userItem, isDeltaRun, configFile);
                     tasks.Add(newQueueItemTask);
-                    _logger.LogInformation("Sent message to queue for '{UserName}'.", userItem.UserName);
+                    //_logger.LogInformation("Sent message to queue for '{UserName}'.", userItem.UserName);
                 }
                 catch (Exception ex)
                 {
@@ -194,42 +196,30 @@ public sealed class MainService : IMainService, IHostedService, IDisposable
             await Task.WhenAll(tasks);
 
             _logger.LogInformation("Updating database...");
-            List<SqliteCommand> commands = [];
             if (lastRunUserDetailsCount == 0)
             {
-                for (int i = 0; i < userDetailsList.Count; i++)
+                foreach (var userItem in userDetailsList)
                 {
-                    UserDetails userItem = userDetailsList[i];
-                    commands.Add(_dbService.CreateInsertUserDetailsCommand(userItem));
-
-                    if (i % 100 == 0 || i == userDetailsList.Count - 1)
-                    {
-                        await _dbService.RunDbUpdatesAsync(commands);
-                        commands.Clear();
-                    }
+                    dbContext.UserDetails.Add(userItem);
                 }
+
+                await dbContext.SaveChangesAsync(cancellationToken);
             }
             else
             {
-                for (int i = 0; i < filteredUserDetailsList.Count; i++)
+                foreach (var userItem in userDetailsList)
                 {
-                    UserDetails userItem = filteredUserDetailsList[i];
-
                     if (userItem.IsInLastRun)
                     {
-                        commands.Add(_dbService.CreateUpdateUserDetailsCommand(userItem));
+                        dbContext.UserDetails.Update(userItem);
                     }
                     else
                     {
-                        commands.Add(_dbService.CreateInsertUserDetailsCommand(userItem));
-                    }
-
-                    if (i % 100 == 0 || i == filteredUserDetailsList.Count - 1)
-                    {
-                        await _dbService.RunDbUpdatesAsync(commands);
-                        commands.Clear();
+                        dbContext.UserDetails.Add(userItem);
                     }
                 }
+
+                await dbContext.SaveChangesAsync(cancellationToken);
             }
 
             if (configFile.Config.DryRunEnabled)
@@ -250,8 +240,6 @@ public sealed class MainService : IMainService, IHostedService, IDisposable
             stopwatch.Stop();
 
             _logger.LogInformation("Completed in {ElapsedMilliseconds}ms", stopwatch.ElapsedMilliseconds);
-
-            await _dbService.CloseAsync();
 
             _appLifetime.StopApplication();
         }

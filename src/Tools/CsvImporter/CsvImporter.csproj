@@ -1,60 +1,58 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <!-- Core properties -->
-  <PropertyGroup>
-    <RootNamespace>EntraMfaPrefillinator.Tools.CsvImporter</RootNamespace>
-    <AssemblyName>entramfacsvimporter</AssemblyName>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
-  <!-- Package properties -->
-  <PropertyGroup>
-    <PackageId>EntraMfaPrefillinator.Tools.CsvImporter</PackageId>
-    <Description>
-      CLI tool for importing CSV files into the EntraMfaPrefillinator message queue.
-    </Description>
-    <Authors>Timothy Small</Authors>
-    <Company>Smalls.Online</Company>
-    <Copyright>© 2024 Smalls.Online</Copyright>
-    <RepositoryUrl>https://github.com/Smalls1652/EntraMfaPrefillinator</RepositoryUrl>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-  </PropertyGroup>
-  <!-- Publish properties -->
-  <PropertyGroup>
-    <PublishAot>false</PublishAot>
-    <OptimizationPreference>Speed</OptimizationPreference>
-    <PublishSingleFile>true</PublishSingleFile>
-    <SelfContained>true</SelfContained>
-    <PublishTrimmed>true</PublishTrimmed>
-    <TrimMode>partial</TrimMode>
-    <CopyOutputSymbolsToPublishDirectory>false</CopyOutputSymbolsToPublishDirectory>
-  </PropertyGroup>
-  <!-- Additional settings -->
-  <PropertyGroup>
-    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
-    <EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
-    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
-  </PropertyGroup>
-  <!-- Dependencies -->
-  <ItemGroup>
-    <PackageReference Include="Azure.Identity" />
-    <PackageReference Include="Azure.Storage.Queues" />
-    <PackageReference Include="Azure.Monitor.OpenTelemetry.Exporter" />
-    <PackageReference Include="Microsoft.Data.Sqlite" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" />
-    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
-    <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
-    <PackageReference Include="OpenTelemetry.Instrumentation.Http" />
-    <PackageReference Include="OpenTelemetry.Instrumentation.Process" />
-    <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\Hosting\Hosting.csproj" />
-    <ProjectReference Include="..\..\Lib\Lib.csproj" />
-    <ProjectReference Include="..\..\Lib.Azure\Lib.Azure.csproj"/>
-  </ItemGroup>
-  <!-- Trimming options -->
-  <ItemGroup>
-  </ItemGroup>
+    <!-- Core properties -->
+    <PropertyGroup>
+        <RootNamespace>EntraMfaPrefillinator.Tools.CsvImporter</RootNamespace>
+        <AssemblyName>entramfacsvimporter</AssemblyName>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+    <!-- Package properties -->
+    <PropertyGroup>
+        <PackageId>EntraMfaPrefillinator.Tools.CsvImporter</PackageId>
+        <Description>
+            CLI tool for importing CSV files into the EntraMfaPrefillinator message queue.
+        </Description>
+        <Authors>Timothy Small</Authors>
+        <Company>Smalls.Online</Company>
+        <Copyright>© 2024 Smalls.Online</Copyright>
+        <RepositoryUrl>https://github.com/Smalls1652/EntraMfaPrefillinator</RepositoryUrl>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    </PropertyGroup>
+    <!-- Publish properties -->
+    <PropertyGroup>
+        <PublishAot>false</PublishAot>
+        <OptimizationPreference>Speed</OptimizationPreference>
+        <PublishSingleFile>true</PublishSingleFile>
+        <SelfContained>true</SelfContained>
+        <PublishTrimmed>true</PublishTrimmed>
+        <TrimMode>partial</TrimMode>
+        <CopyOutputSymbolsToPublishDirectory>false</CopyOutputSymbolsToPublishDirectory>
+    </PropertyGroup>
+    <!-- Additional settings -->
+    <PropertyGroup>
+        <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+        <EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
+        <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+    </PropertyGroup>
+    <!-- Dependencies -->
+    <ItemGroup>
+        <PackageReference Include="Azure.Identity" />
+        <PackageReference Include="Azure.Storage.Queues" />
+        <PackageReference Include="Azure.Monitor.OpenTelemetry.Exporter" />
+        <PackageReference Include="Microsoft.Extensions.Hosting" />
+        <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
+        <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
+        <PackageReference Include="OpenTelemetry.Instrumentation.Http" />
+        <PackageReference Include="OpenTelemetry.Instrumentation.Process" />
+        <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" />
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\CsvImporter.Database\CsvImporter.Database.csproj" />
+        <ProjectReference Include="..\..\Hosting\Hosting.csproj" />
+        <ProjectReference Include="..\..\Lib\Lib.csproj" />
+        <ProjectReference Include="..\..\Lib.Azure\Lib.Azure.csproj" />
+    </ItemGroup>
+    <!-- Trimming options -->
 </Project>

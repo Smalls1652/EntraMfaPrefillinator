@@ -1,5 +1,8 @@
-using EntraMfaPrefillinator.Tools.CsvImporter.Models;
-using EntraMfaPrefillinator.Tools.CsvImporter.Utilities;
+using EntraMfaPrefillinator.Lib.Models;
+using EntraMfaPrefillinator.Lib.Utilities;
+using EntraMfaPrefillinator.Tools.CsvImporter.Database.Contexts;
+
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace EntraMfaPrefillinator.Tools.CsvImporter.Services;
@@ -10,12 +13,12 @@ namespace EntraMfaPrefillinator.Tools.CsvImporter.Services;
 public sealed class CsvFileReaderService : ICsvFileReaderService
 {
     private readonly ILogger _logger;
-    private readonly ICsvImporterSqliteService _dbService;
+    private readonly IDbContextFactory<UserDetailsDbContext> _dbContextFactory;
 
-    public CsvFileReaderService(ILoggerFactory loggerFactory, ICsvImporterSqliteService dbService)
+    public CsvFileReaderService(ILoggerFactory loggerFactory, IDbContextFactory<UserDetailsDbContext> dbContextFactory)
     {
         _logger = loggerFactory.CreateLogger("CsvFileReaderService");
-        _dbService = dbService;
+        _dbContextFactory = dbContextFactory;
     }
 
     /// <summary>
@@ -71,6 +74,8 @@ public sealed class CsvFileReaderService : ICsvFileReaderService
     /// <returns>A <see cref="List{T}"/> of <see cref="UserDetails"/> objects that represent the delta.</returns>
     public async Task<List<UserDetails>> GetDeltaAsync(List<UserDetails> currentList, CancellationToken cancellationToken = default)
     {
+        using UserDetailsDbContext dbContext = _dbContextFactory.CreateDbContext();
+        
         List<UserDetails> deltaList = [];
 
         foreach (var userDetailsItem in currentList)
@@ -80,7 +85,8 @@ public sealed class CsvFileReaderService : ICsvFileReaderService
                 cancellationToken.ThrowIfCancellationRequested();
             }
 
-            UserDetails? lastRunUserDetailsItem = await _dbService.GetUserDetailsAsync(userDetailsItem);
+            UserDetails? lastRunUserDetailsItem = await dbContext.UserDetails
+                .FirstOrDefaultAsync(item => item == userDetailsItem, cancellationToken: cancellationToken);
 
             if (lastRunUserDetailsItem is null)
             {
