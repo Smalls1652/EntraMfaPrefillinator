@@ -1,8 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
-using EntraMfaPrefillinator.Tools.CsvImporter.Utilities;
+using EntraMfaPrefillinator.Lib.Utilities;
 
-namespace EntraMfaPrefillinator.Tools.CsvImporter.Models;
+namespace EntraMfaPrefillinator.Lib.Models;
 
 /// <summary>
 /// Holds data imported, from a CSV file, for a user's details.
