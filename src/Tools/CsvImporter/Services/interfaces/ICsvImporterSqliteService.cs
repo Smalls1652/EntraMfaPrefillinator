@@ -1,4 +1,4 @@
-using EntraMfaPrefillinator.Tools.CsvImporter.Models;
+using EntraMfaPrefillinator.Lib.Models;
 using Microsoft.Data.Sqlite;
 
 namespace EntraMfaPrefillinator.Tools.CsvImporter.Services;

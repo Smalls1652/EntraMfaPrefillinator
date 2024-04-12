@@ -1,5 +1,5 @@
 using System.Data.Common;
-using EntraMfaPrefillinator.Tools.CsvImporter.Models;
+using EntraMfaPrefillinator.Lib.Models;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
