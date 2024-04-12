@@ -1,11 +1,11 @@
 using System.Text.RegularExpressions;
 
-namespace EntraMfaPrefillinator.Tools.CsvImporter.Utilities;
+namespace EntraMfaPrefillinator.Lib.Utilities;
 
 /// <summary>
 /// Houses <see cref="Regex"/> methods for parsing CSV data.
 /// </summary>
-internal static partial class CsvDataRegexTools
+public static partial class CsvDataRegexTools
 {
     /// <summary>
     /// Determines if a line from a CSV file is valid.
