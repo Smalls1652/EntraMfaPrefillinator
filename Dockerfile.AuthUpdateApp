@@ -12,9 +12,7 @@ COPY ./EntraMfaPrefillinator.sln ./
 COPY ./Directory.Build.props ./
 COPY ./Directory.Packages.props ./
 COPY ./nuget.config ./
-COPY ./src/AuthUpdateApp ./src/AuthUpdateApp
-COPY ./src/Hosting ./src/Hosting
-COPY ./src/Lib ./src/Lib
+COPY ./src/ ./src
 
 RUN dotnet publish "./src/AuthUpdateApp" --configuration "Release" --os "${TARGETOS}" --arch "${TARGETARCH}" --self-contained
 
