@@ -33,6 +33,7 @@ jobs:
           "./src/Lib.Azure",
           "./src/Hosting/",
           "./src/Tools/CsvImporter/",
+          "./src/Tools/CsvImporter.ConfigTool/",
           "./src/Tools/CsvImporter.Database/"
         ]
     env:
