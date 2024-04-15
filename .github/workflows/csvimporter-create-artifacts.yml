@@ -43,7 +43,9 @@ jobs:
                 dotnet publish ./src/Tools/CsvImporter/ --configuration "Release" --runtime "${{ matrix.runtime-identifier }}";
                 Remove-Item -Path "./artifacts/publish/CsvImporter/release_${{ matrix.runtime-identifier }}/*.pdb" -Recurse -Force -Verbose;
                 Remove-Item -Path "./artifacts/publish/CsvImporter/release_${{ matrix.runtime-identifier }}/*.dbg" -Recurse -Force -Verbose;
-                Remove-Item -Path "./artifacts/publish/CsvImporter/release_${{ matrix.runtime-identifier }}/*.dsym" -Recurse -Force -Verbose
+                Remove-Item -Path "./artifacts/publish/CsvImporter/release_${{ matrix.runtime-identifier }}/*.dsym" -Recurse -Force -Verbose;
+                dotnet publish ./src/Tools/CsvImporter.ConfigTool/ --configuration "Release" --runtime "${{ matrix.runtime-identifier }}";
+                Copy-Item -Path "./artifacts/publish/CsvImporter.ConfigTool/release_${{ matrix.runtime-identifier }}/entramfacsvimporter-config" -Destination "./artifacts/publish/CsvImporter/release_${{ matrix.runtime-identifier }}/entramfacsvimporter-config" -Force -Verbose;
 
             - name: Create artifact
               uses: actions/upload-artifact@v4
