@@ -255,18 +255,18 @@ internal sealed class MainService : IHostedService, IDisposable
                     activity?.AddUserHasExisitingPhoneAuthMethodTag(false);
                     try
                     {
-                        await _graphClientService.AddOfficePhoneAuthenticationMethodAsync(
+                        await _graphClientService.AddPhoneAuthenticationMethodAsync(
                             userId: user.Id,
                             phoneNumber: queueItem.HomePhone
                         );
 
-                        _logger.LogInformation("Added office phone auth method for '{userPrincipalName}'.", user.UserPrincipalName);
+                        _logger.LogInformation("Added home phone auth method for '{userPrincipalName}'.", user.UserPrincipalName);
                         activity?.AddUserHadPhoneAuthMethodAddedTag(true);
                         activity?.AddUserPhoneAuthUpdateDryRunTag(false);
                     }
                     catch (GraphClientDryRunException)
                     {
-                        _logger.LogWarning("Dry run is enabled. Skipping adding office phone auth method for '{userPrincipalName}'.", user.UserPrincipalName);
+                        _logger.LogWarning("Dry run is enabled. Skipping adding home phone auth method for '{userPrincipalName}'.", user.UserPrincipalName);
                         activity?.AddUserPhoneAuthUpdateDryRunTag(true);
                     }
                     catch (Exception)
