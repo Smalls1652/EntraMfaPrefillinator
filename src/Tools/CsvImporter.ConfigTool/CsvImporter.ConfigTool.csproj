@@ -51,4 +51,30 @@
         <TrimmableAssembly Include="System.CommandLine" />
         <TrimmableAssembly Include="EntraMfaPrefillinator.Lib" />
     </ItemGroup>
+    <!-- Custom targets -->
+    <Target Name="CopyToCombinedOutput">
+        <PropertyGroup>
+            <CsvImporterConfigTool_PublishedPath>$(ArtifactsPath)\publish\CsvImporter.ConfigTool\$(Configuration.ToLower())_$(RuntimeIdentifier)</CsvImporterConfigTool_PublishedPath>
+            <CsvImporter_CombinedOutputPath>$(ArtifactsPath)\publish\CsvImporterFull\$(Configuration.ToLower())_$(RuntimeIdentifier)\</CsvImporter_CombinedOutputPath>
+        </PropertyGroup>
+        <ItemGroup>
+            <CsvImporter_FilesToCopy 
+              Include="$(CsvImporterConfigTool_PublishedPath)\entramfacsvimporter-config.exe"
+              Condition="'$(RuntimeIdentifier)'=='win-x64' Or '$(RuntimeIdentifier)'=='win-arm64'" />
+            <CsvImporter_FilesToCopy 
+              Include="$(CsvImporterConfigTool_PublishedPath)\entramfacsvimporter-config"
+              Condition="'$(RuntimeIdentifier)'=='linux-x64' Or '$(RuntimeIdentifier)'=='linux-arm64'" />
+            <CsvImporter_FilesToCopy 
+              Include="$(CsvImporterConfigTool_PublishedPath)\entramfacsvimporter-config"
+              Condition="'$(RuntimeIdentifier)'=='osx-x64' Or '$(RuntimeIdentifier)'=='osx-arm64'" />
+        </ItemGroup>
+        <MakeDir Directories="$(CsvImporter_CombinedOutputPath)" />
+        <Copy
+            SourceFiles="@(CsvImporter_FilesToCopy)"
+            DestinationFolder="$(CsvImporter_CombinedOutputPath)" />
+    </Target>
+    <Target Name="CopyToCombinedOutput_AfterPublish" AfterTargets="Publish" Condition="'$(IS_ARTIFACT_BUILD)'=='true'">
+        <Message Importance="high" Text="CsvImporter.ConfigTool -&gt; Copying to combined output..." />
+        <CallTarget Targets="CopyToCombinedOutput" />
+    </Target>
 </Project>
