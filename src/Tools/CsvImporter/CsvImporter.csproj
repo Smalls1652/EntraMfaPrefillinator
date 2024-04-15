@@ -54,5 +54,30 @@
         <ProjectReference Include="..\..\Lib\Lib.csproj" />
         <ProjectReference Include="..\..\Lib.Azure\Lib.Azure.csproj" />
     </ItemGroup>
-    <!-- Trimming options -->
+    <!-- Custom targets -->
+    <Target Name="CopyToCombinedOutput">
+        <PropertyGroup>
+            <CsvImporter_PublishedPath>$(ArtifactsPath)\publish\CsvImporter\$(Configuration.ToLower())_$(RuntimeIdentifier)</CsvImporter_PublishedPath>
+            <CsvImporter_CombinedOutputPath>$(ArtifactsPath)\publish\CsvImporterFull\$(Configuration.ToLower())_$(RuntimeIdentifier)\</CsvImporter_CombinedOutputPath>
+        </PropertyGroup>
+        <ItemGroup>
+            <CsvImporter_FilesToCopy 
+              Include="$(CsvImporter_PublishedPath)\entramfacsvimporter.exe;$(CsvImporter_PublishedPath)\e_sqlite3.dll"
+              Condition="'$(RuntimeIdentifier)'=='win-x64' Or '$(RuntimeIdentifier)'=='win-arm64'" />
+            <CsvImporter_FilesToCopy 
+              Include="$(CsvImporter_PublishedPath)\entramfacsvimporter;$(CsvImporter_PublishedPath)\libe_sqlite3.so"
+              Condition="'$(RuntimeIdentifier)'=='linux-x64' Or '$(RuntimeIdentifier)'=='linux-arm64'" />
+            <CsvImporter_FilesToCopy 
+              Include="$(CsvImporter_PublishedPath)\entramfacsvimporter;$(CsvImporter_PublishedPath)\libe_sqlite3.dylib"
+              Condition="'$(RuntimeIdentifier)'=='osx-x64' Or '$(RuntimeIdentifier)'=='osx-arm64'" />
+        </ItemGroup>
+        <MakeDir Directories="$(CsvImporter_CombinedOutputPath)" />
+        <Copy
+            SourceFiles="@(CsvImporter_FilesToCopy)"
+            DestinationFolder="$(CsvImporter_CombinedOutputPath)" />
+    </Target>
+    <Target Name="CopyToCombinedOutput_AfterPublish" AfterTargets="Publish" Condition="'$(IS_ARTIFACT_BUILD)'=='true'">
+        <Message Importance="high" Text="CsvImporter -&gt; Copying to combined output..." />
+        <CallTarget Targets="CopyToCombinedOutput" />
+    </Target>
 </Project>
