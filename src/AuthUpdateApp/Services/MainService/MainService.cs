@@ -207,7 +207,11 @@ internal sealed class MainService : IHostedService, IDisposable
                 activity?.AddUserPhoneAuthMethodIncludedInRequestTag(true);
                 PhoneAuthenticationMethod[]? phoneAuthMethods = await _graphClientService.GetPhoneAuthenticationMethodsAsync(user.Id, activity?.Id);
 
-                if (phoneAuthMethods is not null && phoneAuthMethods.Length != 0)
+                PhoneAuthenticationMethod[]? mobilePhoneAuthMethods = phoneAuthMethods is not null
+                    ? Array.FindAll(phoneAuthMethods, item => item.PhoneType == "mobile")
+                    : null;
+
+                if (mobilePhoneAuthMethods is not null && mobilePhoneAuthMethods.Length != 0)
                 {
                     _logger.LogWarning("'{userPrincipalName}' already has phone auth methods configured. Skipping...", user.UserPrincipalName);
                     activity?.AddUserHasExisitingPhoneAuthMethodTag(true);
@@ -245,7 +249,11 @@ internal sealed class MainService : IHostedService, IDisposable
                 activity?.AddUserPhoneAuthMethodIncludedInRequestTag(true);
                 PhoneAuthenticationMethod[]? phoneAuthMethods = await _graphClientService.GetPhoneAuthenticationMethodsAsync(user.Id, activity?.Id);
 
-                if (phoneAuthMethods is not null && phoneAuthMethods.Length != 0)
+                PhoneAuthenticationMethod[]? mobilePhoneAuthMethods = phoneAuthMethods is not null
+                    ? Array.FindAll(phoneAuthMethods, item => item.PhoneType == "mobile")
+                    : null;
+
+                if (mobilePhoneAuthMethods is not null && mobilePhoneAuthMethods.Length != 0)
                 {
                     _logger.LogWarning("'{userPrincipalName}' already has phone auth methods configured. Skipping...", user.UserPrincipalName);
                     activity?.AddUserHasExisitingPhoneAuthMethodTag(true);
@@ -255,18 +263,18 @@ internal sealed class MainService : IHostedService, IDisposable
                     activity?.AddUserHasExisitingPhoneAuthMethodTag(false);
                     try
                     {
-                        await _graphClientService.AddOfficePhoneAuthenticationMethodAsync(
+                        await _graphClientService.AddPhoneAuthenticationMethodAsync(
                             userId: user.Id,
                             phoneNumber: queueItem.HomePhone
                         );
 
-                        _logger.LogInformation("Added office phone auth method for '{userPrincipalName}'.", user.UserPrincipalName);
+                        _logger.LogInformation("Added home phone auth method for '{userPrincipalName}'.", user.UserPrincipalName);
                         activity?.AddUserHadPhoneAuthMethodAddedTag(true);
                         activity?.AddUserPhoneAuthUpdateDryRunTag(false);
                     }
                     catch (GraphClientDryRunException)
                     {
-                        _logger.LogWarning("Dry run is enabled. Skipping adding office phone auth method for '{userPrincipalName}'.", user.UserPrincipalName);
+                        _logger.LogWarning("Dry run is enabled. Skipping adding home phone auth method for '{userPrincipalName}'.", user.UserPrincipalName);
                         activity?.AddUserPhoneAuthUpdateDryRunTag(true);
                     }
                     catch (Exception)
@@ -282,6 +290,50 @@ internal sealed class MainService : IHostedService, IDisposable
             {
                 _logger.LogWarning("'{userPrincipalName}' did not have a phone number supplied in the request. Skipping...", user.UserPrincipalName);
                 activity?.AddUserPhoneAuthMethodIncludedInRequestTag(false);
+            }
+
+            if (queueItem.PhoneNumber is not null && queueItem.HomePhone is not null)
+            {
+                activity?.AddUserAlternatePhoneAuthMethodIncludedInRequestTag(true);
+
+                PhoneAuthenticationMethod[]? phoneAuthMethods = await _graphClientService.GetPhoneAuthenticationMethodsAsync(user.Id, activity?.Id);
+
+                PhoneAuthenticationMethod[]? alternateMobilePhoneAuthMethods = phoneAuthMethods is not null
+                    ? Array.FindAll(phoneAuthMethods, item => item.PhoneType == "alternateMobile")
+                    : null;
+
+                if (alternateMobilePhoneAuthMethods is not null && alternateMobilePhoneAuthMethods.Length != 0)
+                {
+                    _logger.LogWarning("'{userPrincipalName}' already has alternate phone auth methods configured. Skipping...", user.UserPrincipalName);
+                    activity?.AddUserHasExisitingAlternatePhoneAuthMethodTag(true);
+                }
+                else
+                {
+                    activity?.AddUserHasExisitingAlternatePhoneAuthMethodTag(false);
+                    try
+                    {
+                        await _graphClientService.AddAlternatePhoneAuthenticationMethodAsync(
+                            userId: user.Id,
+                            phoneNumber: queueItem.HomePhone
+                        );
+
+                        _logger.LogInformation("Added alternate phone auth method for '{userPrincipalName}'.", user.UserPrincipalName);
+                        activity?.AddUserHadAlternatePhoneAuthMethodAddedTag(true);
+                        activity?.AddUserAlternatePhoneAuthUpdateDryRunTag(false);
+                    }
+                    catch (GraphClientDryRunException)
+                    {
+                        _logger.LogWarning("Dry run is enabled. Skipping adding alternate phone auth method for '{userPrincipalName}'.", user.UserPrincipalName);
+                        activity?.AddUserAlternatePhoneAuthUpdateDryRunTag(true);
+                    }
+                    catch (Exception)
+                    {
+                        //_logger.LogError(ex, "Error adding alternate phone auth method for '{userPrincipalName}'.", user.UserPrincipalName);
+                        //activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+                        //errorOccurred = true;
+                        throw;
+                    }
+                }
             }
 
             return;

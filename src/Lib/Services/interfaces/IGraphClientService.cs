@@ -13,6 +13,9 @@ public interface IGraphClientService
     Task<PhoneAuthenticationMethod> AddPhoneAuthenticationMethodAsync(string userId, string phoneNumber);
     Task<PhoneAuthenticationMethod> AddPhoneAuthenticationMethodAsync(string userId, string phoneNumber, string? parentActivityId);
 
+    Task<PhoneAuthenticationMethod> AddAlternatePhoneAuthenticationMethodAsync(string userId, string phoneNumber);
+    Task<PhoneAuthenticationMethod> AddAlternatePhoneAuthenticationMethodAsync(string userId, string phoneNumber, string? parentActivityId);
+
     Task<PhoneAuthenticationMethod> AddOfficePhoneAuthenticationMethodAsync(string userId, string phoneNumber);
     Task<PhoneAuthenticationMethod> AddOfficePhoneAuthenticationMethodAsync(string userId, string phoneNumber, string? parentActivityId);
 

@@ -72,6 +72,19 @@ internal static class UserAuthUpdateActivityExtensions
     }
 
     /// <summary>
+    /// Add a tag to an activity that indicates whether the request
+    /// includes an alternative phone number.
+    /// </summary>
+    /// <param name="activity">The <see cref="Activity"/> to add the tag to.</param>
+    /// <param name="phoneAuthMethodIncluded">Whether the request includes a phone number.</param>
+    /// <returns>The modified <see cref="Activity"/>.</returns>
+    public static Activity? AddUserAlternatePhoneAuthMethodIncludedInRequestTag(this Activity? activity, bool phoneAuthMethodIncluded)
+    {
+        return activity?
+            .AddTag("user.auth.alternatePhone.includedInRequest", phoneAuthMethodIncluded);
+    }
+
+    /// <summary>
     /// Add a tag to an activity that indicates whether the user has an existing
     /// email auth method.
     /// </summary>
@@ -95,6 +108,19 @@ internal static class UserAuthUpdateActivityExtensions
     {
         return activity?
             .AddTag("user.auth.phone.hasExisting", hasPhoneAuthMethod);
+    }
+
+    /// <summary>
+    /// Add a tag to an activity that indicates whether the user has an existing
+    /// alternative phone auth method.
+    /// </summary>
+    /// <param name="activity">The <see cref="Activity"/> to add the tag to.</param>
+    /// <param name="hasPhoneAuthMethod">Whether the user has an existing phone auth method.</param>
+    /// <returns>The modified <see cref="Activity"/>.</returns>
+    public static Activity? AddUserHasExisitingAlternatePhoneAuthMethodTag(this Activity? activity, bool hasPhoneAuthMethod)
+    {
+        return activity?
+            .AddTag("user.auth.alternatePhone.hasExisting", hasPhoneAuthMethod);
     }
 
     /// <summary>
@@ -125,6 +151,19 @@ internal static class UserAuthUpdateActivityExtensions
 
     /// <summary>
     /// Add a tag to an activity that indicates whether an
+    /// alternative phone auth method was added to the user during the process.
+    /// </summary>
+    /// <param name="activity">The <see cref="Activity"/> to add the tag to.</param>
+    /// <param name="phoneAuthMethodAdded">Whether a phone auth method was added.</param>
+    /// <returns>The modified <see cref="Activity"/>.</returns>
+    public static Activity? AddUserHadAlternatePhoneAuthMethodAddedTag(this Activity? activity, bool phoneAuthMethodAdded)
+    {
+        return activity?
+            .AddTag("user.auth.alternatePhone.added", phoneAuthMethodAdded);
+    }
+
+    /// <summary>
+    /// Add a tag to an activity that indicates whether an
     /// email auth method wasn't added to the user during the process
     /// because the app is in "dry run" mode.
     /// </summary>
@@ -149,5 +188,19 @@ internal static class UserAuthUpdateActivityExtensions
     {
         return activity?
             .AddTag("user.auth.phone.dryRun", isDryRun);
+    }
+
+    /// <summary>
+    /// Add a tag to an activity that indicates whether an
+    /// alternative phone auth method wasn't added to the user during the process
+    /// because the app is in "dry run" mode.
+    /// </summary>
+    /// <param name="activity">The <see cref="Activity"/> to add the tag to.</param>
+    /// <param name="isDryRun">Whether the app is in "dry run" mode.</param>
+    /// <returns>The modified <see cref="Activity"/>.</returns>
+    public static Activity? AddUserAlternatePhoneAuthUpdateDryRunTag(this Activity? activity, bool isDryRun)
+    {
+        return activity?
+            .AddTag("user.auth.alternatePhone.dryRun", isDryRun);
     }
 }
