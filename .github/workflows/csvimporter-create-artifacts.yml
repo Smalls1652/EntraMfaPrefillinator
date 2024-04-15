@@ -19,6 +19,7 @@ jobs:
             runtime-identifier: [ linux-x64, linux-arm64, win-x64, win-arm64, osx-x64, osx-arm64 ]
         env:
             DOTNET_NOLOGO: true
+            IS_ARTIFACT_BUILD: true
         
         steps:
             - name: Checkout repository
@@ -41,21 +42,11 @@ jobs:
               shell: pwsh
               run: |
                 dotnet publish ./src/Tools/CsvImporter/ --configuration "Release" --runtime "${{ matrix.runtime-identifier }}";
-                Remove-Item -Path "./artifacts/publish/CsvImporter/release_${{ matrix.runtime-identifier }}/*.pdb" -Recurse -Force -Verbose;
-                Remove-Item -Path "./artifacts/publish/CsvImporter/release_${{ matrix.runtime-identifier }}/*.dbg" -Recurse -Force -Verbose;
-                Remove-Item -Path "./artifacts/publish/CsvImporter/release_${{ matrix.runtime-identifier }}/*.dsym" -Recurse -Force -Verbose;
-                dotnet publish ./src/Tools/CsvImporter.ConfigTool/ --configuration "Release" --runtime "${{ matrix.runtime-identifier }}";
-                Remove-Item -Path "./artifacts/publish/CsvImporter.ConfigTool/release_${{ matrix.runtime-identifier }}/*.pdb" -Recurse -Force -Verbose;
-                Remove-Item -Path "./artifacts/publish/CsvImporter.ConfigTool/release_${{ matrix.runtime-identifier }}/*.dbg" -Recurse -Force -Verbose;
-                Remove-Item -Path "./artifacts/publish/CsvImporter.ConfigTool/release_${{ matrix.runtime-identifier }}/*.dsym" -Recurse -Force -Verbose;
-                Remove-Item -Path "./artifacts/publish/CsvImporter.ConfigTool/release_${{ matrix.runtime-identifier }}/*.dll" -Recurse -Force -Verbose;
-                Remove-Item -Path "./artifacts/publish/CsvImporter.ConfigTool/release_${{ matrix.runtime-identifier }}/*.dylib" -Recurse -Force -Verbose;
-                Remove-Item -Path "./artifacts/publish/CsvImporter.ConfigTool/release_${{ matrix.runtime-identifier }}/*.so" -Recurse -Force -Verbose;
-                Copy-Item -Path "./artifacts/publish/CsvImporter.ConfigTool/release_${{ matrix.runtime-identifier }}/*" -Destination "./artifacts/publish/CsvImporter/release_${{ matrix.runtime-identifier }}/" -Force -Verbose;
+                dotnet publish ./src/Tools/CsvImporter.ConfigTool/ --configuration "Release" --runtime "${{ matrix.runtime-identifier }}"
 
             - name: Create artifact
               uses: actions/upload-artifact@v4
               with:
                 name: "CsvImporter_${{ matrix.runtime-identifier }}_${{ github.ref_type == 'tag' && github.ref_name || github.sha }}"
-                path: ${{ github.workspace }}/artifacts/publish/CsvImporter/release_${{ matrix.runtime-identifier }}/**/*
+                path: ${{ github.workspace }}/artifacts/publish/CsvImporterFull/release_${{ matrix.runtime-identifier }}/**/*
                 if-no-files-found: error
