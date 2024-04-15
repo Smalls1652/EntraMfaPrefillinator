@@ -1,37 +1,37 @@
 <Project Sdk="Microsoft.NET.Sdk">
-	<!-- Core properties -->
-	<PropertyGroup>
-		<RootNamespace>EntraMfaPrefillinator.Lib</RootNamespace>
-		<AssemblyName>EntraMfaPrefillinator.Lib</AssemblyName>
-		<TargetFramework>net8.0</TargetFramework>
-		<ImplicitUsings>enable</ImplicitUsings>
-		<Nullable>enable</Nullable>
-	</PropertyGroup>
-	<!-- Package properties -->
-	<PropertyGroup>
-		<PackageId>EntraMfaPrefillinator.Lib</PackageId>
-		<Description>
-      Class library for EntraMfaPrefillinator.
-    </Description>
-		<Authors>Timothy Small</Authors>
-		<Company>Smalls.Online</Company>
-		<Copyright>© Smalls.Online</Copyright>
-		<RepositoryUrl>https://github.com/Smalls1652/EntraMfaPrefillinator</RepositoryUrl>
-		<PackageLicenseExpression>MIT</PackageLicenseExpression>
-	</PropertyGroup>
-	<!-- Publish properties -->
-	<PropertyGroup>
-		<IsTrimmable>true</IsTrimmable>
-	</PropertyGroup>
-	<!-- Additional settings -->
-	<PropertyGroup>
-		<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
-	</PropertyGroup>
-	<!-- Dependencies -->
-	<ItemGroup>
-		<PackageReference Include="Microsoft.Extensions.DependencyInjection" PrivateAssets="all" />
-		<PackageReference Include="Microsoft.Extensions.Http" PrivateAssets="all" />
-		<PackageReference Include="Microsoft.Extensions.Logging" PrivateAssets="all" />
-		<PackageReference Include="Microsoft.Identity.Client" />
-	</ItemGroup>
+    <!-- Core properties -->
+    <PropertyGroup>
+        <RootNamespace>EntraMfaPrefillinator.Lib</RootNamespace>
+        <AssemblyName>EntraMfaPrefillinator.Lib</AssemblyName>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+    <!-- Package properties -->
+    <PropertyGroup>
+        <PackageId>EntraMfaPrefillinator.Lib</PackageId>
+        <Description>
+            Class library for EntraMfaPrefillinator.
+        </Description>
+        <Authors>Timothy Small</Authors>
+        <Company>Smalls.Online</Company>
+        <Copyright>© Smalls.Online</Copyright>
+        <RepositoryUrl>https://github.com/Smalls1652/EntraMfaPrefillinator</RepositoryUrl>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    </PropertyGroup>
+    <!-- Publish properties -->
+    <PropertyGroup>
+        <IsTrimmable>true</IsTrimmable>
+    </PropertyGroup>
+    <!-- Additional settings -->
+    <PropertyGroup>
+        <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    </PropertyGroup>
+    <!-- Dependencies -->
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" PrivateAssets="all" />
+        <PackageReference Include="Microsoft.Extensions.Http" PrivateAssets="all" />
+        <PackageReference Include="Microsoft.Extensions.Logging" PrivateAssets="all" />
+        <PackageReference Include="Microsoft.Identity.Client" />
+    </ItemGroup>
 </Project>

@@ -19,6 +19,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Libraries", "Libraries", "{
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CsvImporter.Database", "src\Tools\CsvImporter.Database\CsvImporter.Database.csproj", "{5EE841B5-3982-4FE9-8737-E287092DBD9C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CsvImporter.ConfigTool", "src\Tools\CsvImporter.ConfigTool\CsvImporter.ConfigTool.csproj", "{D4335382-BB08-4B22-96B5-5F8E5EC849B0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -52,6 +54,10 @@ Global
 		{5EE841B5-3982-4FE9-8737-E287092DBD9C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5EE841B5-3982-4FE9-8737-E287092DBD9C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5EE841B5-3982-4FE9-8737-E287092DBD9C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D4335382-BB08-4B22-96B5-5F8E5EC849B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D4335382-BB08-4B22-96B5-5F8E5EC849B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D4335382-BB08-4B22-96B5-5F8E5EC849B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D4335382-BB08-4B22-96B5-5F8E5EC849B0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{F96FD9F1-4FBB-4235-AE62-D7055DECC6AD} = {FC60D7C4-F0D8-4E64-BB51-416F222F5D1B}
@@ -59,5 +65,6 @@ Global
 		{B5F8BD80-AEDB-4F1B-AEA9-E53E0DF95310} = {33DE40FB-A917-4A86-AA79-5BAB5CC8E66A}
 		{AD068759-4FE6-44D0-BB5A-068131066D6F} = {FC60D7C4-F0D8-4E64-BB51-416F222F5D1B}
 		{5EE841B5-3982-4FE9-8737-E287092DBD9C} = {33DE40FB-A917-4A86-AA79-5BAB5CC8E66A}
+		{D4335382-BB08-4B22-96B5-5F8E5EC849B0} = {33DE40FB-A917-4A86-AA79-5BAB5CC8E66A}
 	EndGlobalSection
 EndGlobal
