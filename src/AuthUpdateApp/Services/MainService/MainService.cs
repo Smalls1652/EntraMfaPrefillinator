@@ -72,7 +72,7 @@ internal sealed class MainService : IHostedService, IDisposable
 
         for (int i = 0; i < queueMessages.Value.Length; i++)
         {
-            tasks[i] = ProcessQueueMessageAsync(queueMessages.Value[i], activity?.Id!, cancellationToken);
+            tasks[i] = ProcessQueueMessageAsync(queueMessages.Value[i], cancellationToken);
         }
 
         _logger.LogInformation("Waiting for all tasks to complete...");
@@ -99,14 +99,12 @@ internal sealed class MainService : IHostedService, IDisposable
     /// Processes a queue message to update a user's authentication methods.
     /// </summary>
     /// <param name="queueMessage">The queue message to process.</param>
-    /// <param name="parentActivityId">The ID for the parent activity.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns></returns>
-    public async Task ProcessQueueMessageAsync(QueueMessage queueMessage, string parentActivityId, CancellationToken cancellationToken = default)
+    public async Task ProcessQueueMessageAsync(QueueMessage queueMessage, CancellationToken cancellationToken = default)
     {
         using var activity = _activitySource.StartProcessUserAuthActivity(
-            activityName: "ProcessUserAuthUpdate",
-            parentActivityId: parentActivityId
+            activityName: "ProcessUserAuthUpdate"
         );
 
         Stopwatch stopwatch = Stopwatch.StartNew();
