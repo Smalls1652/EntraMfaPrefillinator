@@ -41,6 +41,10 @@
         <PackageReference Include="Azure.Identity" />
         <PackageReference Include="Azure.Storage.Queues" />
         <PackageReference Include="Azure.Monitor.OpenTelemetry.Exporter" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+          <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
         <PackageReference Include="Microsoft.Extensions.Hosting" />
         <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
         <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
@@ -61,20 +65,12 @@
             <CsvImporter_CombinedOutputPath>$(ArtifactsPath)\publish\CsvImporterFull\$(Configuration.ToLower())_$(RuntimeIdentifier)\</CsvImporter_CombinedOutputPath>
         </PropertyGroup>
         <ItemGroup>
-            <CsvImporter_FilesToCopy 
-              Include="$(CsvImporter_PublishedPath)\entramfacsvimporter.exe;$(CsvImporter_PublishedPath)\e_sqlite3.dll"
-              Condition="'$(RuntimeIdentifier)'=='win-x64' Or '$(RuntimeIdentifier)'=='win-arm64'" />
-            <CsvImporter_FilesToCopy 
-              Include="$(CsvImporter_PublishedPath)\entramfacsvimporter;$(CsvImporter_PublishedPath)\libe_sqlite3.so"
-              Condition="'$(RuntimeIdentifier)'=='linux-x64' Or '$(RuntimeIdentifier)'=='linux-arm64'" />
-            <CsvImporter_FilesToCopy 
-              Include="$(CsvImporter_PublishedPath)\entramfacsvimporter;$(CsvImporter_PublishedPath)\libe_sqlite3.dylib"
-              Condition="'$(RuntimeIdentifier)'=='osx-x64' Or '$(RuntimeIdentifier)'=='osx-arm64'" />
+            <CsvImporter_FilesToCopy Include="$(CsvImporter_PublishedPath)\entramfacsvimporter.exe;$(CsvImporter_PublishedPath)\e_sqlite3.dll" Condition="'$(RuntimeIdentifier)'=='win-x64' Or '$(RuntimeIdentifier)'=='win-arm64'" />
+            <CsvImporter_FilesToCopy Include="$(CsvImporter_PublishedPath)\entramfacsvimporter;$(CsvImporter_PublishedPath)\libe_sqlite3.so" Condition="'$(RuntimeIdentifier)'=='linux-x64' Or '$(RuntimeIdentifier)'=='linux-arm64'" />
+            <CsvImporter_FilesToCopy Include="$(CsvImporter_PublishedPath)\entramfacsvimporter;$(CsvImporter_PublishedPath)\libe_sqlite3.dylib" Condition="'$(RuntimeIdentifier)'=='osx-x64' Or '$(RuntimeIdentifier)'=='osx-arm64'" />
         </ItemGroup>
         <MakeDir Directories="$(CsvImporter_CombinedOutputPath)" />
-        <Copy
-            SourceFiles="@(CsvImporter_FilesToCopy)"
-            DestinationFolder="$(CsvImporter_CombinedOutputPath)" />
+        <Copy SourceFiles="@(CsvImporter_FilesToCopy)" DestinationFolder="$(CsvImporter_CombinedOutputPath)" />
     </Target>
     <Target Name="CopyToCombinedOutput_AfterPublish" AfterTargets="Publish" Condition="'$(IS_ARTIFACT_BUILD)'=='true'">
         <Message Importance="high" Text="CsvImporter -&gt; Copying to combined output..." />
