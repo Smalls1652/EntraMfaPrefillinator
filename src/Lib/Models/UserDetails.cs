@@ -86,6 +86,12 @@ public sealed class UserDetails
     public string? HomePhoneNumber { get; set; }
 
     /// <summary>
+    /// The last time the user's details were updated.
+    /// </summary>
+    [Column("LastUpdated")]
+    public DateTimeOffset? LastUpdated { get; set; }
+
+    /// <summary>
     /// Whether or not was in a previous run.
     /// </summary>
     [NotMapped]
