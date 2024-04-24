@@ -200,6 +200,7 @@ public sealed class MainService : IMainService, IHostedService, IDisposable
             {
                 foreach (var userItem in userDetailsList)
                 {
+                    userItem.LastUpdated = DateTimeOffset.UtcNow;
                     dbContext.UserDetails.Add(userItem);
                 }
 
@@ -209,6 +210,8 @@ public sealed class MainService : IMainService, IHostedService, IDisposable
             {
                 foreach (var userItem in userDetailsList)
                 {
+                    userItem.LastUpdated = DateTimeOffset.UtcNow;
+
                     if (userItem.IsInLastRun)
                     {
                         dbContext.UserDetails.Update(userItem);
