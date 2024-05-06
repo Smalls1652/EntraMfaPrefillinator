@@ -353,17 +353,23 @@ internal sealed class MainService : IHostedService, IDisposable
             else
             {
                 // If an error occurred processing the message,
-                // check if the message has been dequeued 5 times.
-                if (queueMessage.DequeueCount >= 5)
+                // check if the message has been dequeued 48 times.
+                if (queueMessage.DequeueCount >= 48)
                 {
-                    // If the message has been dequeued 5 times, delete the message from the queue.
-                    _logger.LogWarning("Message '{messageId}' has been dequeued 5 times. Deleting message from queue.", queueMessage.MessageId);
+                    // If the message has been dequeued 48 times, delete the message from the queue.
+                    _logger.LogWarning("Message '{messageId}' has been dequeued 48 times. Deleting message from queue.", queueMessage.MessageId);
                     await _queueClientService.AuthUpdateQueueClient.DeleteMessageAsync(queueMessage.MessageId, queueMessage.PopReceipt, cancellationToken);
                 }
                 else
                 {
                     // Otherwise, log a warning and leave the message in the queue.
                     _logger.LogWarning("Error occurred processing message '{messageId}'. Message will be left in queue.", queueMessage.MessageId);
+                    await _queueClientService.AuthUpdateQueueClient.UpdateMessageAsync(
+                        messageId: queueMessage.MessageId,
+                        popReceipt: queueMessage.PopReceipt,
+                        visibilityTimeout: TimeSpan.FromHours(1),
+                        cancellationToken: cancellationToken
+                    );
                 }
             }
 
