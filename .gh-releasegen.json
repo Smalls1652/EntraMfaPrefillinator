@@ -1,0 +1,19 @@
+{
+  "labels": {
+    "bug": [
+      "bug",
+      "bug fix",
+      "bugfix"
+    ],
+    "maintenance": [
+      "maintenance"
+    ]
+  },
+  "separateProjectLabel": {
+    "enable": true,
+    "projectLabels": [
+      "AuthUpdateApp",
+      "CsvImporter"
+    ]
+  }
+}
