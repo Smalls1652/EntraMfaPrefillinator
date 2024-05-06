@@ -12,8 +12,14 @@
   "separateProjectLabel": {
     "enable": true,
     "projectLabels": [
-      "AuthUpdateApp",
-      "CsvImporter"
+      {
+        "name": "AuthUpdateApp",
+        "label": "AuthUpdateApp"
+      },
+      {
+        "name": "CsvImporter",
+        "label": "CsvImporter"
+      }
     ]
   }
 }
