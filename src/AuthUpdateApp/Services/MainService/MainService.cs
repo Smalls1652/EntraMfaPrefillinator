@@ -46,12 +46,6 @@ internal sealed class MainService : IHostedService, IDisposable
     /// <returns></returns>
     public async Task RunAsync(CancellationToken cancellationToken = default)
     {
-        using Activity? activity = _activitySource
-            .StartActivity(
-                name: "GetAndProcessQueueMessages",
-                kind: ActivityKind.Internal
-            );
-
         _logger.LogInformation("Getting messages from queue...");
 
         NullableResponse<QueueMessage[]> queueMessages = await _queueClientService.AuthUpdateQueueClient.ReceiveMessagesAsync(
@@ -89,8 +83,6 @@ internal sealed class MainService : IHostedService, IDisposable
         {
             _logger.LogError(ex, "An error occurred while processing queue messages.");
         }
-
-        activity?.SetStatus(ActivityStatusCode.Ok);
 
         _appLifetime.StopApplication();
     }
