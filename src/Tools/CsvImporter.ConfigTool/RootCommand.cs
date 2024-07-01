@@ -38,5 +38,6 @@ public sealed class RootCommand : CliRootCommand
         );
 
         Add(new ResetUserCommand());
+        Add(new GetUserCommand());
     }
 }
