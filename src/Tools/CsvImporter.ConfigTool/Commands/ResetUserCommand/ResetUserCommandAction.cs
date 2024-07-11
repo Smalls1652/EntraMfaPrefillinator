@@ -17,9 +17,13 @@ public sealed class ResetUserCommandAction : AsynchronousCliAction, IDisposable
 {
     private bool _disposed;
 
+    private UserDetailsDbContext? _dbContext;
     private readonly ILoggerFactory _loggerFactory;
     private readonly ILogger _logger;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ResetUserCommandAction"/> class.
+    /// </summary>
     public ResetUserCommandAction()
     {
         _loggerFactory = LoggerUtilities.CreateLoggerFactory();
@@ -44,7 +48,7 @@ public sealed class ResetUserCommandAction : AsynchronousCliAction, IDisposable
         }
 
         // Connect to the database and find the user.
-        using UserDetailsDbContext dbContext = new(
+        _dbContext = new(
             options: new DbContextOptionsBuilder<UserDetailsDbContext>()
                 .UseSqlite($"Data Source={rootOptions.DatabasePath}")
                 .Options
@@ -56,13 +60,24 @@ public sealed class ResetUserCommandAction : AsynchronousCliAction, IDisposable
         {
             foreach (string employeeNumber in options.EmployeeNumber)
             {
-                UserDetails? userItem = await dbContext.UserDetails
+                UserDetails? userItem = await _dbContext.UserDetails
                     .SingleOrDefaultAsync(item => item.EmployeeNumber == employeeNumber, cancellationToken);
 
                 if (userItem is not null)
                 {
-                    _logger.LogInformation("Resetting state for '{UserName}' ({EmployeeNumber}).", userItem.UserName, userItem.EmployeeNumber);
-                    userDetails.Add(userItem);
+                    try
+                    {
+                        ResetUserState(userItem);
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        _logger.LogError(ex, "A critical error occurred while resetting the user.");
+                        return 1;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "An error occurred while resetting the user.");
+                    }
                 }
                 else
                 {
@@ -74,12 +89,24 @@ public sealed class ResetUserCommandAction : AsynchronousCliAction, IDisposable
         {
             foreach (string username in options.Username)
             {
-                UserDetails? userItem = await dbContext.UserDetails
+                UserDetails? userItem = await _dbContext.UserDetails
                     .SingleOrDefaultAsync(item => item.UserName == username, cancellationToken);
 
                 if (userItem is not null)
                 {
-                    userDetails.Add(userItem);
+                    try
+                    {
+                        ResetUserState(userItem);
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        _logger.LogError(ex, "A critical error occurred while resetting the user.");
+                        return 1;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "An error occurred while resetting the user.");
+                    }
                 }
                 else
                 {
@@ -93,23 +120,24 @@ public sealed class ResetUserCommandAction : AsynchronousCliAction, IDisposable
             return 1;
         }
 
-        // If no users were found, log an error and return.
-        if (userDetails.Count == 0)
-        {
-            _logger.LogError("No users found.");
-            return 1;
-        }
-
-        // Reset the state for each user.
-        foreach (UserDetails user in userDetails)
-        {
-            _logger.LogInformation("Resetting state for '{UserName}' ({EmployeeNumber}).", user.UserName, user.EmployeeNumber);
-            dbContext.UserDetails.Remove(user);
-        }
-
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await _dbContext.SaveChangesAsync(cancellationToken);
 
         return 0;
+    }
+
+    /// <summary>
+    /// Remove the user from the database to reset their state.
+    /// </summary>
+    /// <param name="user">The user to reset.</param>
+    private void ResetUserState(UserDetails user)
+    {
+        if (_dbContext is null)
+        {
+            throw new InvalidOperationException("Database context not initialized.");
+        }
+
+        _logger.LogInformation("Resetting state for '{UserName}' ({EmployeeNumber}).", user.UserName, user.EmployeeNumber);
+        _dbContext.UserDetails.Remove(user);
     }
 
     /// <inheritdoc />
@@ -118,6 +146,7 @@ public sealed class ResetUserCommandAction : AsynchronousCliAction, IDisposable
         ObjectDisposedException.ThrowIf(_disposed, this);
 
         _loggerFactory.Dispose();
+        _dbContext?.Dispose();
 
         _disposed = true;
 
