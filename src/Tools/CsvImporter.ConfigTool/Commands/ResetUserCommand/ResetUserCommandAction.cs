@@ -42,25 +42,61 @@ public sealed class ResetUserCommandAction : AsynchronousCliAction
                 .Options
         );
 
-        UserDetails? user = options.EmployeeNumber is not null
-            ? await dbContext.UserDetails
-                .FirstOrDefaultAsync(item => item.EmployeeNumber == options.EmployeeNumber, cancellationToken)
-            : await dbContext.UserDetails
-                .FirstOrDefaultAsync(item => item.UserName == options.Username, cancellationToken);
+        List<UserDetails> userDetails = [];
 
-        if (user is null)
+        if (options.EmployeeNumber is not null && options.EmployeeNumber.Length > 0)
         {
-            logger.LogWarning("User not found.");
+            foreach (string employeeNumber in options.EmployeeNumber)
+            {
+                UserDetails? userItem = await dbContext.UserDetails
+                    .SingleOrDefaultAsync(item => item.EmployeeNumber == employeeNumber, cancellationToken);
+
+                if (userItem is not null)
+                {
+                    userDetails.Add(userItem);
+                }
+                else
+                {
+                    logger.LogWarning("No user found with employee number '{EmployeeNumber}'.", employeeNumber);
+                }
+            }
+        }
+        else if (options.Username is not null && options.Username.Length > 0)
+        {
+            foreach (string username in options.Username)
+            {
+                UserDetails? userItem = await dbContext.UserDetails
+                    .SingleOrDefaultAsync(item => item.UserName == username, cancellationToken);
+
+                if (userItem is not null)
+                {
+                    userDetails.Add(userItem);
+                }
+                else
+                {
+                    logger.LogWarning("No user found with username '{Username}'.", username);
+                }
+            }
+        }
+        else
+        {
+            logger.LogError("Either an employee number or username must be provided.");
             return 1;
         }
 
-        logger.LogInformation("Resetting state for '{userName}' ({employeeNumber}).", user.UserName, user.EmployeeNumber);
+        if (userDetails.Count == 0)
+        {
+            logger.LogError("No users found.");
+            return 1;
+        }
 
-        // Remove the user from the database and save the changes.
-        dbContext.UserDetails.Remove(user);
+        foreach (UserDetails user in userDetails)
+        {
+            logger.LogInformation("Resetting state for '{UserName}' ({EmployeeNumber}).", user.UserName, user.EmployeeNumber);
+            dbContext.UserDetails.Remove(user);
+        }
+
         await dbContext.SaveChangesAsync(cancellationToken);
-        
-        logger.LogInformation("User state reset.");
 
         return 0;
     }
