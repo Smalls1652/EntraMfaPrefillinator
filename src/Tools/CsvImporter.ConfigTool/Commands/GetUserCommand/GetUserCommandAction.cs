@@ -62,9 +62,9 @@ public sealed class GetUserCommandAction : AsynchronousCliAction, IDisposable
         UserDetails? userDetails = (options.EmployeeNumber is not null) switch
         {
             true => await dbContext.UserDetails
-                .FirstOrDefaultAsync(item => item.EmployeeNumber == options.EmployeeNumber, cancellationToken),
+                .SingleAsync(item => item.EmployeeNumber == options.EmployeeNumber, cancellationToken),
             _ => await dbContext.UserDetails
-                .FirstOrDefaultAsync(item => item.UserName == options.Username, cancellationToken)
+                .SingleAsync(item => item.UserName == options.Username, cancellationToken)
         };
 
         if (userDetails is null)
