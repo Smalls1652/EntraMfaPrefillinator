@@ -15,7 +15,7 @@ public sealed class ResetUserCommand : CliCommand
         Description = "Reset the state for a user, so they can be reprocessed.";
 
         Options.Add(
-            new CliOption<string>("--employee-number")
+            new CliOption<string[]>("--employee-number")
             {
                 Description = "The employee number of the user.",
                 Required = false
@@ -23,7 +23,7 @@ public sealed class ResetUserCommand : CliCommand
         );
 
         Options.Add(
-            new CliOption<string>("--username")
+            new CliOption<string[]>("--username")
             {
                 Description = "The username of the user.",
                 Required = false
