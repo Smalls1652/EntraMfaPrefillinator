@@ -17,7 +17,7 @@ public sealed class ResetUserCommandOptions
         EmployeeNumber = ParseEmployeeNumberOption(parseResult);
         Username = ParseUsernameOption(parseResult);
 
-        if (EmployeeNumber.Length == 0 || Username.Length == 0)
+        if (EmployeeNumber.Length == 0 && Username.Length == 0)
         {
             throw new InvalidOperationException("Either --employee-number or --username must be specified.");
         }
