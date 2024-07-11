@@ -59,6 +59,7 @@ public sealed class GetUserCommandAction : AsynchronousCliAction, IDisposable
                 .Options
         );
 
+
         UserDetails? userDetails = (options.EmployeeNumber is not null) switch
         {
             true => await dbContext.UserDetails
@@ -94,8 +95,7 @@ public sealed class GetUserCommandAction : AsynchronousCliAction, IDisposable
         (int HeaderSpacing, int ColumnSpacing, int SeparatorSpacing) lastUpdatedSpacing = GetSpacing(lastUpdatedHeader, userDetails.LastUpdated?.ToString("yyyy-MM-dd HH:mm:ss"));
 
         outputBuilder
-            .Append("|")
-            .Append($" {employeeNumberHeader}{new string(' ', employeeNumberSpacing.HeaderSpacing)} ")
+            .Append($"{employeeNumberHeader}{new string(' ', employeeNumberSpacing.HeaderSpacing)} ")
             .Append("|")
             .Append($" {usernameHeader}{new string(' ', usernameSpacing.HeaderSpacing)} ")
             .Append("|")
@@ -105,11 +105,9 @@ public sealed class GetUserCommandAction : AsynchronousCliAction, IDisposable
             .Append("|")
             .Append($" {emailHeader}{new string(' ', emailSpacing.HeaderSpacing)} ")
             .Append("|")
-            .Append($" {lastUpdatedHeader}{new string(' ', lastUpdatedSpacing.HeaderSpacing)} ")
-            .Append("|")
+            .Append($" {lastUpdatedHeader}{new string(' ', lastUpdatedSpacing.HeaderSpacing)}")
             .Append(Environment.NewLine)
-            .Append("|")
-            .Append($" {new string('-', employeeNumberSpacing.SeparatorSpacing)} ")
+            .Append($"{new string('-', employeeNumberSpacing.SeparatorSpacing)} ")
             .Append("|")
             .Append($" {new string('-', usernameSpacing.SeparatorSpacing)} ")
             .Append("|")
@@ -119,11 +117,9 @@ public sealed class GetUserCommandAction : AsynchronousCliAction, IDisposable
             .Append("|")
             .Append($" {new string('-', emailSpacing.SeparatorSpacing)} ")
             .Append("|")
-            .Append($" {new string('-', lastUpdatedSpacing.SeparatorSpacing)} ")
-            .Append("|")
+            .Append($" {new string('-', lastUpdatedSpacing.SeparatorSpacing)}")
             .Append(Environment.NewLine)
-            .Append("|")
-            .Append($" {userDetails.EmployeeNumber ?? "N/A"}{new string(' ', employeeNumberSpacing.ColumnSpacing)} ")
+            .Append($"{userDetails.EmployeeNumber ?? "N/A"}{new string(' ', employeeNumberSpacing.ColumnSpacing)} ")
             .Append("|")
             .Append($" {userDetails.UserName ?? "N/A"}{new string(' ', usernameSpacing.ColumnSpacing)} ")
             .Append("|")
@@ -133,8 +129,8 @@ public sealed class GetUserCommandAction : AsynchronousCliAction, IDisposable
             .Append("|")    
             .Append($" {userDetails.SecondaryEmail ?? "N/A"}{new string(' ', emailSpacing.ColumnSpacing)} ")
             .Append("|")
-            .Append($" {userDetails.LastUpdated?.ToString("yyyy-MM-dd HH:mm:ss") ?? "N/A"}{new string(' ', lastUpdatedSpacing.ColumnSpacing)} ")
-            .Append("|");
+            .Append($" {userDetails.LastUpdated?.ToString("yyyy-MM-dd HH:mm:ss") ?? "N/A"}{new string(' ', lastUpdatedSpacing.ColumnSpacing)}")
+            .AppendLine();
 
         Console.WriteLine(outputBuilder.ToString());
 
