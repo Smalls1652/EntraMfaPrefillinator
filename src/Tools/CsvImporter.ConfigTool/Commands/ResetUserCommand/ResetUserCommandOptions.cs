@@ -17,30 +17,35 @@ public sealed class ResetUserCommandOptions
         EmployeeNumber = ParseEmployeeNumberOption(parseResult);
         Username = ParseUsernameOption(parseResult);
 
-        if (EmployeeNumber is null && Username is null || EmployeeNumber?.Length == 0 && Username?.Length == 0)
+        if (EmployeeNumber.Length == 0 || Username.Length == 0)
         {
             throw new InvalidOperationException("Either --employee-number or --username must be specified.");
+        }
+
+        if (EmployeeNumber.Length > 0 && Username.Length > 0)
+        {
+            throw new InvalidOperationException("--employee-number and --username can't be specified together.");
         }
     }
 
     /// <summary>
     /// The employee number of the user.
     /// </summary>
-    public string[]? EmployeeNumber { get; set; }
+    public string[] EmployeeNumber { get; set; }
 
     /// <summary>
     /// The username of the user.
     /// </summary>
-    public string[]? Username { get; set; }
+    public string[] Username { get; set; }
 
     /// <summary>
     /// Parses the '--employee-number' option.
     /// </summary>
     /// <param name="parseResult">The parse result.</param>
     /// <returns>The value of the '--employee-number' option.</returns>
-    private static string[]? ParseEmployeeNumberOption(ParseResult parseResult)
+    private static string[] ParseEmployeeNumberOption(ParseResult parseResult)
     {
-        return parseResult.GetValue<string[]>("--employee-number");
+        return parseResult.GetValue<string[]>("--employee-number") ?? [];
     }
 
     /// <summary>
@@ -48,8 +53,8 @@ public sealed class ResetUserCommandOptions
     /// </summary>
     /// <param name="parseResult">The parse result.</param>
     /// <returns>The value of the '--username' option.</returns>
-    private static string[]? ParseUsernameOption(ParseResult parseResult)
+    private static string[] ParseUsernameOption(ParseResult parseResult)
     {
-        return parseResult.GetValue<string[]>("--username");
+        return parseResult.GetValue<string[]>("--username") ?? [];
     }
 }

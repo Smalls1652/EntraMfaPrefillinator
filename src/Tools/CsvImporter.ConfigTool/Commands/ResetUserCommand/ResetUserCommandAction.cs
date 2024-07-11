@@ -42,9 +42,9 @@ public sealed class ResetUserCommandAction : AsynchronousCliAction
                 .Options
         );
 
+        //Get the user details from the database.
         List<UserDetails> userDetails = [];
-
-        if (options.EmployeeNumber is not null && options.EmployeeNumber.Length > 0)
+        if (options.EmployeeNumber.Length > 0)
         {
             foreach (string employeeNumber in options.EmployeeNumber)
             {
@@ -61,7 +61,7 @@ public sealed class ResetUserCommandAction : AsynchronousCliAction
                 }
             }
         }
-        else if (options.Username is not null && options.Username.Length > 0)
+        else if (options.Username.Length > 0)
         {
             foreach (string username in options.Username)
             {
@@ -84,12 +84,14 @@ public sealed class ResetUserCommandAction : AsynchronousCliAction
             return 1;
         }
 
+        // If no users were found, log an error and return.
         if (userDetails.Count == 0)
         {
             logger.LogError("No users found.");
             return 1;
         }
 
+        // Reset the state for each user.
         foreach (UserDetails user in userDetails)
         {
             logger.LogInformation("Resetting state for '{UserName}' ({EmployeeNumber}).", user.UserName, user.EmployeeNumber);
