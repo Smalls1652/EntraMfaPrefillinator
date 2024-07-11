@@ -13,14 +13,22 @@ namespace EntraMfaPrefillinator.Tools.CsvImporter.ConfigTool.Commands;
 /// <summary>
 /// Action for the 'reset-user' command.
 /// </summary>
-public sealed class ResetUserCommandAction : AsynchronousCliAction
+public sealed class ResetUserCommandAction : AsynchronousCliAction, IDisposable
 {
+    private bool _disposed;
+
+    private readonly ILoggerFactory _loggerFactory;
+    private readonly ILogger _logger;
+
+    public ResetUserCommandAction()
+    {
+        _loggerFactory = LoggerUtilities.CreateLoggerFactory();
+        _logger = _loggerFactory.CreateLogger("Reset User Command");
+    }
+
     /// <inheritdoc />
     public override async Task<int> InvokeAsync(ParseResult parseResult, CancellationToken cancellationToken = default)
     {
-        using ILoggerFactory loggerFactory = LoggerUtilities.CreateLoggerFactory();
-        ILogger logger = loggerFactory.CreateLogger("Reset User Command");
-
         // Parse the options passed to the command.
         RootCommandOptions rootOptions;
         ResetUserCommandOptions options;
@@ -31,7 +39,7 @@ public sealed class ResetUserCommandAction : AsynchronousCliAction
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Failed to parse command options.");
+            _logger.LogError(ex, "Failed to parse command options.");
             return 1;
         }
 
@@ -53,11 +61,12 @@ public sealed class ResetUserCommandAction : AsynchronousCliAction
 
                 if (userItem is not null)
                 {
+                    _logger.LogInformation("Resetting state for '{UserName}' ({EmployeeNumber}).", userItem.UserName, userItem.EmployeeNumber);
                     userDetails.Add(userItem);
                 }
                 else
                 {
-                    logger.LogWarning("No user found with employee number '{EmployeeNumber}'.", employeeNumber);
+                    _logger.LogWarning("No user found with employee number '{EmployeeNumber}'.", employeeNumber);
                 }
             }
         }
@@ -74,32 +83,44 @@ public sealed class ResetUserCommandAction : AsynchronousCliAction
                 }
                 else
                 {
-                    logger.LogWarning("No user found with username '{Username}'.", username);
+                   _logger.LogWarning("No user found with username '{Username}'.", username);
                 }
             }
         }
         else
         {
-            logger.LogError("Either an employee number or username must be provided.");
+            _logger.LogError("Either an employee number or username must be provided.");
             return 1;
         }
 
         // If no users were found, log an error and return.
         if (userDetails.Count == 0)
         {
-            logger.LogError("No users found.");
+            _logger.LogError("No users found.");
             return 1;
         }
 
         // Reset the state for each user.
         foreach (UserDetails user in userDetails)
         {
-            logger.LogInformation("Resetting state for '{UserName}' ({EmployeeNumber}).", user.UserName, user.EmployeeNumber);
+            _logger.LogInformation("Resetting state for '{UserName}' ({EmployeeNumber}).", user.UserName, user.EmployeeNumber);
             dbContext.UserDetails.Remove(user);
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);
 
         return 0;
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        _loggerFactory.Dispose();
+
+        _disposed = true;
+
+        GC.SuppressFinalize(this);
     }
 }
