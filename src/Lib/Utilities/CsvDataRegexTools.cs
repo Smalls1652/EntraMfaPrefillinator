@@ -37,6 +37,45 @@ public static partial class CsvDataRegexTools
     private static partial Regex PhoneNumberHasCountryCodeRegex();
 
     /// <summary>
+    /// Checks if the phone number has an area code in parentheses.
+    /// </summary>
+    /// <param name="phoneNumber">The phone number to check.</param>
+    /// <returns>True if the phone number has an area code in parentheses; otherwise, false.</returns>
+    public static bool PhoneNumberHasAreaCodeParentheses(string phoneNumber) => PhoneNumberAreaCodeParenthesesRegex().IsMatch(phoneNumber);
+
+    /// <summary>
+    /// Normalizes a phone number with an area code in parentheses.
+    /// </summary>
+    /// <param name="phoneNumber">The phone number to normalize.</param>
+    /// <returns>A normalized phone number in the format <c>###-###-####</c>.</returns>
+    public static string NormalizePhoneNumberAreaCodeParentheses(string phoneNumber)
+    {
+        Match phoneNumberMatch = PhoneNumberAreaCodeParenthesesRegex().Match(phoneNumber);
+
+        return $"{phoneNumberMatch.Groups["areaCode"].Value}-{phoneNumberMatch.Groups["phonePrefix"].Value}-{phoneNumberMatch.Groups["lineNumber"].Value}";
+    }
+
+    [GeneratedRegex(
+        pattern: @"\((?'areaCode'\d{3})\)(?>\s|(?>-|))(?'phonePrefix'\d{3})(?>-|)(?'lineNumber'\d{4})"
+    )]
+    private static partial Regex PhoneNumberAreaCodeParenthesesRegex();
+
+    /// <summary>
+    /// Checks if the phone number is in the correct format.
+    /// </summary>
+    /// <remarks>
+    /// The correct format is <c>+# ###-###-####</c>.
+    /// </remarks>
+    /// <param name="phoneNumber">The phone number to check.</param>
+    /// <returns>True if the phone number is in the correct format; otherwise, false.</returns>
+    public static bool IsValidPhoneNumberFormat(string phoneNumber) => ValidPhoneNumberFormatRegex().IsMatch(phoneNumber);
+
+    [GeneratedRegex(
+        pattern: @"(?'countryCode'\+\d{1,}) (?'areaCode'\d{3})-(?'phonePrefix'\d{3})-(?'lineNumber'\d{4})"
+    )]
+    private static partial Regex ValidPhoneNumberFormatRegex();
+
+    /// <summary>
     /// Checks if the provided email address is valid.
     /// </summary>
     /// <param name="emailAddress">The email address to check.</param>

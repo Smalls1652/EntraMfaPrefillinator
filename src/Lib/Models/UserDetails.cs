@@ -154,9 +154,19 @@ public sealed class UserDetails
             return null;
         }
 
+        if (CsvDataRegexTools.PhoneNumberHasAreaCodeParentheses(phoneNumber))
+        {
+            phoneNumber = CsvDataRegexTools.NormalizePhoneNumberAreaCodeParentheses(phoneNumber);
+        }
+
         if (!CsvDataRegexTools.PhoneNumberHasCountryCode(phoneNumber))
         {
             phoneNumber = $"+1 {phoneNumber}";
+        }
+
+        if (!CsvDataRegexTools.IsValidPhoneNumberFormat(phoneNumber))
+        {
+            return null;
         }
 
         return phoneNumber;
