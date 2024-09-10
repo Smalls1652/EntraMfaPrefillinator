@@ -35,7 +35,7 @@ public sealed class CsvFileReaderService : ICsvFileReaderService
 
         string? csvLine;
         int currentLine = 0;
-        while ((csvLine = await csvFileReader.ReadLineAsync()) is not null)
+        while ((csvLine = await csvFileReader.ReadLineAsync(cancellationToken)) is not null)
         {
             bool isValidCsvLine = CsvDataRegexTools.IsValidCsvLine(csvLine);
 

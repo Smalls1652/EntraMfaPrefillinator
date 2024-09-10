@@ -92,9 +92,7 @@ public sealed class MainService : IMainService, IHostedService, IDisposable
             List<UserDetails> userDetailsList;
             try
             {
-                userDetailsList = await _csvFileReader.ReadCsvFileAsync(
-                    csvFilePath: csvFileInfo.FullName
-                );
+                userDetailsList = await _csvFileReader.ReadCsvFileAsync(csvFileInfo.FullName, cancellationToken);
             }
             catch (Exception ex)
             {
