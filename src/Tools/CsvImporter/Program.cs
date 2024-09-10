@@ -4,6 +4,8 @@ using System.Text.Json;
 using EntraMfaPrefillinator.Hosting;
 using EntraMfaPrefillinator.Hosting.Extensions;
 using EntraMfaPrefillinator.Lib.Azure.Extensions;
+using EntraMfaPrefillinator.Lib.Models.Graph;
+using EntraMfaPrefillinator.Lib.Services.Extensions;
 using EntraMfaPrefillinator.Tools.CsvImporter;
 using EntraMfaPrefillinator.Tools.CsvImporter.Database.Extensions;
 using EntraMfaPrefillinator.Tools.CsvImporter.Extensions.ServiceSetup;
@@ -210,6 +212,12 @@ builder.Services
     {
         options.ConfigFilePath = configFilePath;
         options.ConfigDirPath = configDirPath;
+    });
+
+builder.Services
+    .AddGraphClientService(options =>
+    {
+        options.Credential = new GraphClientCredential(GraphClientCredentialType.SystemManagedIdentity);
     });
 
 // Add the QueueClientService to the host.
