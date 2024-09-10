@@ -92,6 +92,18 @@ public sealed class UserDetails
     public DateTimeOffset? LastUpdated { get; set; }
 
     /// <summary>
+    /// The user's ID in Microsoft Entra ID.
+    /// </summary>
+    [Column("EntraUserId")]
+    public string? EntraUserId { get; set; }
+
+    /// <summary>
+    /// The date and time the user was created in Microsoft Entra ID.
+    /// </summary>
+    [Column("EntraUserCreatedDateTime")]
+    public DateTimeOffset EntraUserCreatedDateTime { get; set; } = DateTimeOffset.MinValue;
+
+    /// <summary>
     /// Whether or not was in a previous run.
     /// </summary>
     [NotMapped]
