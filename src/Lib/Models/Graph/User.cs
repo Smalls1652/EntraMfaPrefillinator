@@ -16,4 +16,7 @@ public class User : IUser
 
     [JsonPropertyName("onPremisesSamAccountName")]
     public string OnPremisesSamAccountName { get; set; } = null!;
+
+    [JsonPropertyName("createdDateTime")]
+    public DateTimeOffset CreatedDateTime { get; set; } = DateTimeOffset.MinValue;
 }

@@ -47,7 +47,7 @@ public partial class GraphClientService
         }
 
         string apiFilter = HttpUtility.UrlEncode(apiFilterBuilder.ToString());
-        string apiEndpoint = $"users?$filter={apiFilter}&$select=id,userPrincipalName,displayName,onPremisesSamAccountName,employeeId";
+        string apiEndpoint = $"users?$filter={apiFilter}&$select=id,userPrincipalName,displayName,onPremisesSamAccountName,employeeId,createdDateTime";
 
         string apiResultString = await SendApiCallAsync(
             endpoint: apiEndpoint,
