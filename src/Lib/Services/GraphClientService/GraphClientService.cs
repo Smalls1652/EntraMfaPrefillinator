@@ -14,7 +14,8 @@ public partial class GraphClientService : IGraphClientService, IDisposable
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IEnumerable<string> _apiScopes;
     private readonly bool _disableUpdateMethods;
-    private readonly IConfidentialClientApplication _confidentialClientApplication;
+    private readonly GraphClientServiceOptions _options;
+    private readonly GraphClientCredentialType _graphClientCredentialType;
     private readonly ActivitySource _activitySource = new("EntraMfaPrefillinator.Lib.Services.GraphClientService");
 
     public GraphClientService(ILogger<GraphClientService> logger, IHttpClientFactory httpClientFactory, IOptions<GraphClientServiceOptions> options)
@@ -23,16 +24,16 @@ public partial class GraphClientService : IGraphClientService, IDisposable
 
         _httpClientFactory = httpClientFactory;
 
-        var graphClientConfig = options.Value;
-        _apiScopes = graphClientConfig.ApiScopes;
+        _options = options.Value;
+        _apiScopes = _options.ApiScopes;
+        _graphClientCredentialType = _options.Credential.CredentialType;
 
-        _confidentialClientApplication = ConfidentialClientApplicationBuilder
-            .Create(graphClientConfig.ClientId)
-            .WithClientSecret(graphClientConfig.Credential.ClientSecret)
-            .WithTenantId(graphClientConfig.TenantId)
-            .Build();
+        if (_graphClientCredentialType != GraphClientCredentialType.ClientSecret && _graphClientCredentialType != GraphClientCredentialType.SystemManagedIdentity)
+        {
+            throw new InvalidOperationException($"Invalid GraphClientCredentialType: {_graphClientCredentialType}");
+        }
 
-        _disableUpdateMethods = graphClientConfig.DisableUpdateMethods;
+        _disableUpdateMethods = _options.DisableUpdateMethods;
     }
 
     private bool _isConnected => _authToken is not null;
