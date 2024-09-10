@@ -13,5 +13,15 @@ public enum GraphClientCredentialType
     /// <summary>
     /// The app uses a certificate for authentication.
     /// </summary>
-    ClientCertificate
+    ClientCertificate,
+
+    /// <summary>
+    /// The app uses a system-managed identity for authentication.
+    /// </summary>
+    SystemManagedIdentity,
+
+    /// <summary>
+    /// The app uses a user-managed identity for authentication.
+    /// </summary>
+    UserManagedIdentity
 }
