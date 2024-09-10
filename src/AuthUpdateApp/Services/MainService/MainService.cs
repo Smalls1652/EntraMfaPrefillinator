@@ -128,7 +128,7 @@ internal sealed class MainService : IHostedService, IDisposable
             User user;
             try
             {
-                user = await GetUserAsync(queueItem, activity);
+                user = await GetUserAsync(queueItem, activity, cancellationToken);
             }
             catch (GetUserException)
             {
@@ -376,14 +376,14 @@ internal sealed class MainService : IHostedService, IDisposable
     /// <param name="queueItem">The queue item containing the user's information.</param>
     /// <returns>The user from the Graph API.</returns>
     /// <exception cref="GetUserException">An error occurred while getting the user.</exception>
-    private async Task<User> GetUserAsync(UserAuthUpdateQueueItem queueItem, Activity? activity)
+    private async Task<User> GetUserAsync(UserAuthUpdateQueueItem queueItem, Activity? activity, CancellationToken cancellationToken = default)
     {
         User user;
         if (queueItem.UserName is not null || queueItem.EmployeeId is not null)
         {
             try
             {
-                user = await _graphClientService.GetUserByUserNameAndEmployeeNumberAsync(queueItem.UserName, queueItem.EmployeeId, activity?.Id) ?? throw new NullReferenceException("Returned user was null.");
+                user = await _graphClientService.GetUserByUserNameAndEmployeeNumberAsync(queueItem.UserName, queueItem.EmployeeId, activity?.Id, cancellationToken) ?? throw new NullReferenceException("Returned user was null.");
             }
             catch (Exception ex)
             {
