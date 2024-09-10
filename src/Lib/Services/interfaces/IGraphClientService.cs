@@ -7,8 +7,8 @@ public interface IGraphClientService
     Task<User?> GetUserAsync(string userId);
     Task<User?> GetUserAsync(string userId, string? parentActivityId);
 
-    Task<User?> GetUserByUserNameAndEmployeeNumberAsync(string? userName, string? employeeNumber);
-    Task<User?> GetUserByUserNameAndEmployeeNumberAsync(string? userName, string? employeeNumber, string? parentActivityId);
+    Task<User?> GetUserByUserNameAndEmployeeNumberAsync(string? userName, string? employeeNumber, CancellationToken cancellationToken);
+    Task<User?> GetUserByUserNameAndEmployeeNumberAsync(string? userName, string? employeeNumber, string? parentActivityId, CancellationToken cancellationToken);
 
     Task<PhoneAuthenticationMethod> AddPhoneAuthenticationMethodAsync(string userId, string phoneNumber);
     Task<PhoneAuthenticationMethod> AddPhoneAuthenticationMethodAsync(string userId, string phoneNumber, string? parentActivityId);

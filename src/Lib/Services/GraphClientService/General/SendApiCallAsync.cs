@@ -14,7 +14,7 @@ public partial class GraphClientService
     /// <param name="httpMethod">The HTTP method to use.</param>
     /// <param name="body">Contents to use in the body of the API call.</param>
     /// <returns>If any, the response from the Graph API in string form.</returns>
-    private async Task<string?> SendApiCallAsync(string endpoint, HttpMethod httpMethod, string? body)
+    private async Task<string?> SendApiCallAsync(string endpoint, HttpMethod httpMethod, string? body, CancellationToken cancellationToken = default)
     {
         await ConnectAsync();
 
@@ -44,7 +44,7 @@ public partial class GraphClientService
                 );
             }
 
-            using HttpResponseMessage response = await graphClient.SendAsync(request);
+            using HttpResponseMessage response = await graphClient.SendAsync(request, cancellationToken);
 
             switch (response.StatusCode)
             {
@@ -59,7 +59,7 @@ public partial class GraphClientService
                     break;
 
                 default:
-                    content = await response.Content.ReadAsStringAsync();
+                    content = await response.Content.ReadAsStringAsync(cancellationToken);
                     isFinished = true;
                     break;
             }
@@ -75,4 +75,6 @@ public partial class GraphClientService
     /// <param name="httpMethod">The HTTP method to use.</param>
     /// <returns>If any, the response from the Graph API in string form.</returns>
     private async Task<string?> SendApiCallAsync(string endpoint, HttpMethod httpMethod) => await SendApiCallAsync(endpoint, httpMethod, null);
+
+    private async Task<string?> SendApiCallAsync(string endpoint, HttpMethod httpMethod, CancellationToken cancellationToken = default) => await SendApiCallAsync(endpoint, httpMethod, null, cancellationToken);
 }

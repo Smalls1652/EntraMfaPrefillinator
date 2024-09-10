@@ -8,8 +8,9 @@ namespace EntraMfaPrefillinator.Lib.Services;
 public partial class GraphClientService
 {
     /// <inheritdoc />
-    public async Task<User?> GetUserByUserNameAndEmployeeNumberAsync(string? userName, string? employeeNumber) => await GetUserByUserNameAndEmployeeNumberAsync(userName, employeeNumber, null);
-    public async Task<User?> GetUserByUserNameAndEmployeeNumberAsync(string? userName, string? employeeNumber, string? parentActivityId)
+    public async Task<User?> GetUserByUserNameAndEmployeeNumberAsync(string? userName, string? employeeNumber, CancellationToken cancellationToken = default) => await GetUserByUserNameAndEmployeeNumberAsync(userName, employeeNumber, null, cancellationToken);
+    
+    public async Task<User?> GetUserByUserNameAndEmployeeNumberAsync(string? userName, string? employeeNumber, string? parentActivityId, CancellationToken cancellationToken = default)
     {
         using var activity = _activitySource.StartActivity(
             name: "GetUserByUserNameAndEmployeeNumberAsync",
@@ -50,7 +51,8 @@ public partial class GraphClientService
 
         string apiResultString = await SendApiCallAsync(
             endpoint: apiEndpoint,
-            httpMethod: HttpMethod.Get
+            httpMethod: HttpMethod.Get,
+            cancellationToken: cancellationToken
         ) ?? throw new Exception("API result was null.");
         
         User? user;
