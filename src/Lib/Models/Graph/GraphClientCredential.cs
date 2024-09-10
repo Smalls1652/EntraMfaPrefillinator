@@ -7,6 +7,11 @@ namespace EntraMfaPrefillinator.Lib.Models.Graph;
 /// </summary>
 public class GraphClientCredential : IGraphClientCredential
 {
+    public GraphClientCredential(GraphClientCredentialType credentialType)
+    {
+        CredentialType = credentialType;
+    }
+
     public GraphClientCredential(GraphClientCredentialType credentialType, string clientSecret)
     {
         CredentialType = credentialType;
