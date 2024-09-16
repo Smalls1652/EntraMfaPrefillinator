@@ -3,6 +3,7 @@ using System.Text.Json;
 
 using EntraMfaPrefillinator.Lib.Azure.Services;
 using EntraMfaPrefillinator.Lib.Models;
+using EntraMfaPrefillinator.Lib.Services;
 using EntraMfaPrefillinator.Tools.CsvImporter.Database.Contexts;
 using EntraMfaPrefillinator.Tools.CsvImporter.Models;
 using EntraMfaPrefillinator.Tools.CsvImporter.Utilities;
@@ -25,16 +26,18 @@ public sealed class MainService : IMainService, IHostedService, IDisposable
     private readonly ILogger _logger;
     private readonly IConfiguration _configuration;
     private readonly IQueueClientService _queueClientService;
+    private readonly IGraphClientService _graphClientService;
     private readonly IDbContextFactory<UserDetailsDbContext> _dbContextFactory;
     private readonly ICsvFileReaderService _csvFileReader;
     private readonly MainServiceOptions _options;
 
-    public MainService(IHostApplicationLifetime appLifetime, ILoggerFactory loggerFactory, IConfiguration configuration, IQueueClientService queueClientService, IDbContextFactory<UserDetailsDbContext> dbContextFactory, ICsvFileReaderService csvFileReader, IOptions<MainServiceOptions> options)
+    public MainService(IHostApplicationLifetime appLifetime, ILoggerFactory loggerFactory, IConfiguration configuration, IQueueClientService queueClientService, IGraphClientService graphClientService, IDbContextFactory<UserDetailsDbContext> dbContextFactory, ICsvFileReaderService csvFileReader, IOptions<MainServiceOptions> options)
     {
         _appLifetime = appLifetime;
         _logger = loggerFactory.CreateLogger("MainService");
         _configuration = configuration;
         _queueClientService = queueClientService;
+        _graphClientService = graphClientService;
         _dbContextFactory = dbContextFactory;
         _csvFileReader = csvFileReader;
         _options = options.Value;
@@ -51,6 +54,22 @@ public sealed class MainService : IMainService, IHostedService, IDisposable
 
         try
         {
+            // If the 'CSV_IMPORTER_ENRICH_EXISTING_USERS' config value is set to true,
+            // enrich existing users in the database with data from Entra ID.
+            if (_configuration.GetValue<string>("CSV_IMPORTER_ENRICH_EXISTING_USERS") == "true")
+            {
+                _logger.LogWarning("CSV_IMPORTER_ENRICH_EXISTING_USERS is set to true.");
+                _logger.LogWarning("This environment variable will take the existing users in the state database and enrich them with data from Entra ID.");
+                _logger.LogWarning("This may take a long time to complete, depending on the number of users in the database.");
+
+                _logger.LogWarning("Getting existing users from the state database...");
+
+                await EnrichExistingUsersWithEntraIdDataAsync(cancellationToken);
+
+                _logger.LogInformation("Finished.");
+
+                return;
+            }
 
             CsvImporterConfigFile configFile = _configuration.Get<CsvImporterConfigFile>()!;
 
@@ -324,5 +343,46 @@ public sealed class MainService : IMainService, IHostedService, IDisposable
         }
 
         return;
+    }
+
+    private async Task EnrichExistingUsersWithEntraIdDataAsync(CancellationToken cancellationToken)
+    {
+        using UserDetailsDbContext dbContext = _dbContextFactory.CreateDbContext();
+
+        List<UserDetails> userDetailsList = await dbContext.UserDetails.ToListAsync(cancellationToken);
+
+        int currentBatchItem = 0;
+        int batchSize = 100;
+        foreach (var userDetails in userDetailsList)
+        {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+            }
+
+            try
+            {
+                await userDetails.GetEntraUserInfoAsync(_graphClientService, cancellationToken);
+            }
+            catch
+            {
+                // Do nothing. We're explicitly ignoring exceptions for now.
+            }
+
+            currentBatchItem++;
+
+            if (currentBatchItem == batchSize)
+            {
+                _logger.LogInformation("Processed {BatchSize} users, updating database...", batchSize);
+                await dbContext.SaveChangesAsync(cancellationToken);
+                currentBatchItem = 0;
+            }
+        }
+
+        if (dbContext.ChangeTracker.HasChanges())
+        {
+            _logger.LogInformation("Updating database...");
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
     }
 }
