@@ -1,6 +1,9 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.RegularExpressions;
+
+using EntraMfaPrefillinator.Lib.Models.Graph;
+using EntraMfaPrefillinator.Lib.Services;
 using EntraMfaPrefillinator.Lib.Utilities;
 
 namespace EntraMfaPrefillinator.Lib.Models;
@@ -110,6 +113,12 @@ public sealed class UserDetails
     public bool IsInLastRun { get; set; } = false;
 
     /// <summary>
+    /// Whether or not the user was recreated since the last run.
+    /// </summary>
+    [NotMapped]
+    public bool UserWasRecreated { get; set; } = false;
+
+    /// <summary>
     /// Parse the employee number provided.
     /// </summary>
     /// <param name="employeeNumber">The employee number to parse.</param>
@@ -212,5 +221,31 @@ public sealed class UserDetails
         }
 
         return homePhoneNumber;
+    }
+
+    /// <summary>
+    /// Gets user information from Microsoft Entra ID and updates the user details accordingly.
+    /// </summary>
+    /// <param name="graphClientService">The <see cref="IGraphClientService"/> to use for getting the user.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    public async Task GetEntraUserInfoAsync(IGraphClientService graphClientService, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(UserName) || string.IsNullOrWhiteSpace(EmployeeNumber))
+        {
+            return;
+        }
+
+        User? retrievedUser = await graphClientService.GetUserByUserNameAndEmployeeNumberAsync(
+            userName: UserName,
+            employeeNumber: EmployeeNumber,
+            cancellationToken: cancellationToken
+        );
+
+        if (retrievedUser is not null)
+        {
+            EntraUserId = retrievedUser.Id;
+            EntraUserCreatedDateTime = retrievedUser.CreatedDateTime;
+        }
     }
 }
