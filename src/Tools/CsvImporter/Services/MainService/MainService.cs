@@ -235,7 +235,7 @@ public sealed class MainService : IMainService, IHostedService, IDisposable
             }
             else
             {
-                foreach (var userItem in userDetailsList)
+                foreach (var userItem in filteredUserDetailsList)
                 {
                     userItem.LastUpdated = DateTimeOffset.UtcNow;
 
