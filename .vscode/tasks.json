@@ -238,6 +238,51 @@
         "showReuseMessage": true,
         "clear": true
       }
+    },
+    {
+      "label": "UserDetailsDbContext: Add migration",
+      "detail": "Add a migration for UserDetailsDbContext for the CsvImporter.",
+      "icon": {
+        "id": "database",
+        "color": "terminal.ansiMagenta"
+      },
+      "type": "process",
+      "command": "dotnet",
+      "args": [
+        "ef",
+        "migrations",
+        "add",
+        "${input:efcoreMigrationName}",
+        "--output-dir",
+        "./Migrations/",
+        "--project",
+        "./CsvImporter.Database.csproj",
+        "--startup-project",
+        "${workspaceFolder}/src/Tools/CsvImporter/CsvImporter.csproj",
+        "--configuration",
+        "Development",
+        "--msbuildprojectextensionspath",
+        "${workspaceFolder}/artifacts/obj/CsvImporter/",
+        "--namespace",
+        "EntraMfaPrefillinator.Tools.CsvImporter.Database.Migrations",
+        "--context",
+        "UserDetailsDbContext"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/src/Tools/CsvImporter.Database",
+        "env": {
+          "DOTNET_ENVIRONMENT": "Development"
+        }
+      },
+      "problemMatcher": "$msCompile",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": true
+      }
     }
   ],
   "inputs": [
@@ -382,6 +427,12 @@
           "value": "src/Tools/CsvImporter.ConfigTool"
         }
       ]
+    },
+    {
+      "id": "efcoreMigrationName",
+      "description": "Enter the name of the migration.",
+      "type": "promptString",
+      "default": ""
     }
   ]
 }
