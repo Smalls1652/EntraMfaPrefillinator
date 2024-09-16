@@ -1,4 +1,5 @@
 using EntraMfaPrefillinator.Lib.Models;
+using EntraMfaPrefillinator.Lib.Services;
 using EntraMfaPrefillinator.Lib.Utilities;
 using EntraMfaPrefillinator.Tools.CsvImporter.Database.Contexts;
 
@@ -13,11 +14,13 @@ namespace EntraMfaPrefillinator.Tools.CsvImporter.Services;
 public sealed class CsvFileReaderService : ICsvFileReaderService
 {
     private readonly ILogger _logger;
+    private readonly IGraphClientService _graphClientService;
     private readonly IDbContextFactory<UserDetailsDbContext> _dbContextFactory;
 
-    public CsvFileReaderService(ILoggerFactory loggerFactory, IDbContextFactory<UserDetailsDbContext> dbContextFactory)
+    public CsvFileReaderService(ILoggerFactory loggerFactory, IGraphClientService graphClientService, IDbContextFactory<UserDetailsDbContext> dbContextFactory)
     {
         _logger = loggerFactory.CreateLogger("CsvFileReaderService");
+        _graphClientService = graphClientService;
         _dbContextFactory = dbContextFactory;
     }
 
@@ -27,7 +30,7 @@ public sealed class CsvFileReaderService : ICsvFileReaderService
     /// <param name="csvFilePath">The path to the CSV file.</param>
     /// <returns>A <see cref="List{T}"/> of <see cref="UserDetails"/> objects.</returns>
     /// <exception cref="Exception">Thrown when there is an error reading the CSV file.</exception>
-    public async Task<List<UserDetails>> ReadCsvFileAsync(string csvFilePath)
+    public async Task<List<UserDetails>> ReadCsvFileAsync(string csvFilePath, CancellationToken cancellationToken = default)
     {
         using StreamReader csvFileReader = new(File.OpenRead(csvFilePath));
 
@@ -54,7 +57,18 @@ public sealed class CsvFileReaderService : ICsvFileReaderService
             // If the line is valid, add it to the list.
             if (isValidCsvLine)
             {
-                userDetailsList.Add(new(csvLine));
+                UserDetails userDetails = new(csvLine);
+
+                try
+                {
+                    await userDetails.GetEntraUserInfoAsync(_graphClientService, cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Error retrieving user info for {userDetails}: {message}", userDetails.UserName, ex.Message);
+                }
+
+                userDetailsList.Add(userDetails);
             }
             else
             {
@@ -88,6 +102,7 @@ public sealed class CsvFileReaderService : ICsvFileReaderService
             UserDetails? lastRunUserDetailsItem = await dbContext.UserDetails
                 .FirstOrDefaultAsync(item => item == userDetailsItem, cancellationToken: cancellationToken);
 
+            // If the user was not found in the last run CSV file, add the user to the delta list.
             if (lastRunUserDetailsItem is null)
             {
                 userDetailsItem.IsInLastRun = false;
@@ -97,10 +112,23 @@ public sealed class CsvFileReaderService : ICsvFileReaderService
 
             // If the user was found in the last run CSV file and the email or phone number has changed,
             // add the user to the delta list.
-            if (lastRunUserDetailsItem.PhoneNumber != userDetailsItem.PhoneNumber || lastRunUserDetailsItem.SecondaryEmail != userDetailsItem.SecondaryEmail || lastRunUserDetailsItem.HomePhoneNumber != userDetailsItem.HomePhoneNumber)
+            if (lastRunUserDetailsItem.PhoneNumber != userDetailsItem.PhoneNumber
+                || lastRunUserDetailsItem.SecondaryEmail != userDetailsItem.SecondaryEmail
+                || lastRunUserDetailsItem.HomePhoneNumber != userDetailsItem.HomePhoneNumber)
             {
                 userDetailsItem.IsInLastRun = true;
                 deltaList.Add(userDetailsItem);
+                continue;
+            }
+
+            // If the user was found in the last run CSV file and the user's object ID
+            // in EntraID has changed, add the user to the delta list.
+            if (lastRunUserDetailsItem.EntraUserId != userDetailsItem.EntraUserId)
+            {
+                userDetailsItem.IsInLastRun = true;
+                userDetailsItem.UserWasRecreated = true;
+                deltaList.Add(userDetailsItem);
+                continue;
             }
         }
 
