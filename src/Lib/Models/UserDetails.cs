@@ -113,6 +113,12 @@ public sealed class UserDetails
     public bool IsInLastRun { get; set; } = false;
 
     /// <summary>
+    /// Whether or not the user exists in Microsoft Entra ID.
+    /// </summary>
+    [NotMapped]
+    public bool UserExistsInEntra { get; set; } = false;
+
+    /// <summary>
     /// Whether or not the user was recreated since the last run.
     /// </summary>
     [NotMapped]
@@ -246,6 +252,7 @@ public sealed class UserDetails
         {
             EntraUserId = retrievedUser.Id;
             EntraUserCreatedDateTime = retrievedUser.CreatedDateTime;
+            UserExistsInEntra = true;
         }
     }
 }
