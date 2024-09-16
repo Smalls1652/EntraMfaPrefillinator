@@ -160,6 +160,7 @@ public sealed class MainService : IMainService, IHostedService, IDisposable
                 userDetailsList = deltaList;
 
                 deltaStopwatch.Stop();
+                activity?.SetTag("user.delta.elapsedMilliseconds", deltaStopwatch.ElapsedMilliseconds);
                 _logger.LogInformation("Delta completed in {DeltaElapsedMilliseconds}ms", deltaStopwatch.ElapsedMilliseconds);
             }
 
