@@ -122,12 +122,12 @@ public sealed class MainService : IMainService, IHostedService, IDisposable
 
             activity?.SetTag("user.foundInCsv.count", userDetailsList.Count); ;
             _logger.LogInformation("Found {UserDetailsCount} users in CSV file", userDetailsList.Count);
-            
+
             // Get the current count of users in the database.
             int lastRunUserDetailsCount = await dbContext.UserDetails.CountAsync(cancellationToken);
 
             // If there are users in the database, run the delta against the current list.
-            
+
             if (lastRunUserDetailsCount != 0)
             {
                 isDeltaRun = true;
@@ -165,8 +165,17 @@ public sealed class MainService : IMainService, IHostedService, IDisposable
             }
 
 
-            // Filter out users without an email or phone number set.
-            List<UserDetails> filteredUserDetailsList = userDetailsList.FindAll(userDetails => userDetails.SecondaryEmail is not null || userDetails.PhoneNumber is not null || userDetails.HomePhoneNumber is not null);
+            // Filter out users who either:
+            // 1. Were not in a previous run and have an email or phone number.
+            // 2. Were in a previous run, but their user account was recreated in Entra ID.
+            List<UserDetails> filteredUserDetailsList = userDetailsList.FindAll(
+                userDetails => 
+                    userDetails.IsInLastRun == false
+                    && (userDetails.SecondaryEmail is not null
+                        || userDetails.PhoneNumber is not null
+                        || userDetails.HomePhoneNumber is not null)
+                    || (userDetails.IsInLastRun == true && userDetails.UserWasRecreated == true)
+            );
 
             activity?.SetTag("user.filtered.count", filteredUserDetailsList.Count);
             _logger.LogInformation("Filtered to {FilteredUserDetailsCount} users with email or phone number", filteredUserDetailsList.Count);
