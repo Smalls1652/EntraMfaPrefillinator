@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.RegularExpressions;
+
 using EntraMfaPrefillinator.Lib.Utilities;
 
 namespace EntraMfaPrefillinator.Lib.Models;
@@ -15,7 +16,7 @@ public sealed class UserDetails
     /// Initializes a new instance of the <see cref="UserDetails"/> class.
     /// </summary>
     public UserDetails()
-    {}
+    { }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="UserDetails"/> class.
@@ -154,6 +155,11 @@ public sealed class UserDetails
             return null;
         }
 
+        if (!CsvDataRegexTools.IsValidPhoneNumber(phoneNumber))
+        {
+            return null;
+        }
+
         if (CsvDataRegexTools.PhoneNumberHasAreaCodeParentheses(phoneNumber))
         {
             phoneNumber = CsvDataRegexTools.NormalizePhoneNumberAreaCodeParentheses(phoneNumber);
@@ -164,7 +170,7 @@ public sealed class UserDetails
             phoneNumber = $"+1 {phoneNumber}";
         }
 
-        if (!CsvDataRegexTools.IsValidPhoneNumberFormat(phoneNumber))
+        if (!CsvDataRegexTools.IsValidNormalizedPhoneNumberFormat(phoneNumber))
         {
             return null;
         }
@@ -184,6 +190,11 @@ public sealed class UserDetails
             return null;
         }
 
+        if (!CsvDataRegexTools.IsValidPhoneNumber(homePhoneNumber))
+        {
+            return null;
+        }
+
         if (CsvDataRegexTools.PhoneNumberHasAreaCodeParentheses(homePhoneNumber))
         {
             homePhoneNumber = CsvDataRegexTools.NormalizePhoneNumberAreaCodeParentheses(homePhoneNumber);
@@ -194,7 +205,7 @@ public sealed class UserDetails
             homePhoneNumber = $"+1 {homePhoneNumber}";
         }
 
-        if (!CsvDataRegexTools.IsValidPhoneNumberFormat(homePhoneNumber))
+        if (!CsvDataRegexTools.IsValidNormalizedPhoneNumberFormat(homePhoneNumber))
         {
             return null;
         }
