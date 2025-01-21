@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <!-- Core properties -->
+    <PropertyGroup>
+        <RootNamespace>EntraMfaPrefillinator.Lib.Tests</RootNamespace>
+        <AssemblyName>EntraMfaPrefillinator.Lib.Tests</AssemblyName>
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+    <!-- Package properties -->
+    <PropertyGroup>
+        <PackageId>EntraMfaPrefillinator.Lib.Tests</PackageId>
+        <Description>
+            Tests for the lass library for EntraMfaPrefillinator.
+        </Description>
+        <Authors>Timothy Small</Authors>
+        <Company>Smalls.Online</Company>
+        <Copyright>© Smalls.Online</Copyright>
+        <RepositoryUrl>https://github.com/Smalls1652/EntraMfaPrefillinator</RepositoryUrl>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    </PropertyGroup>
+    <!-- Dependencies -->
+    <ItemGroup>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" />
+        <PackageReference Include="MSTest" />
+        <ProjectReference Include="../Lib/Lib.csproj" />
+    </ItemGroup>
+    <!-- Additional settings -->
+    <ItemGroup>
+        <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
+    </ItemGroup>
+</Project>
