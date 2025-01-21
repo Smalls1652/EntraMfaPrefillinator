@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/nightly/sdk:8.0-jammy-aot AS build-env
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/nightly/sdk:9.0-noble-aot AS build-env
 
 ARG TARGETOS
 ARG TARGETARCH
@@ -16,7 +16,7 @@ COPY ./src/ ./src
 
 RUN dotnet publish "./src/AuthUpdateApp" --configuration "Release" --os "${TARGETOS}" --arch "${TARGETARCH}" --self-contained
 
-FROM --platform=$TARGETPLATFORM mcr.microsoft.com/dotnet/runtime-deps:8.0-jammy-chiseled
+FROM --platform=$TARGETPLATFORM mcr.microsoft.com/dotnet/runtime-deps:9.0-noble-chiseled
 
 ARG TARGETOS
 ARG TARGETARCH
