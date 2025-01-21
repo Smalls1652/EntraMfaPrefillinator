@@ -37,11 +37,18 @@ public static partial class CsvDataRegexTools
     private static partial Regex PhoneNumberHasCountryCodeRegex();
 
     /// <summary>
+    /// Check if the phone number is valid.
+    /// </summary>
+    /// <param name="phoneNumber">The phone number to check.</param>
+    /// <returns>True if the phone number is valid; otherwise, false.</returns>
+    public static bool IsValidPhoneNumber(string phoneNumber) => PhoneNumberRegex().IsMatch(phoneNumber);
+
+    /// <summary>
     /// Checks if the phone number has an area code in parentheses.
     /// </summary>
     /// <param name="phoneNumber">The phone number to check.</param>
     /// <returns>True if the phone number has an area code in parentheses; otherwise, false.</returns>
-    public static bool PhoneNumberHasAreaCodeParentheses(string phoneNumber) => PhoneNumberAreaCodeParenthesesRegex().IsMatch(phoneNumber);
+    public static bool PhoneNumberHasAreaCodeParentheses(string phoneNumber) => PhoneNumberRegex().Match(phoneNumber).Groups["areaCodeWithParentheses"].Success;
 
     /// <summary>
     /// Normalizes a phone number with an area code in parentheses.
@@ -50,15 +57,15 @@ public static partial class CsvDataRegexTools
     /// <returns>A normalized phone number in the format <c>###-###-####</c>.</returns>
     public static string NormalizePhoneNumberAreaCodeParentheses(string phoneNumber)
     {
-        Match phoneNumberMatch = PhoneNumberAreaCodeParenthesesRegex().Match(phoneNumber);
+        Match phoneNumberMatch = PhoneNumberRegex().Match(phoneNumber);
 
         return $"{phoneNumberMatch.Groups["areaCode"].Value}-{phoneNumberMatch.Groups["phonePrefix"].Value}-{phoneNumberMatch.Groups["lineNumber"].Value}";
     }
 
     [GeneratedRegex(
-        pattern: @"\((?'areaCode'\d{3})\)(?>\s|(?>-|))(?'phonePrefix'\d{3})(?>-|)(?'lineNumber'\d{4})"
+        pattern: @"(?'areaCodeWithParentheses'(?>\(|)(?'areaCode'\d{3})(?>\)|))(?>\s|(?>-|))(?'phonePrefix'\d{3})(?>-|)(?'lineNumber'\d{4})"
     )]
-    private static partial Regex PhoneNumberAreaCodeParenthesesRegex();
+    private static partial Regex PhoneNumberRegex();
 
     /// <summary>
     /// Checks if the phone number is in the correct format.
@@ -68,12 +75,12 @@ public static partial class CsvDataRegexTools
     /// </remarks>
     /// <param name="phoneNumber">The phone number to check.</param>
     /// <returns>True if the phone number is in the correct format; otherwise, false.</returns>
-    public static bool IsValidPhoneNumberFormat(string phoneNumber) => ValidPhoneNumberFormatRegex().IsMatch(phoneNumber);
+    public static bool IsValidNormalizedPhoneNumberFormat(string phoneNumber) => ValidNormalizedPhoneNumberFormatRegex().IsMatch(phoneNumber);
 
     [GeneratedRegex(
         pattern: @"(?'countryCode'\+\d{1,}) (?'areaCode'\d{3})-(?'phonePrefix'\d{3})-(?'lineNumber'\d{4})"
     )]
-    private static partial Regex ValidPhoneNumberFormatRegex();
+    private static partial Regex ValidNormalizedPhoneNumberFormatRegex();
 
     /// <summary>
     /// Checks if the provided email address is valid.
